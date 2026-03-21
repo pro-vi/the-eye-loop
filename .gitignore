@@ -12,3 +12,4 @@ node_modules/
 .research/gemimg/
 .research/*.sha
 debug.jsonl
+scripts/boss-run/
