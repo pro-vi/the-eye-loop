@@ -270,6 +270,27 @@
 			>
 				The Eye Loop
 			</h1>
+
+			<!-- Agent status — always visible inline -->
+			<div class="flex items-center gap-3">
+				{#each agents as agent (agent.id)}
+					{@const dotColor = agent.status === 'thinking' ? '#f59e0b'
+						: agent.status === 'waiting' ? '#3b82f6'
+						: agent.status === 'idle' ? 'var(--color-accept)'
+						: 'var(--color-outline)'}
+					<div class="flex items-center gap-1.5">
+						<div
+							class="w-2 h-2 rounded-full shrink-0"
+							class:animate-pulse={agent.status === 'thinking'}
+							style="background: {dotColor};"
+						></div>
+						<span class="text-[10px] font-medium" style="color: var(--color-on-surface-variant);">
+							{agent.name}
+						</span>
+					</div>
+				{/each}
+			</div>
+
 			<div class="flex items-center gap-4">
 				<span class="text-xs" style="color: var(--color-outline);">
 					{evidence.length} swipes
@@ -287,10 +308,9 @@
 		<div
 			class="grid grid-cols-1 md:grid-cols-[260px_1fr_340px] gap-4 flex-1 min-h-0 px-4 pb-4 max-w-[1440px] mx-auto w-full"
 		>
-			<!-- Left: Anima + Agents -->
+			<!-- Left: Anima -->
 			<div class="hidden md:flex flex-col gap-3 overflow-y-auto" style="scrollbar-width: thin;">
 				<AnimaPanel {evidence} {synthesis} {antiPatterns} />
-				<AgentStatus {agents} />
 			</div>
 
 			<!-- Center: Swipe feed -->
