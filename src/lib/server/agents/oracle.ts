@@ -70,14 +70,14 @@ For each axis:
 
 Also produce:
 - edge_case_flags: patterns needing special handling ("user accepts everything", "axis X contradictory", "all hesitant")
-- scout_assignments: for 3 scouts (Iris, Prism, Lumen), assign each a DIFFERENT axis to probe next
+- scout_assignments: for 6 scouts (Iris, Prism, Lumen, Aura, Facet, Echo), assign each a DIFFERENT axis to probe next
 - persona_anima_divergence: where revealed taste diverges from stated intent (null if none detected)`;
 
 // ── Cold-start schema + prompt ───────────────────────────────────────
 
 const coldStartSchema = z.array(
 	z.object({
-		scout: z.enum(['Iris', 'Prism', 'Lumen']),
+		scout: z.enum(['Iris', 'Prism', 'Lumen', 'Aura', 'Facet', 'Echo']),
 		hypothesis: z.string(),
 		word_probe: z.string()
 	})
@@ -87,16 +87,17 @@ const COLD_START_PROMPT = `You are the Oracle. A user just started a session.
 
 INTENT: "{INTENT}"
 
-Produce 3 FIRST QUESTIONS — one for each scout. These are the opening
+Produce 6 FIRST QUESTIONS — one for each scout. These are the opening
 Akinator moves. Each question should probe a different taste dimension
 that matters specifically for THIS product.
 
 For each:
-- scout: Iris | Prism | Lumen
+- scout: Iris | Prism | Lumen | Aura | Facet | Echo
 - hypothesis: what accept vs reject would reveal
 - word_probe: the 1-3 word label the user will see (PLAIN LANGUAGE, not jargon)
 
 Iris probes look and feel. Prism probes layout and interaction. Lumen probes voice and personality.
+Aura probes mood and atmosphere. Facet probes information design. Echo probes motion and behavior.
 
 RULES:
 - Questions must be INTENT-SPECIFIC, not generic design axes

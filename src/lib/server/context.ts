@@ -13,7 +13,7 @@ import { emitFacadeReady, emitSwipeResult, emitEvidenceUpdated } from './bus';
 // ── Queue thresholds ─────────────────────────────────────────────────
 
 const QUEUE_MIN = 3;
-const QUEUE_MAX = 5;
+const QUEUE_MAX = 8;
 
 // ── EyeLoopContext ────────────────────────────────────────────────────
 

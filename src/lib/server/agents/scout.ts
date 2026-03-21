@@ -20,12 +20,18 @@ const MAX_HISTORY = 8;
 const SCOUT_ROSTER = [
 	{ id: 'scout-01', name: 'Iris' },
 	{ id: 'scout-02', name: 'Prism' },
-	{ id: 'scout-03', name: 'Lumen' }
+	{ id: 'scout-03', name: 'Lumen' },
+	{ id: 'scout-04', name: 'Aura' },
+	{ id: 'scout-05', name: 'Facet' },
+	{ id: 'scout-06', name: 'Echo' }
 ] as const;
 
 const SCOUT_LENSES: Record<string, string> = {
 	Iris: 'Your lens: LOOK AND FEEL — colors, shapes, light vs dark, rounded vs sharp, photos vs illustrations.',
 	Prism: 'Your lens: LAYOUT AND INTERACTION — sidebar vs tabs, cards vs lists, dense vs spacious, scroll vs pages.',
+	Aura: 'Your lens: MOOD AND ATMOSPHERE — warm vs cool, calm vs energetic, intimate vs expansive, organic vs digital.',
+	Facet: 'Your lens: INFORMATION DESIGN — charts vs text, numbers vs narrative, dense data vs key metrics, tables vs cards.',
+	Echo: 'Your lens: MOTION AND BEHAVIOR — animated vs static, transitions vs instant, gesture vs click, fluid vs snappy.',
 	Lumen: 'Your lens: VOICE AND PERSONALITY — friendly vs professional, playful vs serious, branded vs neutral.'
 };
 
@@ -52,20 +58,21 @@ const FORMAT_INSTRUCTIONS: Record<Facade['format'], string> = {
 function getFormatInstruction(scoutName: string): { floor: Facade['format']; instruction: string } {
 	const floor = context.concretenessFloor;
 
-	// Iris pre-buffers images during word stage so they're ready when floor advances.
+	// Iris and Aura pre-buffer images during word stage so they're ready when floor advances.
 	// Other scouts stay on words — ensures the queue always has fast facades to swipe.
-	if (scoutName === 'Iris' && floor === 'word' && context.evidence.length >= 1) {
+	const isImageScout = scoutName === 'Iris' || scoutName === 'Aura';
+	if (isImageScout && floor === 'word' && context.evidence.length >= 1) {
 		return {
 			floor: 'image',
 			instruction: FORMAT_INSTRUCTIONS.image + '\nYou are PRE-BUFFERING. The user is still swiping words — your image will be ready when the stage advances. Make it count.'
 		};
 	}
 
-	// Mixed queue rule: if queue already has a slow facade (image), other scouts
+	// Mixed queue rule: if queue already has 2+ slow facades (images), non-image scouts
 	// generate fast formats (word/mockup) to keep the user swiping.
-	if (scoutName !== 'Iris' && floor === 'image') {
-		const queueHasImage = context.facades.some((f) => f.format === 'image');
-		if (queueHasImage) {
+	if (!isImageScout && floor === 'image') {
+		const imageCount = context.facades.filter((f) => f.format === 'image').length;
+		if (imageCount >= 2) {
 			return {
 				floor: 'word',
 				instruction: FORMAT_INSTRUCTIONS.word + '\nQueue already has an image pending. Generate a fast word probe so the user has something to swipe while the image renders.'

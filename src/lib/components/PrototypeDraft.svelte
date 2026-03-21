@@ -12,7 +12,7 @@
 	let hasPatterns = $derived(draft.acceptedPatterns.length > 0 || draft.rejectedPatterns.length > 0);
 
 	// Force width constraint on LLM-generated HTML — the model ignores prompt rules
-	const IFRAME_WRAPPER = '<style>*,*::before,*::after{box-sizing:border-box}html,body{margin:0;padding:0;width:375px;max-width:375px;overflow-x:hidden}</style>';
+	const IFRAME_WRAPPER = '<style>*,*::before,*::after{box-sizing:border-box}html,body{margin:0;padding:0;overflow-x:hidden}</style>';
 	let wrappedHtml = $derived(draft.html ? IFRAME_WRAPPER + draft.html : '');
 
 	let draftState = $derived(
@@ -111,9 +111,9 @@
 					style="
 							border: none;
 							display: block;
-							width: 375px;
-							height: 667px;
-							transform: scale({isReveal ? 1 : 0.854});
+							width: 430px;
+							height: 740px;
+							transform: scale({isReveal ? 1 : 0.744});
 							transform-origin: top left;
 						"
 					></iframe>
