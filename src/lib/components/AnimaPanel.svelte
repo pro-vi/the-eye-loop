@@ -102,7 +102,7 @@
 		<!-- Edge case flags -->
 		{#if synthesis.edge_case_flags.length > 0}
 			<div class="flex flex-wrap gap-1.5">
-				{#each synthesis.edge_case_flags as flag}
+				{#each synthesis.edge_case_flags as flag (flag)}
 					<span
 						class="rounded-full px-2.5 py-1 text-xs"
 						style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;"
@@ -131,7 +131,7 @@
 				Anti-patterns
 			</p>
 			<div class="flex flex-wrap gap-1.5">
-				{#each antiPatterns as pattern}
+				{#each antiPatterns as pattern (pattern)}
 					<span
 						class="rounded-full px-2.5 py-1 text-xs"
 						style="background: rgba(239, 68, 68, 0.08); color: var(--color-on-surface-variant);"
