@@ -65,22 +65,26 @@
 		}
 	}
 
-	// ── SSE connection ───────────────────────────────────────────────
+	// ── SSE connection (bound to session, not mode) ─────────────────
 	$effect(() => {
-		if (mode !== 'swiping') return;
+		if (!sessionId) return;
 
 		const es = new EventSource('/api/stream');
 
+		// Swiping-only events: gate by mode
 		es.addEventListener('facade-ready', (e) => {
+			if (mode !== 'swiping') return;
 			const { facade } = JSON.parse(e.data);
 			facades = [...facades, facade];
 		});
 
 		es.addEventListener('facade-stale', (e) => {
+			if (mode !== 'swiping') return;
 			const { facadeId } = JSON.parse(e.data);
 			facades = facades.filter((f) => f.id !== facadeId);
 		});
 
+		// Always-on events: update state regardless of mode
 		es.addEventListener('evidence-updated', (e) => {
 			const data = JSON.parse(e.data);
 			evidence = data.evidence;
@@ -105,6 +109,7 @@
 		});
 
 		es.addEventListener('builder-hint', (e) => {
+			if (mode !== 'swiping') return;
 			const { hint } = JSON.parse(e.data);
 			draft = { ...draft, nextHint: hint };
 		});
@@ -112,11 +117,7 @@
 		es.addEventListener('stage-changed', (e) => {
 			const data = JSON.parse(e.data);
 			stage = data.stage;
-			if (data.stage === 'reveal') {
-				// Delay mode transition so trailing events (final draft-updated,
-				// agent-status) arrive before the $effect cleanup closes EventSource
-				setTimeout(() => { mode = 'reveal'; }, 2000);
-			}
+			if (data.stage === 'reveal') mode = 'reveal';
 		});
 
 		es.onerror = () => {
