@@ -119,9 +119,9 @@ Facade format emerges from information density — no swipe-count stages needed:
 | 8 swipes | **Mockup description** | Model feels confident enough to describe specific UI |
 | 13 swipes | **Detailed mockup** with layout specifics | Strong evidence constrains the space |
 
-The model skips the "image/moodboard" stage — it goes word → mockup. Images are a scout-chosen format when needed, not a mandatory stage.
+The model skips the "image/moodboard" stage — it goes word → mockup. This suggests images are a scout-chosen format when the model wants to test visual direction, not a mandatory stage.
 
-**Implementation:** Let the scout choose format. The oracle can set a minimum concreteness floor as a guardrail but should not force stages.
+**Implementation:** Let the scout choose format. The oracle can set a minimum concreteness floor as a guardrail ("you have 8+ swipes of evidence, you may generate mockups") but should not force stages.
 
 ---
 
@@ -157,34 +157,39 @@ The model skips the "image/moodboard" stage — it goes word → mockup. Images 
 
 ## Anima Panel (UI)
 
-The Anima panel shows the **evidence story**, not confidence bars:
+The Anima panel can't show confidence bars anymore. Instead it shows the **evidence story**:
 
-1. **Accepted/rejected facade thumbnails** — visual history of what survived
-2. **LLM-generated taste summary** — regenerated after each swipe
-3. **Tag cloud** — keywords from accepted (+) and rejected (-) facades
+Options:
+1. **Accepted/rejected facade thumbnails** — visual history of what survived and what didn't
+2. **LLM-generated taste summary** — regenerated after each swipe (like a compaction step)
+3. **Tag cloud** — extracted keywords from accepted (+) and rejected (-) facades
 4. **Divergence indicator** — where revealed preference diverges from stated intent
+
+The most demo-impressive option is probably #1 + #2: show the facade history visually AND a one-line taste summary that updates live.
 
 ---
 
 ## Compaction
 
-After ~15-20 facades, context gets long. Compaction becomes evidence summarization:
+With raw evidence, context window becomes the constraint. After ~15-20 facades, the evidence list gets long. Compaction becomes:
 
 ```
 Every N swipes:
   LLM reads full evidence history
-  Outputs compressed summary
-  Summary replaces old entries (keeps last 5 raw + summary of older)
+  Outputs a compressed summary: "The user wants X, rejects Y, is uncertain about Z"
+  Summary replaces old evidence entries (keeps last 5 raw + summary of older)
 ```
+
+This is the same role as before but simpler — no axis YAML rewriting, just evidence summarization.
 
 ---
 
 ## Implementation Priority
 
-1. **Simplify `types.ts`** — replace `TasteAxis` with `SwipeEvidence`, drop `axisId` from `Facade`
+1. **Simplify `types.ts`** — replace `TasteAxis` with `SwipeEvidence`, simplify `Facade` (drop `axisId`)
 2. **Simplify `context.ts`** — evidence array replaces axis map, `addEvidence()` just pushes
-3. **Rewrite scout prompt** — use validated Akinator prompt
-4. **Rewrite builder prompt** — use validated builder prompt
+3. **Rewrite scout prompt** — use validated Akinator prompt from this doc
+4. **Rewrite builder prompt** — use validated builder prompt from this doc
 5. **Update Anima panel** — show evidence story instead of confidence bars
 6. **Add oracle guardrail** — minimum evidence depth for format escalation
 
