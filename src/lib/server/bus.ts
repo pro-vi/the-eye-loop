@@ -48,6 +48,9 @@ export const emitStageChanged: (p: SSEEventMap['stage-changed']) => void =
 export const emitDraftUpdated: (p: SSEEventMap['draft-updated']) => void =
 	(p) => emit('draft-updated', p);
 
+export const emitSynthesisUpdated: (p: SSEEventMap['synthesis-updated']) => void =
+	(p) => emit('synthesis-updated', p);
+
 export const emitSessionReady: (p: SSEEventMap['session-ready']) => void =
 	(p) => emit('session-ready', p);
 
@@ -77,6 +80,9 @@ export const onStageChanged = (cb: (p: SSEEventMap['stage-changed']) => void) =>
 export const onDraftUpdated = (cb: (p: SSEEventMap['draft-updated']) => void) =>
 	on('draft-updated', cb);
 
+export const onSynthesisUpdated = (cb: (p: SSEEventMap['synthesis-updated']) => void) =>
+	on('synthesis-updated', cb);
+
 export const onSessionReady = (cb: (p: SSEEventMap['session-ready']) => void) =>
 	on('session-ready', cb);
 
@@ -87,6 +93,38 @@ export function onceFacadeSwipe(facadeId: string): Promise<SwipeRecord> {
 		emitter.once(`swipe:${facadeId}`, (e: { record: SwipeRecord }) => {
 			resolve(e.record);
 		});
+	});
+}
+
+export function awaitFacadeSwipe(
+	facadeId: string,
+	timeoutMs: number,
+	signal?: AbortSignal
+): Promise<SwipeRecord | 'timeout' | 'aborted' | 'stale'> {
+	return new Promise((resolve) => {
+		let settled = false;
+		const settle = (v: SwipeRecord | 'timeout' | 'aborted' | 'stale') => {
+			if (settled) return;
+			settled = true;
+			clearTimeout(timer);
+			emitter.off(`swipe:${facadeId}`, onSwipe);
+			emitter.off('facade-stale', onStale);
+			signal?.removeEventListener('abort', onAbort);
+			resolve(v);
+		};
+		const onSwipe = (e: { record: SwipeRecord }) => settle(e.record);
+		const onStale = (e: { facadeId: string }) => {
+			if (e.facadeId === facadeId) settle('stale');
+		};
+		const onAbort = () => settle('aborted');
+		const timer = setTimeout(() => settle('timeout'), timeoutMs);
+
+		emitter.once(`swipe:${facadeId}`, onSwipe);
+		emitter.on('facade-stale', onStale);
+		if (signal) {
+			if (signal.aborted) { settle('aborted'); return; }
+			signal.addEventListener('abort', onAbort, { once: true });
+		}
 	});
 }
 
@@ -101,6 +139,7 @@ const SSE_EVENTS: SSEEventType[] = [
 	'builder-hint',
 	'stage-changed',
 	'draft-updated',
+	'synthesis-updated',
 	'session-ready'
 ];
 

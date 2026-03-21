@@ -1,61 +1,52 @@
-# 07 — Oracle (Pure Code, No LLM in V0)
+# 07 — Oracle (Code + LLM Synthesis, Akinator Pattern)
 
 ## Summary
-The oracle manages agent lifecycle, queue health, stage advancement, and freshness pruning. It is 80% code, 20% LLM in the full spec, but V0 cuts all LLM parts (compaction, fract detection, stuck detection). Everything here is pure code: if-statements on context state. src/lib/server/agents/oracle.ts.
+The oracle is the strategic brain of the system. It has three jobs: evidence synthesis (LLM, every 4 swipes), concreteness floor gating (code), and reveal triggering (code). Session init is pure code — no axis seeding. src/lib/server/agents/oracle.ts.
 
 ## Design
-Watches events on the bus and manages the system lifecycle. No generateText calls.
+Two exports:
 
-Responsibilities:
-1. Start initial scout(s) on session init
-2. Queue health: if context.facades.length < 3, signal scouts to prioritize. If > 5, scouts back off.
-3. Stage advancement by swipe count: 1-4 words, 5-8 images, 9-14 mockups, 14+ reveal
-4. Freshness pruning: on 'anima-updated', drop queued facades whose target axis just resolved (confidence > 0.8)
-5. Reveal trigger: emit 'stage-changed' with stage='reveal' when swipeCount > 14 or all axes resolved
+1. `seedSession(intent: string)` — initializes session state (reset, set intent, generate sessionId, emit session-ready). No LLM call. "The first probes ARE the seed" (specs/4-akinator.md:139). Scouts fill the queue after session creation.
 
-Bootstrap in hooks.server.ts init(): start oracle and builder listener. Scouts are NOT started in init() — they start when a session is created (session endpoint calls startScout).
+2. `startOracle()` — idempotent bus subscription on `swipe-result`. On each swipe:
+   - **Concreteness floor** (synchronous): check `context.concretenessFloor` (< 4 → word, 4-7 → image, 8+ → mockup). If floor advanced, update `context.stage`, emit `stage-changed`.
+   - **Reveal** (synchronous): if evidence >= 15, trigger reveal.
+   - **Synthesis** (async, non-blocking): every 4 swipes, run LLM synthesis. Captures evidence snapshot before async call. Session staleness guard on result commit.
+
+### Evidence Synthesis
+- Runs `generateText` with `gemini-2.5-flash` at temperature 0
+- Produces `TasteSynthesis`: known, unknown, contradictions, scout_guidance, persona_anima_divergence
+- Stored on `context.synthesis`, emitted as `synthesis-updated` on bus
+- Injected into scout + builder prompts for coordination
+- Shown in Anima panel as the visible taste model forming
+- Busy gate: if synthesis running and another 4th-swipe fires, skip
+
+### Queue Health
+Exposed via `context.queuePressure` getter ('hungry' | 'healthy' | 'full'). Scouts poll at loop top.
+
+### Concreteness Floor
+Exposed via `context.concretenessFloor` getter ('word' | 'image' | 'mockup'). Separate from `context.stage` — floor is a minimum, not a hard gate. Scouts read it for format selection.
 
 ## Scope
 ### Files
-- src/lib/server/agents/oracle.ts (~170-200 LOC)
-- src/hooks.server.ts (init function — agent bootstrap, ~20-30 LOC addition)
-
-### Subtasks
-
-## Queue health monitor
-Subscribe to 'facade-ready' and 'swipe-result' events on the bus. After each event, check context.facades.length (only pending, unswiped facades). If < 3: emit 'scout-prioritize' on bus (scouts should generate immediately without delay). If > 5: emit 'scout-backoff' on bus (scouts should add a short delay before next generation). Alternatively, expose a context.queuePressure getter that scouts poll: 'hungry' (< 3), 'healthy' (3-5), 'full' (> 5). Scouts check this at the top of each loop iteration.
-
-## Stage advancement logic
-Subscribe to 'swipe-result'. After each swipe, check context.swipeCount against thresholds:
-- swipeCount 1-4: stage = 'words'
-- swipeCount 5-8: stage = 'images'
-- swipeCount 9-14: stage = 'mockups'
-- swipeCount > 14: stage = 'reveal'
-
-When stage changes: update context.stage, emit 'stage-changed' with `{ stage: Stage, swipeCount: number }` on bus (matches SSEEvent type in 02-types). Scouts read context.stage at the top of each iteration to switch model/prompt. On 'reveal': scouts terminate their loops.
-
-**Stage advancement ownership:** The oracle is the SOLE owner of stage transitions. Context.addEvidence() does NOT advance stage. The swipe endpoint does NOT emit stage-changed. Only oracle reads swipeCount and decides when to transition.
-
-## Freshness pruning
-Subscribe to 'anima-updated' on bus. On each update, iterate context.facades (pending queue). For each facade, check the targeted axis: if context.axes[facade.axisId].confidence > 0.8, the axis has effectively resolved. Remove the facade from context.facades. Emit 'facade-stale' with the facade id on bus so any scout awaiting that facade's swipe can unblock and continue (scouts should handle 'facade-stale' as a signal to skip and generate a new one). Log pruned facade count.
-
-## Agent bootstrap in hooks.server.ts
-In hooks.server.ts init() (SvelteKit server initialization hook):
-1. Import and initialize EyeLoopContext (03-context)
-2. Import and start the event bus (03-context)
-3. Import and call startOracle(context, bus)
-4. Import and call startBuilder(context, bus) (06-builder)
-5. Do NOT start scouts here — scouts start when a session is created via the POST /api/session endpoint (04-endpoints). The session endpoint calls startScout(context, bus) for 1-2 scout instances.
+- src/lib/server/agents/oracle.ts (~150 LOC)
+- src/lib/context/types.ts (TasteSynthesis type, synthesis-updated SSE event)
+- src/lib/server/context.ts (synthesis field, concretenessFloor getter)
+- src/lib/server/bus.ts (synthesis emit/on helpers)
+- src/hooks.server.ts (unchanged — already starts oracle)
 
 ### Acceptance criteria
-- [ ] Queue stays between 3-5 pending facades during active swiping (scout-prioritize fires when < 3, scout-backoff fires when > 5)
-- [ ] Stage transitions to 'images' at swipeCount 5, 'mockups' at swipeCount 9, 'reveal' at swipeCount 15
-- [ ] 'stage-changed' event fires on bus with `{ stage, swipeCount }` (matches SSEEvent type)
-- [ ] Stale facades (targeting axes with confidence > 0.8) are removed from context.facades on anima-updated
-- [ ] Scouts waiting on a pruned facade receive a stale signal and do not hang indefinitely
-- [ ] Reveal mode triggers after ~14 swipes and scout loops terminate
-- [ ] hooks.server.ts init() starts oracle and builder without errors
-- [ ] Oracle contains zero LLM calls — all logic is pure code
+- [x] `seedSession(intent)` resets context, sets intent + sessionId, emits `session-ready`
+- [x] `startOracle()` is idempotent (teardown on re-invocation)
+- [x] Synthesis runs every 4 swipes via `generateText`
+- [x] Synthesis captures evidence snapshot before async call
+- [x] Session staleness guard discards stale synthesis results
+- [x] `synthesis-updated` event fires on bus with `TasteSynthesis` payload
+- [x] Concreteness floor advances: word (< 4) → image (4-7) → mockup (8+)
+- [x] `stage-changed` fires when floor advances
+- [x] Reveal triggers at evidence >= 15
+- [x] `context.queuePressure` returns hungry/healthy/full
+- [x] `pnpm check && pnpm build` both pass
 
 ### Dependencies
-03-context (EyeLoopContext singleton, axes, facades, stage, swipeCount, event bus), 05-scout-words (startScout function that oracle lifecycle manages).
+03-context (EyeLoopContext singleton, evidence, synthesis, facades, swipeCount, event bus). Scouts (05) fill the queue. Builder (06) reads synthesis for construction decisions.

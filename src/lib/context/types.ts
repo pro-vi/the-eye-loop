@@ -56,6 +56,14 @@ export interface ProbeBrief {
 	heldConstant: string[];
 }
 
+export interface TasteSynthesis {
+	known: string[];
+	unknown: string[];
+	contradictions: string[];
+	scout_guidance: string;
+	persona_anima_divergence: string | null;
+}
+
 export type SSEEvent =
 	| { type: 'facade-ready'; facade: Facade }
 	| { type: 'facade-stale'; facadeId: string }
@@ -65,6 +73,7 @@ export type SSEEvent =
 	| { type: 'draft-updated'; draft: PrototypeDraft }
 	| { type: 'builder-hint'; hint: string }
 	| { type: 'stage-changed'; stage: Stage; swipeCount: number }
+	| { type: 'synthesis-updated'; synthesis: TasteSynthesis }
 	| { type: 'session-ready'; intent: string }
 	| { type: 'error'; message: string };
 

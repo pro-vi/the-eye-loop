@@ -1,6 +1,7 @@
 import type {
 	Stage,
 	SwipeEvidence,
+	TasteSynthesis,
 	Facade,
 	SwipeRecord,
 	AgentState,
@@ -22,6 +23,7 @@ class EyeLoopContext {
 	swipeCount = 0;
 	stage: Stage = 'words';
 	evidence: SwipeEvidence[] = [];
+	synthesis: TasteSynthesis | null = null;
 	facades: Facade[] = [];
 	consumedFacades: Facade[] = [];
 	probes: ProbeBrief[] = [];
@@ -49,6 +51,12 @@ class EyeLoopContext {
 		if (this.facades.length < QUEUE_MIN) return 'hungry';
 		if (this.facades.length > QUEUE_MAX) return 'full';
 		return 'healthy';
+	}
+
+	get concretenessFloor(): 'word' | 'image' | 'mockup' {
+		if (this.evidence.length < 4) return 'word';
+		if (this.evidence.length < 8) return 'image';
+		return 'mockup';
 	}
 
 	// ── Methods ─────────────────────────────────────────────────────
@@ -98,12 +106,24 @@ class EyeLoopContext {
 		return this.probes.shift();
 	}
 
+	peekNextProbe(): ProbeBrief | undefined {
+		const highIdx = this.probes.findIndex((p) => p.priority === 'high');
+		if (highIdx !== -1) return this.probes[highIdx];
+		return this.probes[0];
+	}
+
+	consumeProbe(probe: ProbeBrief): void {
+		const idx = this.probes.indexOf(probe);
+		if (idx !== -1) this.probes.splice(idx, 1);
+	}
+
 	reset() {
 		this.intent = '';
 		this.sessionId = '';
 		this.swipeCount = 0;
 		this.stage = 'words';
 		this.evidence = [];
+		this.synthesis = null;
 		this.facades = [];
 		this.consumedFacades = [];
 		this.probes = [];
