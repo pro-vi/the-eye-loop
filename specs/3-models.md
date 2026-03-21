@@ -98,3 +98,87 @@ const result = await generateText({
 | Nano Banana 2 | 5K | 10M | 50K |
 
 No rate concerns for single-user demo. Flash Lite has the most generous limits.
+
+## Temperature Discipline
+
+Different tasks need different temperature settings (validated by gemini-cli project patterns):
+
+| Tier | Temperature | Why |
+|------|------------|-----|
+| Generator (scouts) | `1.0` (default) | Creative facade generation needs diversity |
+| Generator (builder) | `0` | Analytical — identifying construction blockers |
+| Generator (compaction) | `0` | Deterministic — merging/pruning evidence |
+| Renderer (NB2) | `1.0` (default) | Creative image generation |
+| Oracle | `0` | Analytical — fract detection, stuck decisions |
+
+## Renderer Patterns (from research)
+
+Patterns validated by nano-banana-2-skill and gemimg projects:
+
+1. **Reference images go FIRST in parts array, text prompt LAST.** Gemini uses visual context before text instruction — improves style consistency for one-axis sweeps.
+
+2. **Style transfer via text prompt does NOT work.** "Make it warmer" is unreliable. Pass the accepted facade as reference image + instruct only the axis change.
+
+3. **Stateless editing is MANDATORY, not just preferred.** Multi-turn conversation history with NB2 fails with `thought_signature` error — AI SDK does not handle this. Each facade MUST be a fresh `generateText` call with reference image as `type: 'file'` in a single user message. Never pass assistant-generated images back in conversation history.
+
+4. **Google Search grounding: skip.** Benchmarked — adds ~7s latency to image gen with no quality improvement. Same for HTML mockups. Not worth it.
+
+5. **Max 3 iterative edits on same reference before rebuilding prompt from scratch** — drift accumulates.
+
+6. **One-axis sweeps work.** NB2 cleanly isolates single-axis changes (palette, shape, density) while preserving all other properties. Reference-first ordering confirmed effective.
+
+Image editing (one-axis sweep):
+```typescript
+const result = await generateText({
+  model: renderer,
+  providerOptions: {
+    google: { responseModalities: ['TEXT', 'IMAGE'] },
+  },
+  messages: [{
+    role: 'user',
+    content: [
+      // Reference image FIRST
+      { type: 'file', data: existingBase64, mediaType: 'image/png' },
+      // Variation instruction LAST
+      { type: 'text', text: 'Change only the color temperature to warm golden. Keep everything else identical.' },
+    ],
+  }],
+});
+```
+
+## Verified: Structured Output + Image Gen
+
+`Output.object()` + `responseModalities: ['TEXT', 'IMAGE']` **work together in a single call.** NB2 returns both typed metadata and image files. No need for two-call split.
+
+```typescript
+const result = await generateText({
+  model: renderer,
+  output: Output.object({
+    schema: z.object({
+      hypothesis_tested: z.string(),
+      accept_implies: z.string(),
+      reject_implies: z.string(),
+      dimension: z.string(),
+      held_constant: z.array(z.string()),
+    }),
+  }),
+  providerOptions: {
+    google: { responseModalities: ['TEXT', 'IMAGE'] },
+  },
+  prompt: facadePrompt,
+});
+// result.output → typed metadata
+// result.files[0] → image
+```
+
+Note: without `Output.object()`, NB2 may return no text at all — raw JSON-in-text parsing is unreliable. Always use structured output for metadata.
+
+## Fallback Model IDs
+
+If a preview model breaks during demo, hot-swap by changing one string:
+
+| Tier | Primary | Fallback | Trade-off |
+|------|---------|----------|-----------|
+| Generator | `gemini-3.1-flash-lite-preview` | `gemini-2.5-flash` | 1-5s → 10-40s (thinking overhead) |
+| Renderer | `gemini-3.1-flash-image-preview` | `gemini-2.5-flash-image` | 21s → 6s, lower quality |
+| Oracle | `gemini-3.1-pro-preview` | `gemini-2.5-pro` | Similar latency, less capable |

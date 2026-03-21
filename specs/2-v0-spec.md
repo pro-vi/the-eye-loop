@@ -5,6 +5,7 @@
 **Status:** implementation contract for today
 **Vision doc:** `specs/0-spec.md`
 **Prompt doc:** `specs/1-prompts.md`
+**Model doc:** `specs/3-models.md`
 **Research:** `.research/synthesis-*.md` (SDK verification, prompt patterns, runtime, Gemini project patterns)
 
 `0-spec.md` describes the full theory. This file defines the smallest version that still wins the live demo.
@@ -57,14 +58,13 @@ Anything that does not improve one of those five outcomes is out of scope for V0
 - builder-authored next-question hint or probe focus
 - queue buffering so the user is rarely waiting
 - words stage
-- image stage between words and mockups (Nano Banana generates in 1-3s at 1K — same scout loop, different model call) `.research/synthesis-gemini-projects`
+- image stage between words and mockups (Nano Banana 2 ~21s per image — pre-buffer aggressively, start generating 2-3 swipes before stage transition) `specs/3-models.md`
 - HTML mockup stage
 - final reveal state
 
 ### Stretch
 
 - simple latency buckets such as `fast` vs `slow`
-- Google Search grounding for mockup stage (`tools: [{ googleSearch: {} }]` — free, one line) `.research/synthesis-gemini-projects`
 
 ### Explicitly Cut
 
@@ -90,7 +90,7 @@ Anything that does not improve one of those five outcomes is out of scope for V0
 | 3+ real scouts with spawning | 1-2 real loops, multiple visible identities if needed | Manual async while loops, not agents-as-tools. `.research/synthesis-external-libs` |
 | Builder drives formal probe queue | Builder emits simple next-question hints | Construction-grounded hints are the V0 version of probe briefs. `.research/synthesis-prompt-patterns` |
 | Continuous artifact assembly | Builder maintains a single evolving HTML draft | Same mechanism, simpler scope. |
-| Words → images → mockups blending | Stage changes by swipe count (1-4 → 5-8 → 9-14) | Images promoted from stretch: Nano Banana is 1-3s. `.research/synthesis-gemini-projects` |
+| Words → images → mockups blending | Stage changes by swipe count (1-4 → 5-8 → 9-14) | NB2 ~21s — pre-buffer image facades during words stage. `specs/3-models.md` |
 | Compaction and contradiction handling | Ignore for V0 | Between-compaction updates are code (distribution shifts), not LLM. |
 
 These are implementation cuts, not product cuts.
@@ -140,16 +140,16 @@ Loop:
 
 1. read current stage and weakest axis (lowest confidence in flat axis list)
 2. generate one facade with a clear hypothesis via `generateText()`:
-   - **words stage:** `google('gemini-2.5-flash')` with `Output.object()` for structured metadata `.research/synthesis-sdk-verified`
-   - **images stage:** `google('gemini-2.5-flash-image')` with `providerOptions: { google: { responseModalities: ['TEXT', 'IMAGE'] } }` `.research/synthesis-sdk-verified`
-   - **mockups stage:** `google('gemini-2.5-flash')` generating HTML string
+   - **words stage:** `google('gemini-3.1-flash-lite-preview')` with `Output.object()` (~1.2s) `specs/3-models.md`
+   - **images stage:** `google('gemini-3.1-flash-image-preview')` with `Output.object()` + `providerOptions: { google: { responseModalities: ['TEXT', 'IMAGE'] } }` — returns both typed metadata and image in single call (~21s) `specs/3-models.md`
+   - **mockups stage:** `google('gemini-3.1-flash-lite-preview')` generating HTML string (~4.5s)
 3. push it into the queue
 4. wait for its swipe result (EventEmitter subscription: `bus.once('swipe:${facade.id}', resolve)`)
 5. update local status and continue
 
-Temperature: `1.0` for scouts (creative generation). `.research/synthesis-gemini-projects`
+Temperature: `1.0` for scouts (creative generation). `specs/3-models.md`
 
-Image facade notes: reference images go FIRST in parts array, text prompt LAST. Style transfer via text prompt does NOT work — must use reference images for consistency. Each variation is a fresh stateless call, not multi-turn. Max 3 iterative edits before drift; rebuild prompt from scratch. `.research/synthesis-gemini-projects`
+Image facade notes: stateless editing is MANDATORY — multi-turn fails with `thought_signature` error in AI SDK. Reference images go FIRST in parts array, text prompt LAST. Each variation is a fresh `generateText` call with reference as `type: 'file'`. Max 3 iterative edits before drift; rebuild prompt from scratch. `specs/3-models.md`
 
 #### Builder
 
@@ -162,9 +162,9 @@ It updates the draft whenever a swipe arrives:
 - emit a lightweight next-question hint when the draft is blocked or ambiguous (construction-grounded: "I need to know if the header is fixed or scroll-away", not "layout axis unresolved") `.research/synthesis-prompt-patterns`
 - after every few swipes, rewrite the draft to reflect the current taste profile
 
-#### Orchestrator
+#### Oracle
 
-The orchestrator is 80% code, 20% LLM in V0. Temperature: `0` when LLM is used. `.research/synthesis-gemini-projects`
+The oracle is 80% code, 20% LLM in V0. Temperature: `0` when LLM is used. `.research/synthesis-gemini-projects`
 
 It is responsible for:
 
@@ -213,7 +213,7 @@ interface SwipeRecord {
 interface AgentState {
   id: string;
   name: string;
-  role: 'scout' | 'builder' | 'orchestrator';
+  role: 'scout' | 'builder' | 'oracle';
   status: 'idle' | 'thinking' | 'queued' | 'waiting';
   focus: string;
   lastFacadeId?: string;
@@ -237,15 +237,15 @@ interface PrototypeDraft {
 
 ### Words
 
-Swipes `1-4`. Use single words, short phrases, or tiny text cards to establish strong directional preferences quickly. Generated via `google('gemini-2.5-flash')`.
+Swipes `1-4`. Use single words, short phrases, or tiny text cards to establish strong directional preferences quickly. Generated via `google('gemini-3.1-flash-lite-preview')` (~1.2s). Start pre-buffering image facades at swipe 2-3.
 
 ### Images
 
-Swipes `5-8`. Moodboards, palettes, visual concepts generated via Nano Banana (`google('gemini-2.5-flash-image')` with `responseModalities: ['TEXT', 'IMAGE']`). ~1-3 seconds per image at 1K resolution. 500 images/day free on hackathon account. `.research/synthesis-sdk-verified`, `.research/synthesis-gemini-projects`
+Swipes `5-8`. Moodboards, palettes, visual concepts generated via Nano Banana 2 (`google('gemini-3.1-flash-image-preview')` with `Output.object()` + `responseModalities: ['TEXT', 'IMAGE']`). ~21s per image — must be pre-buffered during words stage. 10K images/day on Tier 3 hackathon account. `specs/3-models.md`
 
 ### Mockups
 
-Swipes `9-14`. Scouts generate styled HTML fragments or full-page mockups via `google('gemini-2.5-flash')`. Rendered in sandboxed iframes: `<iframe srcdoc={html} sandbox="">` with fixed viewport (375x667). `.research/synthesis-external-libs`
+Swipes `9-14`. Scouts generate styled HTML fragments or full-page mockups via `google('gemini-3.1-flash-lite-preview')` (~4.5s). Rendered in sandboxed iframes: `<iframe srcdoc={html} sandbox="">` with fixed viewport (375x667).
 
 ### Reveal
 
@@ -303,20 +303,87 @@ Do not hide the system behind a single output pane.
 
 ---
 
-## Build Order
-
-1. Scaffold SvelteKit + Tailwind + `ai@6.0.134` + `@ai-sdk/google@3.0.52` + `@ai-sdk/svelte@4.0.134` + `zod` + `d3-hierarchy`. Deploy skeleton to Vercel. `.research/synthesis-sdk-verified`
-2. Create session, context singleton, event bus, and SSE plumbing.
-3. Ship one scout loop end to end with word facades.
-4. Render swipe feed (custom PointerEvent handler) and post swipe results back to the server. `.research/synthesis-external-libs`
-5. Add visible Anima updates (flat axis list, simple confidence bars).
-6. Add builder draft updates on every swipe.
-7. Add image facade generation (swap model to `gemini-2.5-flash-image`, add `responseModalities`). `.research/synthesis-sdk-verified`
-8. Add HTML mockup generation.
-9. Add a second scout or second displayed identity if needed for the illusion.
-10. Tighten styling and rehearse the demo path.
+## Build Order (Tickets)
 
 The build is done when the demo contract is true, not when the architecture is complete.
+
+Dependencies flow top-to-bottom. Tickets within the same tier can be parallelized.
+
+### Tier 0: Foundation
+
+**T0 — Scaffold**
+Scaffold SvelteKit + Tailwind. Install `ai@6.0.134`, `@ai-sdk/google@3.0.52`, `@ai-sdk/svelte@4.0.134`, `zod`, `d3-hierarchy`. Configure env var aliasing. Deploy skeleton to Vercel.
+- Done when: `pnpm dev` runs, Vercel preview deploys, `generateText` returns a response from Flash Lite.
+- Files: `package.json`, `svelte.config.js`, `.env`, `src/routes/+page.svelte`
+
+### Tier 1: Server Core (blocks everything)
+
+**T1 — Context + Bus + SSE**
+Create `EyeLoopContext` singleton (`src/lib/server/context.ts`), `EventEmitter` bus (`src/lib/server/bus.ts`), SSE endpoint (`src/routes/api/stream/+server.ts`), swipe POST handler (`src/routes/api/swipe/+server.ts`), session POST handler (`src/routes/api/session/+server.ts`). Bootstrap in `hooks.server.ts` `init()`.
+- Done when: SSE connects, POST creates session, swipe POST emits event visible in SSE stream.
+- Files: `src/lib/server/context.ts`, `src/lib/server/bus.ts`, `src/lib/context/types.ts`, `src/routes/api/stream/+server.ts`, `src/routes/api/swipe/+server.ts`, `src/routes/api/session/+server.ts`, `src/hooks.server.ts`
+- Demo contract: none yet — this is plumbing.
+
+**T2 — Data Types**
+Define `Stage`, `TasteAxis`, `Facade`, `SwipeRecord`, `AgentState`, `PrototypeDraft` in `src/lib/context/types.ts`. Define Zod schemas for structured output (facade metadata).
+- Done when: types compile, Zod schemas validate test data.
+
+### Tier 2: First Loop (demo contract #1, #3)
+
+**T3 — Scout Loop (words)**
+Single scout agent loop in `src/lib/server/agents/scout.ts`. Reads weakest axis, generates word facade via Flash Lite + `Output.object()`, pushes to queue, waits for swipe event, updates local state, loops. System prompt from `specs/1-prompts.md`.
+- Done when: typing an intent produces word facades in the queue, swipe results update axis confidence.
+- Blocks: T4 (need facades to swipe)
+
+**T4 — Swipe Feed UI**
+Custom PointerEvent swipe handler (~50 lines) in `src/lib/components/SwipeFeed.svelte`. Captures `performance.now()` latency. Card shows hypothesis + agent name + content. Sends POST to `/api/swipe`.
+- Done when: user can swipe cards, latency captured, POST fires.
+- Demo contract: #1 (user enters intent, gets facades quickly)
+
+### Tier 3: Visible Intelligence (demo contract #2, #4)
+
+**T5 — Anima Panel**
+`src/lib/components/AnimaPanel.svelte`. Flat axis list with confidence bars. Updates via SSE on every swipe. Shows axis label, leaning, confidence.
+- Done when: every swipe visibly moves a confidence bar.
+- Demo contract: #2 (every swipe visibly updates the Anima)
+
+**T6 — Agent Status**
+`src/lib/components/AgentStatus.svelte`. Shows named agents (scout names, builder) with status (thinking/waiting/idle) and current focus. Updates via SSE.
+- Done when: agents have names and visible status changes during generation.
+- Demo contract: #4 (UI shows named agents working)
+
+### Tier 4: Builder + Stages (demo contract #5)
+
+**T7 — Builder Loop**
+`src/lib/server/agents/builder.ts`. Reacts to swipe events. Accept = reinforce, reject = add anti-pattern. Maintains evolving HTML draft. Emits next-question hint when blocked. Uses Flash Lite at temperature 0.
+- Done when: draft HTML updates after swipes, next-hint surfaces in UI.
+- Demo contract: #5 (prototype pane starts changing)
+
+**T8 — Builder Draft Panel**
+`src/lib/components/DraftPanel.svelte`. Renders builder's HTML draft in sandboxed iframe. Shows next-hint. Updates via SSE.
+- Done when: draft visibly evolves during session.
+
+**T9 — Image Stage**
+Add image facade generation to scout loop. When stage = `images`, switch to NB2 with `Output.object()` + `responseModalities`. Pre-buffer: start generating image facades at swipe 2-3 (during words stage). Render image facades as `<img src="data:...">` in swipe cards.
+- Done when: swipe 5 shows an image facade, queue stays buffered.
+
+**T10 — Mockup Stage**
+When stage = `mockups`, scout generates HTML+CSS via Flash Lite. Render in sandboxed iframe (`<iframe srcdoc={html} sandbox="">`, 375x667 viewport) within swipe cards.
+- Done when: swipe 9 shows an HTML mockup in an iframe.
+
+### Tier 5: Polish (demo contract completeness)
+
+**T11 — Oracle (code only)**
+Pure code oracle in `src/lib/server/agents/oracle.ts`. Advances stages by swipe count. Drops stale facades when axis resolves. Monitors queue health (below 3 = priority generation).
+- Done when: stages advance automatically, stale facades get dropped.
+
+**T12 — Second Scout / Reveal**
+Add second scout loop or second visible identity. Add reveal state — when confidence is high enough or swipe count hits threshold, show the final prototype.
+- Done when: multiple agent identities visible, reveal triggers cleanly.
+
+**T13 — Styling + Demo Rehearsal**
+Tighten layout, transitions, dark theme. Rehearse the 3-minute demo path. Record 1-minute submission video.
+- Done when: demo contract all 5 points are true in a live run.
 
 ---
 
@@ -345,10 +412,15 @@ If a scout hits content filters:
 
 If latency becomes a problem:
 
-- reduce model complexity (use `gemini-2.5-flash-lite` instead of `flash`)
-- reduce critique loops
+- Flash Lite is already the fastest — no further model downgrade available
 - prefer serving a good-enough next facade over waiting for a perfect one
 - pre-generate a buffer of word facades on session init before user sees the first one
+
+If a preview model breaks:
+
+- Generator: swap `gemini-3.1-flash-lite-preview` → `gemini-2.5-flash` (1-5s → 10-40s, still works)
+- Renderer: swap `gemini-3.1-flash-image-preview` → `gemini-2.5-flash-image` (21s → 6s, lower quality)
+- One string change per fallback. See `specs/3-models.md` for full fallback table.
 
 ---
 
@@ -363,16 +435,16 @@ pnpm add -D @types/d3-hierarchy
 
 | What | How | Reference |
 |------|-----|-----------|
-| Text facades | `generateText()` with `google('gemini-2.5-flash')` | `.research/synthesis-sdk-verified` |
-| Image facades | `generateText()` with `google('gemini-2.5-flash-image')` + `providerOptions: { google: { responseModalities: ['TEXT', 'IMAGE'] } }` | `.research/synthesis-sdk-verified` |
+| Text facades | `generateText()` with `google('gemini-3.1-flash-lite-preview')` | `specs/3-models.md` |
+| Image facades | `generateText()` with `google('gemini-3.1-flash-image-preview')` + `Output.object()` + `providerOptions: { google: { responseModalities: ['TEXT', 'IMAGE'] } }` — single call returns typed metadata + image | `specs/3-models.md` |
 | Structured output | `output: Output.object({ schema: z.object({...}) })` — avoid `z.union()` with Gemini | `.research/synthesis-sdk-verified` |
 | Client streaming | `Chat` class from `@ai-sdk/svelte` (not hooks — Svelte 5 uses classes) | `.research/synthesis-sdk-verified` |
-| SSE response | `streamText()` + `.toUIMessageStreamResponse()` | `.research/synthesis-sdk-verified` |
+| SSE response | Native `ReadableStream` + `text/event-stream` (custom event bus, not AI SDK streaming) | `.research/synthesis-runtime` |
 | Image response | `result.files[]` → `GeneratedFile` with `.base64`, `.uint8Array`, `.mediaType` | `.research/synthesis-sdk-verified` |
-| Image editing | Pass existing image as `{ type: 'file', data: base64, mediaType: 'image/png' }` in messages | `.research/synthesis-sdk-verified` |
+| Image editing | Stateless only — pass image as `{ type: 'file', data: base64, mediaType: 'image/png' }` in fresh single-turn message. Multi-turn FAILS (`thought_signature` error). | `specs/3-models.md` |
 
 ```
-GOOGLE_GENERATIVE_AI_API_KEY=   # auto-read by @ai-sdk/google
+GEMINI_API_KEY=   # aliased at runtime: process.env.GOOGLE_GENERATIVE_AI_API_KEY ??= process.env.GEMINI_API_KEY
 ```
 
 ## Prompt Architecture Notes
@@ -399,7 +471,7 @@ These belong to the next version, not today:
 - motion and interactive stages
 - true artifact assembly into runnable product code
 - grid generation for one-axis sweeps (Pro model only, 50% cheaper per image) `.research/synthesis-gemini-projects`
-- Google Search grounding for mockup realism `.research/synthesis-gemini-projects`
+- Google Search grounding for mockup realism (benchmarked: adds ~7s latency, no quality gain — skip unless quality changes) `specs/3-models.md`
 - cost tracking per image via `response.usageMetadata` `.research/synthesis-gemini-projects`
 
 ---

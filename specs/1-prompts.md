@@ -2,7 +2,7 @@
 
 The system prompts ARE the product. The plumbing (SSE, queues, events) is commodity. These 4 prompts + the serialization format determine whether facades feel intelligent or random.
 
-> Priority order: Scout > Anima YAML > Image SCHEMA > Builder > Orchestrator (compaction/fract)
+> Priority order: Oracle session-seed (one shot, make or break) > Scout > Anima YAML > Image SCHEMA > Builder > Oracle compaction/fract (cut for V0)
 
 ---
 
@@ -218,9 +218,9 @@ Builder is called reactively on each `swipe-result` event, not as a continuous L
 
 ---
 
-## 4. Orchestrator Prompts
+## 4. Oracle Prompts
 
-The orchestrator is **80% code, 20% LLM**. Most orchestrator functions are pure code (queue health, freshness pruning, scout retirement, event routing). LLM is used only for:
+The oracle is **80% code, 20% LLM**. Most oracle functions are pure code (queue health, freshness pruning, scout retirement, event routing). LLM is used only for:
 
 1. **Compaction** (every 5 swipes)
 2. **Fract detection** (when a dimension resolves)
@@ -321,7 +321,7 @@ OUTPUT (structured):
   skip_reason: "{if no children warranted, explain why}" # null if candidates exist
 ```
 
-Note: These candidates are proposed, NOT automatically adopted. The orchestrator (code) checks whether the session budget allows deeper fracting before opening children. LLM-proposed axes are treated as hypotheses to test, not facts — they may be correlated or redundant. Axes that fail empirical independence testing (user responses show correlated drift) should be merged or discarded.
+Note: These candidates are proposed, NOT automatically adopted. The oracle (code) checks whether the session budget allows deeper fracting before opening children. LLM-proposed axes are treated as hypotheses to test, not facts — they may be correlated or redundant. Axes that fail empirical independence testing (user responses show correlated drift) should be merged or discarded.
 
 ### 4c. Stuck Detection (code + light LLM)
 
@@ -358,9 +358,78 @@ OUTPUT:
 
 ---
 
-## Orchestrator Code Functions (no LLM)
+## 5. Oracle Session-Seed Prompt
 
-These are pure code, documented here for completeness since they share the orchestrator's responsibilities:
+The single highest-leverage LLM call in the system. One shot, Gemini 3.1 Pro. Determines every axis the user swipes on for the rest of the session. Bad axes = irrelevant facades = demo fails.
+
+Research basis:
+- `research/iec-fatigue.md`: cold start must not be random. First swipes are the most valuable (user freshest, most engaged). Seed with broad, semantically meaningful basis points that cut the broadest information.
+- `research/fracting.md`: axes must be operationally distinct. LLM-generated axes are entangled by default (multi-attribute control literature). Prefer measurable controls (density, temperature, contrast) over vibes (modern, clean, nice). Each axis needs two distinct poles that produce visibly different facades when varied independently.
+- `research/observation-model.md`: binary poles match AMPLe halving — each swipe splits belief roughly in half. "More X" is not an axis; an axis has two ends.
+- `research/fracting.md` line 60-64: conjoint-style independence — if an axis only matters conditional on another axis's value, it's a child axis, not a top-level one. Top-level axes should matter regardless of how siblings resolve.
+
+```
+You are the Oracle for The Eye Loop — a taste discovery system.
+
+The user has stated an intent. Your job is to identify the 5-7 broadest
+taste dimensions that will produce the most information in the fewest swipes.
+
+USER INTENT: "{intent}"
+
+RULES:
+1. Each axis must be OPERATIONALLY DISTINCT — varying one axis should
+   produce visibly different artifacts WITHOUT changing any other axis.
+   Test: could a designer adjust this axis independently on a mockup?
+
+2. Each axis has exactly TWO POLES — not a scale, not a spectrum.
+   The poles must be concrete enough that a single word or image could
+   embody one pole. "More minimal" is not a pole. "Sparse whitespace"
+   vs "dense information-packed" is.
+
+3. Prefer MEASURABLE dimensions over subjective ones:
+   GOOD: density (sparse vs packed), color temperature (warm vs cool),
+         contrast (high-contrast vs muted), motion (static vs animated)
+   BAD:  quality (good vs bad), feel (modern vs classic), vibe (calm vs exciting)
+
+4. Axes must be APPROXIMATELY INDEPENDENT at the top level. If axis A
+   only matters when axis B takes a specific value, then A is a child
+   of B, not a sibling. Top-level axes should matter regardless of how
+   siblings resolve.
+
+5. Cover DIFFERENT SENSORY CHANNELS — don't cluster all axes in color
+   or all in layout. Spread across: mood/atmosphere, spatial structure,
+   color/light, typography, density/complexity, interaction energy.
+
+6. Ground axes in the SPECIFIC INTENT. "Weather app for runners" should
+   probe runner-relevant dimensions (data density of metrics, outdoor vs
+   indoor atmosphere, action-oriented vs contemplative). Generic axes
+   waste the user's first swipes.
+
+7. The first swipes are the MOST VALUABLE — user is freshest, most
+   engaged, least fatigued. These axes must cut the broadest uncertainty.
+   Save narrow refinement for later stages (fracting, not seeding).
+
+OUTPUT (structured JSON):
+{
+  "axes": [
+    {
+      "label": "density",
+      "optionA": "sparse, breathing room, key metrics only",
+      "optionB": "packed, dashboard-dense, all data visible",
+      "why": "runners need quick glance vs deep analysis — this splits the core use pattern"
+    },
+    ...
+  ]
+}
+```
+
+Note: This prompt runs ONCE per session. It is the Oracle's only V0 job. Everything after this is code (queue health, stage gates, freshness) or other agents (scouts, builder).
+
+---
+
+## Oracle Code Functions (no LLM)
+
+These are pure code, documented here for completeness since they share the oracle's responsibilities:
 
 - **Queue health:** `facades.length < 3` → increase scout priority or spawn
 - **Freshness pruning:** On Anima update, score queued facades. Drop any whose target axis just resolved.
