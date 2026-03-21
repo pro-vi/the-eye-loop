@@ -6,6 +6,7 @@ import { context } from '$lib/server/context';
 import { awaitFacadeSwipe, emitFacadeStale, emitAgentStatus } from '$lib/server/bus';
 import type { Facade, AgentState } from '$lib/context/types';
 import { debugLog } from '$lib/server/debug-log';
+import { HTML_QUALITY_RULES } from '$lib/server/prompts';
 
 // ── Constants ────────────────────────────────────────────────────────
 
@@ -42,23 +43,15 @@ const ScoutOutputSchema = z.object({
 
 // ── Concreteness floor ──────────────────────────────────────────────
 
-function getFormatInstruction(evidenceCount: number): { floor: Facade['format']; instruction: string } {
-	if (evidenceCount < 5) {
-		return {
-			floor: 'word',
-			instruction: `FORMAT: word. Output a single evocative word or 2-3 word phrase. The label IS the content. Examples: "Warm glow", "Sharp edges", "Cozy nook", "Open sky". NOT: "Biophilic brutalism", "Synaptic Echo", "Tectonic Granularity".`
-		};
-	}
-	if (evidenceCount < 10) {
-		return {
-			floor: 'image',
-			instruction: `FORMAT: image. Describe a visual moodboard or UI screenshot for an image generator. Be CONCRETE and VISUAL — describe what someone would SEE, not abstract concepts. Good: "A warm finance app card with rounded corners showing $420 spent, peach background, friendly serif font". Bad: "Gravitational Topology of ephemeral data flows".`
-		};
-	}
-	return {
-		floor: 'mockup',
-		instruction: `FORMAT: mockup. Describe a specific UI screen with layout, components, colors, and typography. Be a DESIGNER, not a philosopher. Good: "Mobile screen with top balance card ($2,400), 3 spending category pills below, warm cream background, Georgia font". Bad: "The Monolithic Monolith vs. The Fractal Lattice".`
-	};
+const FORMAT_INSTRUCTIONS: Record<Facade['format'], string> = {
+	word: 'FORMAT: word. Output a single evocative word or 2-3 word phrase. The label IS the content. Examples: "Warm glow", "Sharp edges", "Cozy nook", "Open sky". NOT: "Biophilic brutalism", "Synaptic Echo", "Tectonic Granularity".',
+	image: 'FORMAT: image. Describe a visual moodboard or UI screenshot for an image generator. Be CONCRETE and VISUAL — describe what someone would SEE, not abstract concepts. Good: "A warm finance app card with rounded corners showing $420 spent, peach background, friendly serif font". Bad: "Gravitational Topology of ephemeral data flows".',
+	mockup: 'FORMAT: mockup. Describe a specific UI screen with layout, components, colors, and typography. Be a DESIGNER, not a philosopher. Good: "Mobile screen with top balance card ($2,400), 3 spending category pills below, warm cream background, Georgia font". Bad: "The Monolithic Monolith vs. The Fractal Lattice".'
+};
+
+function getFormatInstruction(): { floor: Facade['format']; instruction: string } {
+	const floor = context.concretenessFloor;
+	return { floor, instruction: FORMAT_INSTRUCTIONS[floor] };
 }
 
 // ── Prompt ───────────────────────────────────────────────────────────
@@ -241,7 +234,7 @@ export function startScout(agentId: string, name: string): () => void {
 						? context.antiPatterns.map((p) => `  - ${p}`).join('\n')
 						: '  (none yet)';
 
-					const { floor, instruction } = getFormatInstruction(context.evidence.length);
+					const { floor, instruction } = getFormatInstruction();
 
 					const system = SCOUT_PROMPT.replace('{SCOUT_NAME}', name)
 						.replace('{SCOUT_LENS}', SCOUT_LENSES[name] ?? '')
@@ -304,39 +297,89 @@ export function startScout(agentId: string, name: string): () => void {
 
 					if (format === 'image') {
 						setStatus(agent, 'thinking', `rendering image: "${facade.label}"`);
-						try {
-							const imgResult = await generateText({
-								model: IMAGE_MODEL,
-								providerOptions: {
-									google: {
-										responseModalities: ['TEXT', 'IMAGE'],
-										imageConfig: { aspectRatio: '3:2', imageSize: '1K' }
-									}
-								},
-								prompt: output.content,
-								abortSignal: signal
-							});
+						const imagePrompt = `Generate a UI MOODBOARD or STYLE CONCEPT image — NOT a literal app screenshot. This should feel like a designer's inspiration board or color/texture study that captures a specific aesthetic direction.\n\nStyle direction: ${output.content}\n\nRules:\n- Abstract or atmospheric — NOT a phone mockup or wireframe\n- Show colors, textures, typography samples, material references\n- Think Dribbble moodboard or Pinterest inspiration board\n- Fill the entire frame — no device bezels, no hands holding phones`;
 
-							if (!alive()) break;
+						let imageRendered = false;
+						for (let attempt = 0; attempt < 2; attempt++) {
+							try {
+								const imgResult = await generateText({
+									model: IMAGE_MODEL,
+									providerOptions: {
+										google: {
+											responseModalities: ['TEXT', 'IMAGE'],
+											imageConfig: { aspectRatio: '3:2', imageSize: '1K' }
+										}
+									},
+									prompt: imagePrompt,
+									abortSignal: signal
+								});
 
-							if (imgResult.files?.length) {
-								const file = imgResult.files[0];
-								facade.imageDataUrl = `data:${file.mediaType};base64,${file.base64}`;
-							} else {
-								debugLog(name, 'image-no-files', { label: facade.label });
-								continue; // no image = don't queue
+								if (!alive()) break;
+
+								if (imgResult.files?.length) {
+									const file = imgResult.files[0];
+									facade.imageDataUrl = `data:${file.mediaType};base64,${file.base64}`;
+									debugLog(name, 'image-rendered', {
+										label: facade.label,
+										mediaType: file.mediaType,
+										sizeKB: Math.round(file.base64.length * 0.75 / 1024),
+										attempt: attempt + 1
+									});
+									imageRendered = true;
+									break;
+								} else {
+									debugLog(name, 'image-no-files', {
+										label: facade.label,
+										attempt: attempt + 1
+									});
+									// Retry once
+								}
+							} catch (err) {
+								if (!alive()) break;
+								debugLog(name, 'image-fail', {
+									label: facade.label,
+									attempt: attempt + 1,
+									err: String(err)
+								});
+								// Retry once
 							}
-						} catch (err) {
-							if (!alive()) break;
-							debugLog(name, 'image-fail', { label: facade.label, err: String(err) });
-							continue; // rendering failed = don't queue
+						}
+
+						if (!alive()) break;
+
+						if (!imageRendered) {
+							// Fall back to word format instead of dropping the facade
+							debugLog(name, 'image-fallback-word', { label: facade.label });
+							facade.format = 'word';
+							facade.content = facade.label;
+							delete facade.imageDataUrl;
 						}
 					} else if (format === 'mockup' && !/<div|<html|<section/i.test(output.content)) {
 						setStatus(agent, 'thinking', `generating mockup HTML: "${facade.label}"`);
 						try {
+							const antiStr = context.antiPatterns.length
+								? context.antiPatterns.join(', ')
+								: 'none yet';
+							const acceptedStr = context.draft.acceptedPatterns.length
+								? context.draft.acceptedPatterns.join(', ')
+								: 'none yet';
+
+							const mockupPrompt = `Generate complete HTML+CSS that VISUALLY DEMONSTRATES this hypothesis.
+The user will swipe accept/reject on this mockup — they should be able to tell what it tests by LOOKING at it.
+
+Hypothesis: ${output.hypothesis}
+Visual direction: ${output.content}
+Anti-patterns (NEVER use): ${antiStr}
+Accepted patterns (respect these): ${acceptedStr}
+
+${HTML_QUALITY_RULES}
+
+Output ONLY the HTML — no markdown fences, no explanation.
+Mobile viewport 375x667. No scripts. No external resources.`;
+
 							const htmlResult = await generateText({
 								model: MODEL,
-								prompt: `Generate complete HTML+CSS for this mockup description. Mobile viewport 375x667, inline styles only, no scripts.\n\nDescription: ${output.content}\n\nAnti-patterns (NEVER use): ${context.antiPatterns.join(', ') || 'none'}`,
+								prompt: mockupPrompt,
 								maxOutputTokens: 2000,
 								abortSignal: signal
 							});
@@ -366,9 +409,12 @@ export function startScout(agentId: string, name: string): () => void {
 
 					debugLog(name, 'push', {
 						label: facade.label,
+						content: facade.content.slice(0, 200),
 						format,
 						axis: output.axis_targeted,
 						hypothesis: output.hypothesis,
+						accept_implies: output.accept_implies,
+						reject_implies: output.reject_implies,
 						probe: probe ? 'from builder' : 'self-assigned'
 					});
 
