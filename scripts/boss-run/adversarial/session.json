@@ -1,0 +1,200 @@
+{
+  "intent": "personal finance app that doesn't feel like a spreadsheet",
+  "label": "adversarial",
+  "gates": {
+    "coldDiversity": true,
+    "oracleAxes": true,
+    "assignDiverge": true,
+    "builderMid": true,
+    "axesEvolved": true,
+    "builderFinal": true,
+    "formatProgression": true,
+    "evidenceCoherence": true
+  },
+  "passed": 8,
+  "total": 8,
+  "evidence": [
+    {
+      "content": "Gamified progression",
+      "hypothesis": "Does the user prefer a behavioral-nudge approach with game-like rewards over a purely functional financial dashboard?",
+      "decision": "reject",
+      "latencySignal": "slow"
+    },
+    {
+      "content": "Gamified RPG",
+      "hypothesis": "Does the user want their financial life structured as a game, or as a serene life-tracking tool?",
+      "decision": "reject",
+      "latencySignal": "slow"
+    },
+    {
+      "content": "Gamified progression",
+      "hypothesis": "User prefers behavioral psychology and achievement-based engagement over analytical financial tools.",
+      "decision": "reject",
+      "latencySignal": "slow"
+    },
+    {
+      "content": "Organic Growth",
+      "hypothesis": "Does the user prefer financial progress represented through natural, non-quantified growth metaphors rather than static graphs or game-like progress bars?",
+      "decision": "reject",
+      "latencySignal": "slow"
+    },
+    {
+      "content": "A minimalist, textured digital interface resembling a high-quality leather-bound diary. Instead of bar charts, transactions appear as subtle, handwritten-style entries on a warm, cream-colored paper background. The interface features soft shadows, serif typography, and empty margins meant for 'reflection' rather than 'correction'. There are no progress bars, badges, or predictive numbers, only a chronological stream that highlights the 'meaning' behind expenses using calm, muted earth tones.",
+      "hypothesis": "Does the user prefer a contemplative, journal-like experience for finance that focuses on historical reflection and intentionality rather than active goal-setting or future-oriented prediction?",
+      "decision": "accept",
+      "latencySignal": "slow"
+    },
+    {
+      "content": "A generative digital interface featuring a pool of light-refracting, translucent liquid that expands or contracts based on daily spending. There are no numbers, lines, or labels. When a transaction occurs, the 'tide' shifts gently, rippling through the surface. The aesthetic is inspired by soft focus, matte glass textures, and bioluminescent colors that transition from cool deep blues when savings are high to soft amber warmth when spending increases. Interaction is tactile and physics-based, prioritizing the 'feeling' of total financial mass over specific line-item data.",
+      "hypothesis": "Does the user prefer a dynamic, abstract visual representation of wealth as a fluid, shifting landscape that responds to balance changes, rather than a fixed historical log?",
+      "decision": "accept",
+      "latencySignal": "slow"
+    },
+    {
+      "content": "An interface that mimics a dark, deep-space astronomical chart. Instead of numbers, your finances are represented by a constellation of small, glowing stars connected by thin, ethereal filaments of light. Major expenditures appear as larger, brighter nebulas that pulse slowly, while recurring, stable expenses are faint, steady constellations in the background. Users navigate the financial ecosystem by panning through a 3D-like space, where 'zooming in' on a nebula reveals the context of a purchase through thematic icons (e.g., a stylized icon of a tree for housing, a coffee bean for morning habits), creating a sense of distance and interconnectedness rather than a calculation of totals.",
+      "hypothesis": "Does the user prefer financial data to be represented as an abstract, spatial 'map' of interconnected nodes (representing relationships between spending and lifestyle) rather than as a singular fluid mass or a linear history?",
+      "decision": "accept",
+      "latencySignal": "slow"
+    },
+    {
+      "content": "A high-fidelity digital terrarium interface where your financial 'health' is represented by the vibrancy and complexity of a lush, indoor garden. Spending is not tracked with charts but with the state of the flora: healthy, balanced spending encourages the growth of rare, slow-blooming ferns and mosses, while erratic or excessive spending causes specific 'invasive' weeds to appear or shadows to lengthen across the floor of the tank. The interface uses natural lighting that syncs with your local time, and you interact with the garden by 'tending' to sections, represented by periodic adjustments to your habits, rather than checking a balance sheet. The aesthetic is clean, hyper-realistic, and serene, focusing on the patience of growth.",
+      "hypothesis": "Does the user prefer a biophilic, living system metaphor where financial health is mapped to the 'lifecycle' and 'seasonal health' of a digital ecosystem, prioritizing long-term nurture over immediate feedback loops?",
+      "decision": "accept",
+      "latencySignal": "slow"
+    },
+    {
+      "content": "A minimalist, brutalist-inspired 3D interface where your finances appear as a series of suspended, interconnected stone chambers. Each room corresponds to a budget category. The 'health' of a category is represented by its acoustic properties; a healthy, balanced budget creates a resonant, warm, and spacious hall where ambient chimes echo softly. Overspending creates a claustrophobic effect: the walls visually shift closer, the textures harden into cold, grey concrete, and the ambient soundscape becomes dissonant and dampened. There are no numbers or charts, only the shifting quality of light filtering through high, narrow slits in the walls and the evolving, visceral sound environment that signals your financial atmosphere.",
+      "hypothesis": "Does the user prefer their financial state expressed as an architectural structure with acoustic properties (where spending and saving create resonance or dissonance) rather than a visual representation like a garden or a void?",
+      "decision": "reject",
+      "latencySignal": "slow"
+    },
+    {
+      "content": "A clean, infinite canvas where every transaction is represented as a unique, hand-crafted stone or polished gem. Each gem has a specific color, weight, and texture based on the category (e.g., heavy matte basalt for fixed bills, translucent amber for dining out). Users physically drag and drop these objects into 'orbits' around their central savings pool. Larger, more frequent spending creates clusters of heavier stones that pull slightly on the central mass, physically warping the layout. There are no grids or lists; the data is entirely granular and spatial. When you hover over a gem, it doesn't show a number, but a soft, blurred imprint of the vendor's logo or a keyword, emphasizing the physical presence of the transaction over its monetary value.",
+      "hypothesis": "Does the user prefer to see individual financial 'events' as discrete, tactile objects that can be curated and arranged, versus a unified, singular representation of their financial status?",
+      "decision": "reject",
+      "latencySignal": "slow"
+    },
+    {
+      "content": "An interface that mimics a living, atmospheric window. The screen acts as a view into an infinite horizon where the 'weather' represents your financial climate. During high-spending months, the sky transitions into a heavy, twilight indigo with slow-moving, misty clouds; during periods of growth and saving, the sky clears to a brilliant, expansive golden-hour glow. Instead of icons, the 'tax season' is represented by a subtle, cyclical shift in the air temperature—visualized by faint, rhythmic heat shimmers or cooling autumnal frost creeping onto the edges of the frame. There are no UI elements or menus. Interaction is purely observational: the user pans the camera horizontally to 'browse' different financial cycles, watching the landscape evolve from a dormant, snowy winter (low activity) to a vibrant, blooming spring (high transaction frequency). Typography is limited to a single, thin, white serif date stamp that appears only when the user swipes slowly, fading away immediately to keep the view unobstructed.",
+      "hypothesis": "Does the user prefer their financial interface to act as an ambient weather system that cycles through predictable life patterns (e.g., spending seasons) rather than maintaining a static, localized state?",
+      "decision": "accept",
+      "latencySignal": "slow"
+    },
+    {
+      "content": "A high-fidelity digital interface designed as a vertical loom. The background is a soft, linen-textured workspace. Each financial transaction is represented as a physical thread being added to a tapestry. 'Necessity' expenses (rent, utilities) are woven in tightly bound, muted-gray wool threads, creating a dense, stable foundation at the bottom. 'Discretionary' spending manifests as delicate, vibrant silks in copper, indigo, or moss green. When the user reviews their history, they use a gesture to 'pull' the thread, revealing the merchant's name in an elegant, thin typewriter font embossed into the virtual fiber. Interaction involves dragging threads horizontally to 'tighten' or 'loosen' the weave, physically adjusting the density of the pattern to visualize financial constraints. The colors are strictly natural: undyed cottons, raw silks, and weathered linens. There are no menus, pop-ups, or charts—only the growing, complex, and beautiful tapestry of the user's spending habits.",
+      "hypothesis": "Does the user prefer a tactile, craft-based metaphor where financial history is manually 'woven' into physical threads of material, prioritizing the haptic sensation of effort and texture over automated, ambient representations?",
+      "decision": "accept",
+      "latencySignal": "slow"
+    }
+  ],
+  "facades": [
+    {
+      "swipe": 1,
+      "scout": "Iris",
+      "format": "word",
+      "label": "Gamified progression",
+      "axis": "Interaction Paradigm",
+      "decision": "reject",
+      "latency": "slow"
+    },
+    {
+      "swipe": 2,
+      "scout": "Prism",
+      "format": "word",
+      "label": "Gamified RPG",
+      "axis": "Gamification vs Mindfulness",
+      "decision": "reject",
+      "latency": "slow"
+    },
+    {
+      "swipe": 3,
+      "scout": "Lumen",
+      "format": "word",
+      "label": "Gamified progression",
+      "axis": "Interaction Paradigm",
+      "decision": "reject",
+      "latency": "slow"
+    },
+    {
+      "swipe": 4,
+      "scout": "Iris",
+      "format": "word",
+      "label": "Organic Growth",
+      "axis": "Data Abstraction",
+      "decision": "reject",
+      "latency": "slow"
+    },
+    {
+      "swipe": 5,
+      "scout": "Prism",
+      "format": "image",
+      "label": "Mindful Financial Ledger",
+      "axis": "Motivation Driver",
+      "decision": "accept",
+      "latency": "slow"
+    },
+    {
+      "swipe": 6,
+      "scout": "Lumen",
+      "format": "image",
+      "label": "Ephemeral Fluidity",
+      "axis": "Data Abstraction",
+      "decision": "accept",
+      "latency": "slow"
+    },
+    {
+      "swipe": 7,
+      "scout": "Iris",
+      "format": "image",
+      "label": "Celestial Constellation Dashboard",
+      "axis": "Data Abstraction",
+      "decision": "accept",
+      "latency": "slow"
+    },
+    {
+      "swipe": 8,
+      "scout": "Prism",
+      "format": "image",
+      "label": "Botanical Vitality Model",
+      "axis": "Motivation Driver",
+      "decision": "accept",
+      "latency": "slow"
+    },
+    {
+      "swipe": 9,
+      "scout": "Iris",
+      "format": "mockup",
+      "label": "Architectural Soundscapes",
+      "axis": "Metaphorical Abstraction",
+      "decision": "reject",
+      "latency": "slow"
+    },
+    {
+      "swipe": 10,
+      "scout": "Prism",
+      "format": "mockup",
+      "label": "The Constellation of Habits",
+      "axis": "Data Granularity",
+      "decision": "reject",
+      "latency": "slow"
+    },
+    {
+      "swipe": 11,
+      "scout": "Lumen",
+      "format": "mockup",
+      "label": "Seasonal Atmospheric Cycles",
+      "axis": "Engagement Paradigm",
+      "decision": "accept",
+      "latency": "slow"
+    },
+    {
+      "swipe": 12,
+      "scout": "Iris",
+      "format": "mockup",
+      "label": "Tidal Weaving Loom",
+      "axis": "Metaphorical Abstraction",
+      "decision": "accept",
+      "latency": "slow"
+    }
+  ]
+}
