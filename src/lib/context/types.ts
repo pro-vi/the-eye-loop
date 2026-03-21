@@ -16,6 +16,7 @@ export interface Facade {
 	id: string;
 	agentId: string;
 	hypothesis: string;
+	axisTargeted?: string;
 	label: string;
 	content: string;
 	format: 'word' | 'image' | 'mockup';

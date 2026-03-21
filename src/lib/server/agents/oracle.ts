@@ -13,6 +13,7 @@ import { generateText, Output } from 'ai';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { z } from 'zod';
 import { GEMINI_API_KEY } from '$env/static/private';
+import { debugLog } from '$lib/server/debug-log';
 
 // ── Constants ────────────────────────────────────────────────────────
 
@@ -21,7 +22,8 @@ const REVEAL_THRESHOLD = 15;
 const SYNTHESIS_CADENCE = 4;
 
 const google = createGoogleGenerativeAI({ apiKey: GEMINI_API_KEY });
-const MODEL = google('gemini-3.1-pro-preview');
+// Flash Lite for synthesis speed (~1-2s). Structured output only — no creative gen.
+const MODEL = google('gemini-3.1-flash-lite-preview');
 
 // ── Synthesis schema (snake_case — matches spec + Zod output) ────────
 
@@ -84,6 +86,7 @@ const ORACLE_AGENT: AgentState = {
 let cleanup: Array<() => void> = [];
 let synthesisRunId = 0; // ownership token — only the owning run can clear the gate
 let busy = false;
+let pendingSynthesis = false;
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
@@ -111,7 +114,13 @@ function checkFloor() {
 
 // ── Synthesis (async, non-blocking) ──────────────────────────────────
 
+let lastSynthesizedAt = -1;
+
 async function runSynthesis() {
+	// Dedup: HMR can register multiple listeners — only synthesize once per evidence count
+	if (context.evidence.length === lastSynthesizedAt) return;
+	lastSynthesizedAt = context.evidence.length;
+
 	const myRunId = ++synthesisRunId;
 	busy = true;
 	const capturedSessionId = context.sessionId;
@@ -140,15 +149,27 @@ async function runSynthesis() {
 		if (result.output) {
 			context.synthesis = result.output;
 			emitSynthesisUpdated({ synthesis: result.output });
-			console.log(`[oracle] synthesis complete (${context.evidence.length} evidence)`);
+			debugLog('Oracle', 'synthesis', {
+				evidence: context.evidence.length,
+				axes: result.output.axes.map((a) => `${a.label} [${a.confidence}]`),
+				assignments: result.output.scout_assignments.map((a) => `${a.scout}→${a.probe_axis}`),
+				flags: result.output.edge_case_flags,
+				divergence: result.output.persona_anima_divergence
+			});
 		}
 	} catch (err) {
+		debugLog('Oracle', 'synthesis-error', { error: String(err) });
 		console.error('[oracle] synthesis failed:', err);
 	} finally {
 		// Only clear the gate if this run still owns it
 		if (synthesisRunId === myRunId) {
 			busy = false;
 			setOracleStatus('idle', 'monitoring');
+			// Drain pending — catch up after burst of swipes
+			if (pendingSynthesis) {
+				pendingSynthesis = false;
+				runSynthesis();
+			}
 		}
 	}
 }
@@ -156,12 +177,15 @@ async function runSynthesis() {
 // ── Session seed (no LLM — first probes ARE the seed) ────────────────
 
 export function seedSession(intent: string): { sessionId: string } {
+	debugLog('Oracle', 'session-start', { intent: intent.trim() });
 	context.reset();
 	context.intent = intent;
 	context.sessionId = crypto.randomUUID();
 	lastFloor = 'word';
+	lastSynthesizedAt = -1;
 	synthesisRunId++; // invalidate any in-flight synthesis from previous session
 	busy = false;
+	pendingSynthesis = false;
 
 	setOracleStatus('thinking', 'session init');
 	emitSessionReady({ intent });
@@ -213,10 +237,14 @@ export function startOracle(): void {
 			// 3. Synthesis every N swipes (async, non-blocking)
 			if (
 				context.evidence.length > 0 &&
-				context.evidence.length % SYNTHESIS_CADENCE === 0 &&
-				!busy
+				context.evidence.length % SYNTHESIS_CADENCE === 0
 			) {
-				runSynthesis();
+				if (!busy) {
+					runSynthesis();
+				} else {
+					// Burst of swipes — queue synthesis to run after current completes
+					pendingSynthesis = true;
+				}
 			}
 		})
 	);

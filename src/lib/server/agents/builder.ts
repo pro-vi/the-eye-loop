@@ -12,6 +12,7 @@ import {
 	emitAgentStatus
 } from '$lib/server/bus';
 import type { AgentState, Facade, SwipeRecord } from '$lib/context/types';
+import { debugLog } from '$lib/server/debug-log';
 
 // ── Constants ────────────────────────────────────────────────────────
 
@@ -140,7 +141,13 @@ function drainPending() {
 
 // ── Rebuild (one LLM call per invocation) ────────────────────────────
 
+let lastRebuiltSwipe = -1;
+
 async function rebuild(facade: Facade, record: SwipeRecord) {
+	// Dedup: HMR can register multiple listeners — only rebuild once per swipe
+	if (context.swipeCount === lastRebuiltSwipe) return;
+	lastRebuiltSwipe = context.swipeCount;
+
 	busy = true;
 	pendingSwipe = null;
 	const capturedId = context.sessionId;
@@ -224,7 +231,19 @@ async function rebuild(facade: Facade, record: SwipeRecord) {
 		// Probe briefs
 		if (output.probeBriefs.length) {
 			context.probes.push(...output.probeBriefs);
+			debugLog('Builder', 'probes', {
+				count: output.probeBriefs.length,
+				briefs: output.probeBriefs.map((p) => p.brief)
+			});
 		}
+
+		debugLog('Builder', 'rebuild', {
+			swipe: context.swipeCount,
+			title: output.title,
+			accepted: output.acceptedPatterns,
+			rejected: output.rejectedPatterns,
+			hint: output.nextHint
+		});
 
 		// Events
 		emitDraftUpdated({ draft: context.draft });
@@ -261,6 +280,7 @@ export function startBuilder(): void {
 	// Session-ready: generate initial scaffold
 	cleanup.push(
 		onSessionReady(async ({ intent }) => {
+			lastRebuiltSwipe = -1;
 			if (busy) pendingSwipe = null; // new session invalidates old pending
 			busy = true;
 			const capturedId = context.sessionId;
