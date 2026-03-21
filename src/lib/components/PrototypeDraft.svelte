@@ -57,7 +57,8 @@
 			border-radius: {isReveal ? '16px' : '32px'};
 			padding: {isReveal ? '0' : '8px'};
 			transition: all 0.5s ease-out;
-			width: {isReveal ? '100%' : 'fit-content'};
+			width: {isReveal ? '100%' : '336px'};
+			max-width: 100%;
 		"
 	>
 		<!-- Phone notch (swiping mode only) -->
@@ -78,18 +79,28 @@
 			style="border-radius: {isReveal ? '16px' : '24px'};"
 		>
 			{#if draft.html}
-				<iframe
-					srcdoc={draft.html}
-					sandbox=""
-					title={draft.title || 'Prototype draft'}
+				<div
 					style="
-						border: none;
-						display: block;
 						width: {isReveal ? '100%' : '320px'};
-						height: {isReveal ? '80vh' : '520px'};
+						height: {isReveal ? '80vh' : '570px'};
+						overflow: hidden;
 						transition: width 0.5s ease-out, height 0.5s ease-out;
 					"
-				></iframe>
+				>
+					<iframe
+						srcdoc={draft.html}
+						sandbox=""
+						title={draft.title || 'Prototype draft'}
+						style="
+							border: none;
+							display: block;
+							width: 375px;
+							height: 667px;
+							transform: scale({isReveal ? 1 : 0.854});
+							transform-origin: top left;
+						"
+					></iframe>
+				</div>
 			{:else}
 				<div
 					class="flex flex-col items-center justify-center gap-3 text-sm"
