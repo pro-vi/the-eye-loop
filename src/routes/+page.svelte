@@ -350,7 +350,7 @@
 
 		<!-- Main grid -->
 		<div
-			class="grid grid-cols-1 md:grid-cols-[260px_1fr_340px] gap-4 flex-1 min-h-0 px-4 pb-4 max-w-[1440px] mx-auto w-full"
+			class="grid grid-cols-1 md:grid-cols-[240px_1fr_1fr] gap-4 flex-1 min-h-0 px-4 pb-4 max-w-[1600px] mx-auto w-full"
 		>
 			<!-- Left: Anima -->
 			<div class="hidden md:flex flex-col gap-3 overflow-y-auto" style="scrollbar-width: thin;">

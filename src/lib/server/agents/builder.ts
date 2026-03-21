@@ -101,7 +101,11 @@ RULES:
 - Reference specific accepted/rejected items as justification
 - Probe briefs must be about SPECIFIC UI COMPONENTS, not abstract dimensions
 - acceptedPatterns and rejectedPatterns are DELTAS — only new patterns from THIS swipe
-- html must be COMPLETE — include all sections, not just changes
+- html: START FROM THE CURRENT DRAFT HTML above and MODIFY it. Do NOT rewrite from scratch.
+  Apply ONLY the change implied by the last swipe. Keep everything else EXACTLY as-is.
+  If accept: integrate the accepted style/pattern into the existing draft.
+  If reject: remove or replace ONLY the rejected element. Leave the rest untouched.
+  The output must be the full HTML (we can't do diffs), but it should be 90%+ identical to the input.
 
 ${HTML_QUALITY_RULES}
 

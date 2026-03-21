@@ -74,7 +74,7 @@
 			border-radius: {isReveal ? '16px' : '32px'};
 			padding: {isReveal ? '0' : '8px'};
 			transition: all 0.5s ease-out;
-			width: {isReveal ? '100%' : '336px'};
+			width: 100%;
 			max-width: 100%;
 		"
 	>
@@ -98,7 +98,7 @@
 		{#if wrappedHtml}
 				<div
 					style="
-						width: {isReveal ? '100%' : '320px'};
+						width: 100%;
 						height: {isReveal ? '80vh' : '560px'};
 						overflow: hidden;
 						transition: width 0.5s ease-out, height 0.5s ease-out;
@@ -111,10 +111,8 @@
 					style="
 							border: none;
 							display: block;
-							width: 430px;
-							height: 740px;
-							transform: scale({isReveal ? 1 : 0.744});
-							transform-origin: top left;
+							width: 100%;
+							height: 100%;
 						"
 					></iframe>
 				</div>
