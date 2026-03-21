@@ -56,11 +56,11 @@ class EyeLoopContext {
 
 	addEvidence(record: SwipeRecord) {
 		this.swipeCount++;
-		this.swipeLatencies.push(record.latencyMs);
 
-		// Compute latency bucket
+		// Compute latency bucket BEFORE mutation so threshold is pre-swipe
 		const median = this.sessionMedianLatency;
 		record.latencyBucket = median > 0 && record.latencyMs < median ? 'fast' : 'slow';
+		this.swipeLatencies.push(record.latencyMs);
 
 		// Update axis
 		const axis = this.axes.get(record.axisId);
