@@ -10,15 +10,23 @@
 
 	let isReveal = $derived(mode === 'reveal');
 	let hasPatterns = $derived(draft.acceptedPatterns.length > 0 || draft.rejectedPatterns.length > 0);
+	let draftState = $derived(
+		draft.title || draft.summary || draft.html ? `${draft.acceptedPatterns.length} accepted / ${draft.rejectedPatterns.length} rejected` : 'Priming...'
+	);
 </script>
 
 <div
 	id="draft-panel"
 	class="flex flex-col gap-4 rounded-2xl p-5 transition-shadow duration-300"
-	style="background: var(--color-surface); font-family: var(--font-family-body);"
+	style="
+		background: var(--color-surface);
+		font-family: var(--font-family-body);
+		border: 1px solid rgba(255, 255, 255, 0.04);
+	"
 >
 	<!-- Header -->
-	<div class="flex items-center justify-between">
+	<div class="flex flex-col gap-1">
+		<div class="flex items-center justify-between gap-3">
 		<h2
 			class="text-xs font-semibold uppercase tracking-[0.2em]"
 			style="color: var(--color-outline); font-family: var(--font-family-display);"
@@ -30,6 +38,10 @@
 				{draft.title}
 			</span>
 		{/if}
+		</div>
+		<p class="text-[10px] tracking-wider" style="color: var(--color-on-surface-variant);">
+			{draftState}
+		</p>
 	</div>
 
 	<!-- Title + summary (reveal mode) -->
@@ -78,11 +90,11 @@
 			class="overflow-hidden"
 			style="border-radius: {isReveal ? '16px' : '24px'};"
 		>
-			{#if draft.html}
+		{#if draft.html}
 				<div
 					style="
 						width: {isReveal ? '100%' : '320px'};
-						height: {isReveal ? '80vh' : '570px'};
+						height: {isReveal ? '80vh' : '560px'};
 						overflow: hidden;
 						transition: width 0.5s ease-out, height 0.5s ease-out;
 					"
@@ -91,7 +103,7 @@
 						srcdoc={draft.html}
 						sandbox=""
 						title={draft.title || 'Prototype draft'}
-						style="
+					style="
 							border: none;
 							display: block;
 							width: 375px;
@@ -117,6 +129,7 @@
 						style="background: var(--color-surface-bright);"
 					></div>
 					<span class="text-xs">Waiting for builder...</span>
+					<span class="text-[10px]">Prototype will react after your next swipe.</span>
 				</div>
 			{/if}
 		</div>

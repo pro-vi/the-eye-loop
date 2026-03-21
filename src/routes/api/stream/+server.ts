@@ -11,7 +11,7 @@ export function GET() {
 		start(controller) {
 			const encoder = new TextEncoder();
 
-			function send(event: string, payload: Record<string, unknown>) {
+			function send<K extends SSEEventType>(event: K, payload: SSEEventMap[K]) {
 				try {
 					const sseData = JSON.stringify({ type: event, ...payload });
 					controller.enqueue(encoder.encode(`event: ${event}\ndata: ${sseData}\n\n`));
@@ -33,9 +33,12 @@ export function GET() {
 			for (const agent of context.agents.values()) {
 				send('agent-status', { agent });
 			}
+			for (const facade of context.facades) {
+				send('facade-ready', { facade });
+			}
 
 			const cleanupBus = onAny(<K extends SSEEventType>(event: K, payload: SSEEventMap[K]) => {
-				send(event, payload as Record<string, unknown>);
+				send(event, payload);
 			});
 
 			const keepalive = setInterval(() => {

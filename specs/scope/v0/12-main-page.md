@@ -84,7 +84,40 @@ function handleSwipe(event: {facadeId: string, decision: 'accept' | 'reject', la
     facades = facades.filter(f => f.id !== facadeId);
   }
   ```
-- Wire both callbacks: `<SwipeFeed {facades} onswipe={handleSwipe} onremove={handleRemove} />`
+- Wire all three callbacks: `<SwipeFeed {facades} onswipe={handleSwipe} onremove={handleRemove} onvibetoken={handleVibeToken} />`
+
+**Vibe token handler (main page owns the animation layer):**
+```
+function handleVibeToken(token: {label: string, decision: 'accept' | 'reject', sourceRect: DOMRect}) {
+  // 1. Create chip element in a fixed overlay div
+  const chip = document.createElement('div');
+  chip.className = `vibe-token ${token.decision}`;
+  chip.textContent = `${token.decision === 'accept' ? '✓' : '✗'} ${token.label}`;
+  chip.style.left = `${token.sourceRect.x + token.sourceRect.width / 2}px`;
+  chip.style.top = `${token.sourceRect.y + token.sourceRect.height / 2}px`;
+  document.getElementById('vibe-overlay')!.appendChild(chip);
+
+  // 2. Get target rect (draft panel for accept, anti-patterns for reject)
+  const targetEl = token.decision === 'accept'
+    ? document.getElementById('draft-panel')
+    : document.getElementById('anti-patterns');
+  const targetRect = targetEl?.getBoundingClientRect() ?? { x: window.innerWidth - 100, y: 100 };
+
+  // 3. Animate
+  chip.animate([
+    { left: chip.style.left, top: chip.style.top, scale: 1, opacity: 1 },
+    { left: `${targetRect.x + 40}px`, top: `${targetRect.y + 20}px`, scale: 0.6, opacity: 0.8 }
+  ], { duration: 400, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)', fill: 'forwards' })
+    .finished.then(() => {
+      chip.remove();
+      // Pulse target panel border
+      targetEl?.classList.add(token.decision === 'accept' ? 'pulse-green' : 'pulse-red');
+      setTimeout(() => targetEl?.classList.remove('pulse-green', 'pulse-red'), 300);
+    });
+}
+```
+- Add `<div id="vibe-overlay" class="fixed inset-0 pointer-events-none z-50" />` to page template
+- Add `id="draft-panel"` and `id="anti-patterns"` to the relevant PrototypeDraft sections
 
 ### Acceptance criteria
 - [ ] Intent form is visible on initial page load (`mode === 'intent'`)

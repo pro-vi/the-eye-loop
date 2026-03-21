@@ -27,6 +27,11 @@ L2 — UI (depends on L0 + L1)
   10-panels (depends on 04, 05, 06)
   11-draft-reveal (depends on 06)
   12-main-page (depends on 09, 10, 11)
+
+L3 — Polish (independent of each other, depends on L1 + L2)
+  13a-streaming-draft (depends on 06, 11)
+  13b-embedding-diversity (depends on 05)
+  14-voice — hands-free voice mode via ElevenLabs TTS + Web Speech API (depends on 09)
 ```
 
 ## Critical Path
@@ -49,8 +54,11 @@ This satisfies all 5 demo contract items: intent → facades (1), visible Anima 
 - [ ] 10-panels — AnimaPanel (oracle TasteSynthesis: emergent axes with confidence badges, edge case flags, divergence) + AgentStatus (live agent activity)
 - [ ] 11-draft-reveal — PrototypeDraft component + reveal mode transition
 - [ ] 12-main-page — Layout, SSE client, session flow (intent → swiping → reveal)
+- [ ] 13a-streaming-draft — streamText for builder: prototype writes itself in real-time (AI SDK streamText)
+- [ ] 13b-embedding-diversity — embed facade hypotheses, reject semantic duplicates (AI SDK embed + text-embedding-004)
+- [ ] 14-voice — hands-free voice mode: ElevenLabs TTS speaks hypotheses, Web Speech API captures yes/no, hesitation = latency signal (hackathon sponsor)
 
-## Timing Estimate (~6.5 hours)
+## Timing Estimate (~7.5 hours)
 
 | Block | Tickets | Time |
 |-------|---------|------|
@@ -58,4 +66,5 @@ This satisfies all 5 demo contract items: intent → facades (1), visible Anima 
 | Core loop | 05-06 | ~1.5 hrs |
 | First demo checkpoint | 09, 12 (minimal) | ~1 hr |
 | Expand | 07, 08, 10, 11 | ~1.5 hrs |
-| Polish + demo video | — | ~30 min |
+| Polish | 13a, 13b | ~50 min |
+| Demo video | — | ~30 min |

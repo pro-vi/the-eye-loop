@@ -44,6 +44,8 @@
 	// ── Card dimensions ──────────────────────────────────────────────
 	const CARD_WIDTH = 340;
 	const THRESHOLD = 0.3;
+	const KEY_SWIPE_COOLDOWN_MS = 180;
+	let lastKeyboardSwipe = $state(0);
 
 	// ── Pointer handlers (top card only) ─────────────────────────────
 	function onpointerdown(e: PointerEvent) {
@@ -70,6 +72,8 @@
 	function onpointerup(e: PointerEvent) {
 		if (!swiping || !topFacade) return;
 		swiping = false;
+		const el = e.currentTarget as HTMLElement;
+		if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
 
 		const latencyMs = performance.now() - startTime;
 		const ratio = Math.abs(deltaX) / CARD_WIDTH;
@@ -84,6 +88,35 @@
 
 		deltaX = 0;
 	}
+
+	function onpointercancel(e: PointerEvent) {
+		if (!swiping) return;
+		const el = e.currentTarget as HTMLElement;
+		if (el?.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
+		swiping = false;
+		deltaX = 0;
+	}
+
+	function onKeyDown(e: KeyboardEvent) {
+		if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+		if (!topFacade || flyingOff) return;
+		const target = e.target as HTMLElement | null;
+		const tag = target?.tagName.toLowerCase();
+		if (tag === 'input' || tag === 'textarea' || target?.isContentEditable) return;
+
+		const now = performance.now();
+		if (now - lastKeyboardSwipe < KEY_SWIPE_COOLDOWN_MS) return;
+		lastKeyboardSwipe = now;
+
+		buttonSwipe(e.key === 'ArrowLeft' ? 'reject' : 'accept');
+	}
+
+	$effect(() => {
+		if (!topFacade) return;
+
+		window.addEventListener('keydown', onKeyDown);
+		return () => window.removeEventListener('keydown', onKeyDown);
+	});
 
 	function ontransitionend(e: TransitionEvent) {
 		if (e.propertyName !== 'transform' || !flyingOff) return;
@@ -151,6 +184,7 @@
 				onpointerdown={isTop ? onpointerdown : undefined}
 				onpointermove={isTop ? onpointermove : undefined}
 				onpointerup={isTop ? onpointerup : undefined}
+				onpointercancel={isTop ? onpointercancel : undefined}
 				ontransitionend={isFlying ? ontransitionend : undefined}
 				role="button"
 				tabindex={isTop ? 0 : -1}
@@ -158,10 +192,11 @@
 				<!-- Card header -->
 				<div class="flex items-center justify-between px-5 pt-5 pb-2">
 					<span
-						class="text-[10px] uppercase tracking-[0.15em] font-medium"
+						class="text-[10px] uppercase tracking-[0.15em] font-medium truncate max-w-[210px]"
+						title={facade.hypothesis}
 						style="color: var(--color-outline); font-family: var(--font-family-display);"
 					>
-						hypothesis
+						{facade.hypothesis}
 					</span>
 					<span
 						class="text-[10px] px-2.5 py-1 rounded-full uppercase tracking-wider font-semibold flex items-center gap-1.5"
@@ -195,6 +230,7 @@
 							src={facade.imageDataUrl}
 							alt={facade.hypothesis}
 							class="w-full h-full object-cover"
+							style="border-radius: {Math.round(CARD_WIDTH * 0.04)}px;"
 						/>
 					{:else if facade.format === 'image'}
 						<div class="text-center px-6">
@@ -207,6 +243,10 @@
 							{#if debug}
 								<p class="text-xs leading-relaxed" style="color: var(--color-on-surface-variant);">
 									{facade.content.slice(0, 150)}
+								</p>
+							{:else}
+								<p class="text-xs leading-relaxed" style="color: var(--color-outline);">
+									Image suggestion is warming up...
 								</p>
 							{/if}
 						</div>

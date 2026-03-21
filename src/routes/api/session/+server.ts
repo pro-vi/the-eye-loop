@@ -4,17 +4,23 @@ import { startAllScouts, stopAllScouts } from '$lib/server/agents/scout';
 
 export const config = { runtime: 'nodejs22.x', maxDuration: 300 };
 
-export async function POST({ request }: { request: Request }) {
-	const body = await request.json();
-	const intent = body?.intent;
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === 'object' && value !== null;
+}
 
-	if (!intent || typeof intent !== 'string' || intent.trim().length === 0) {
+export async function POST({ request }: { request: Request }) {
+	const body: unknown = await request.json();
+	const intent = isRecord(body) ? body.intent : undefined;
+
+	if (typeof intent !== 'string' || intent.trim().length === 0) {
 		return json({ error: 'intent is required' }, { status: 400 });
 	}
 
+	const trimmedIntent = intent.trim();
+
 	stopAllScouts();
-	const { sessionId } = seedSession(intent.trim());
+	const { sessionId } = await seedSession(trimmedIntent);
 	startAllScouts();
 
-	return json({ intent: intent.trim(), sessionId });
+	return json({ intent: trimmedIntent, sessionId });
 }

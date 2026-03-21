@@ -11,3 +11,4 @@ node_modules/
 .research/nano-banana-2-skill/
 .research/gemimg/
 .research/*.sha
+debug.jsonl

@@ -37,11 +37,57 @@
 	});
 	let stage = $state<Stage>('words');
 
+	const stageLabels: Record<Stage, string> = {
+		words: 'Concepts',
+		images: 'Visuals',
+		mockups: 'Mockups',
+		reveal: 'Reveal'
+	};
+
+	const STAGE_WINDOWS: Record<Exclude<Stage, 'reveal'>, { start: number; span: number }> = {
+		words: { start: 0, span: 4 },
+		images: { start: 4, span: 4 },
+		mockups: { start: 8, span: 7 }
+	};
+
+	const stageWindow = $derived(
+		stage === 'reveal' ? STAGE_WINDOWS.mockups : STAGE_WINDOWS[stage]
+	);
+
+	const stageProgress = $derived(
+		stage === 'reveal'
+			? 100
+			: Math.round(
+					(Math.max(0, Math.min(evidence.length - stageWindow.start, stageWindow.span)) /
+						stageWindow.span) *
+						100
+				)
+	);
+
+	const stageWindowText = $derived(
+		stage === 'reveal'
+			? 'reveal'
+			: `${Math.max(0, Math.min(evidence.length - stageWindow.start, stageWindow.span))}/${stageWindow.span}`
+	);
+
 	// ── Session creation ─────────────────────────────────────────────
 	async function startSession() {
 		if (!intentText.trim() || loading) return;
 		loading = true;
 		error = '';
+		facades = [];
+		evidence = [];
+		synthesis = null;
+		antiPatterns = [];
+		agents = [];
+		draft = {
+			title: '',
+			summary: '',
+			html: '',
+			acceptedPatterns: [],
+			rejectedPatterns: []
+		};
+		stage = 'words';
 
 		try {
 			const res = await fetch('/api/session', {
@@ -182,11 +228,13 @@
 		pointer-events: none;
 		white-space: nowrap;
 		transform: translate(-50%, -50%);
+		box-shadow: 0 10px 18px rgba(0, 0, 0, 0.28);
+		backdrop-filter: blur(4px);
 	}
-	:global(.vibe-token.accept) { background: #22c55e; color: white; }
-	:global(.vibe-token.reject) { background: #ef4444; color: white; }
-	:global(.pulse-green) { box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.4); }
-	:global(.pulse-red) { box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.4); }
+	:global(.vibe-token.accept) { background: linear-gradient(120deg, #22c55e, #16a34a); color: white; }
+	:global(.vibe-token.reject) { background: linear-gradient(120deg, #ef4444, #dc2626); color: white; }
+	:global(.pulse-green) { box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.45); }
+	:global(.pulse-red) { box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.45); }
 </style>
 
 <!-- Vibe token animation overlay -->
@@ -198,30 +246,31 @@
 		class="relative flex flex-col items-center justify-center min-h-screen gap-8 px-6"
 		style="background: var(--color-surface-lowest);"
 	>
-		<!-- Radial gradient glow -->
+		<!-- Ambient glow -->
 		<div
 			class="absolute pointer-events-none"
 			style="
-				width: 600px; height: 400px;
+				width: min(900px, 90vw);
+				aspect-ratio: 3 / 2;
 				top: 50%; left: 50%;
-				transform: translate(-50%, -60%);
-				background: radial-gradient(ellipse, rgba(30,30,30,0.8) 0%, transparent 70%);
+				transform: translate(-50%, -52%);
+				background: radial-gradient(circle at center, rgba(245, 158, 11, 0.12) 0%, rgba(14, 14, 14, 0.85) 44%, transparent 76%);
 			"
 		></div>
 
 		<div class="relative flex flex-col items-center gap-4">
 			<h1
-				class="text-3xl md:text-5xl font-bold uppercase tracking-[0.2em]"
+				class="text-3xl md:text-5xl font-black uppercase tracking-[0.22em]"
 				style="font-family: var(--font-family-display); color: var(--color-on-surface);"
 			>
 				The Eye Loop
 			</h1>
-			<p class="text-sm" style="color: var(--color-outline); font-family: var(--font-family-body);">
+			<p class="text-sm" style="color: var(--color-outline); font-family: var(--font-family-body); max-width: 360px; text-align: center;">
 				Swipe to vibe. AI builds what you actually want.
 			</p>
 		</div>
 
-		<div class="relative flex gap-3 w-full max-w-lg">
+		<div class="relative flex flex-col sm:flex-row gap-3 w-full max-w-lg">
 			<input
 				type="text"
 				bind:value={intentText}
@@ -232,6 +281,8 @@
 					background: var(--color-surface-container);
 					color: var(--color-on-surface);
 					font-family: var(--font-family-body);
+					box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+					transition: box-shadow 0.2s ease;
 				"
 				onkeydown={(e) => e.key === 'Enter' && startSession()}
 			/>
@@ -243,6 +294,7 @@
 					background: var(--color-on-surface);
 					color: var(--color-surface-lowest);
 					font-family: var(--font-family-display);
+					box-shadow: 0 12px 24px rgba(229, 226, 225, 0.12);
 				"
 			>
 				{loading ? '...' : 'GO \u2192'}
@@ -271,44 +323,40 @@
 {:else if mode === 'swiping'}
 	<div class="h-screen flex flex-col" style="background: var(--color-surface-lowest);">
 		<!-- Top bar -->
-		<header class="flex items-center justify-between px-6 py-3 shrink-0">
-			<h1
-				class="text-sm font-bold uppercase tracking-[0.2em]"
-				style="font-family: var(--font-family-display); color: var(--color-on-surface);"
-			>
-				The Eye Loop
-			</h1>
-
-			<!-- Agent status — always visible inline -->
+		<header class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-6 py-3 shrink-0 border-b border-[rgba(255,255,255,0.08)]">
 			<div class="flex items-center gap-3">
-				{#each agents as agent (agent.id)}
-					{@const dotColor = agent.status === 'thinking' ? '#f59e0b'
-						: agent.status === 'waiting' ? '#3b82f6'
-						: agent.status === 'idle' ? 'var(--color-accept)'
-						: 'var(--color-outline)'}
-					<div class="flex items-center gap-1.5">
-						<div
-							class="w-2 h-2 rounded-full shrink-0"
-							class:animate-pulse={agent.status === 'thinking'}
-							style="background: {dotColor};"
-						></div>
-						<span class="text-[10px] font-medium" style="color: var(--color-on-surface-variant);">
-							{agent.name}
-						</span>
-					</div>
-				{/each}
-			</div>
-
-			<div class="flex items-center gap-4">
-				<span class="text-xs" style="color: var(--color-outline);">
-					{evidence.length} swipes
-				</span>
+				<h1
+					class="text-sm font-bold uppercase tracking-[0.2em]"
+					style="font-family: var(--font-family-display); color: var(--color-on-surface);"
+				>
+					The Eye Loop
+				</h1>
 				<span
-					class="text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-full"
+					class="text-[10px] uppercase tracking-wide px-2 py-1 rounded-full"
 					style="background: var(--color-surface-container); color: var(--color-on-surface-variant);"
 				>
-					{stage}
+					{stageLabels[stage]}
 				</span>
+			</div>
+
+			<div class="flex flex-col gap-1">
+				<div class="flex items-center justify-end gap-3">
+					<span
+						class="text-[10px] uppercase tracking-wider"
+						style="color: var(--color-outline-variant);"
+					>
+						{evidence.length} swipes
+					</span>
+					<span class="text-[10px] uppercase tracking-wider" style="color: var(--color-outline);">
+						{stageWindowText}
+					</span>
+				</div>
+				<div class="h-1.5 rounded-full w-40 overflow-hidden" style="background: rgba(255, 255, 255, 0.08);">
+					<div
+						class="h-full rounded-full transition-all duration-300"
+						style={`width: ${stageProgress}%; background: linear-gradient(90deg, var(--color-accept), #16a34a);`}
+					></div>
+				</div>
 			</div>
 		</header>
 
@@ -319,6 +367,7 @@
 			<!-- Left: Anima -->
 			<div class="hidden md:flex flex-col gap-3 overflow-y-auto" style="scrollbar-width: thin;">
 				<AnimaPanel {evidence} {synthesis} {antiPatterns} />
+				<AgentStatus {agents} />
 			</div>
 
 			<!-- Center: Swipe feed -->
@@ -333,9 +382,10 @@
 		</div>
 	</div>
 
-	<!-- Mobile: Anima only (agents in header, draft is desktop-only) -->
+	<!-- Mobile: Anima + agents -->
 	<div class="flex md:hidden flex-col gap-4 px-4 pb-4">
 		<AnimaPanel {evidence} {synthesis} {antiPatterns} />
+		<AgentStatus {agents} />
 	</div>
 
 <!-- ── Reveal mode ───────────────────────────────────────────────── -->

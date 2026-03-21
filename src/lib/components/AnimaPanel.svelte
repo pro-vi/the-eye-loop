@@ -11,6 +11,13 @@
 
 	let accepts = $derived(evidence.filter((e) => e.decision === 'accept'));
 	let rejects = $derived(evidence.filter((e) => e.decision === 'reject'));
+
+	const confidenceColors: Record<TasteSynthesis['axes'][number]['confidence'], string> = {
+		unprobed: 'var(--color-outline-variant)',
+		exploring: '#f59e0b',
+		leaning: '#3b82f6',
+		resolved: 'var(--color-accept)'
+	};
 </script>
 
 <div
@@ -32,6 +39,7 @@
 				{@const isHesitant = e.latencySignal === 'slow'}
 				<span
 					class="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs"
+					title={e.content}
 					style="
 						background: {isAccept ? 'rgba(34, 197, 94, 0.12)' : 'rgba(239, 68, 68, 0.12)'};
 						color: {isAccept ? 'var(--color-accept)' : 'var(--color-reject)'};
@@ -65,14 +73,9 @@
 					Taste Axes
 				</p>
 				{#each synthesis.axes as axis (axis.label)}
-					{@const confColor =
-						axis.confidence === 'resolved'
-							? 'var(--color-accept)'
-							: axis.confidence === 'leaning'
-								? '#f59e0b'
-								: axis.confidence === 'exploring'
-									? 'var(--color-outline)'
-									: 'var(--color-outline-variant)'}
+					{@const confColor = confidenceColors[axis.confidence]}
+					{@const leaningA = axis.leaning_toward === axis.poleA}
+					{@const leaningB = axis.leaning_toward === axis.poleB}
 					<div
 						class="rounded-xl px-3 py-2"
 						style="background: var(--color-surface-container);"
@@ -88,13 +91,22 @@
 								{axis.confidence}
 							</span>
 						</div>
-						<div class="flex justify-between text-xs" style="color: var(--color-on-surface-variant);">
-							<span>{axis.poleA}</span>
-							<span>{axis.poleB}</span>
+						<div class="flex justify-between text-xs">
+							<span style="color: {leaningA ? confColor : 'var(--color-on-surface-variant)'};">
+								{axis.poleA}
+							</span>
+							<span style="color: {leaningB ? confColor : 'var(--color-on-surface-variant)'};">
+								{axis.poleB}
+							</span>
 						</div>
 						{#if axis.leaning_toward}
 							<p class="text-xs mt-1" style="color: {confColor};">
 								→ {axis.leaning_toward}
+							</p>
+						{/if}
+						{#if axis.evidence_basis}
+							<p class="text-[10px] leading-relaxed mt-2" style="color: var(--color-outline-variant);">
+								<span style="color: var(--color-outline);">basis:</span> {axis.evidence_basis}
 							</p>
 						{/if}
 					</div>

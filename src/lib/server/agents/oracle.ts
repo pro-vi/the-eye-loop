@@ -208,7 +208,7 @@ async function runSynthesis() {
 
 // ── Session seed (cold-start intent analysis) ────────────────────────
 
-export function seedSession(intent: string): { sessionId: string } {
+export async function seedSession(intent: string): Promise<{ sessionId: string }> {
 	debugLog('Oracle', 'session-start', { intent: intent.trim() });
 	context.reset();
 	context.intent = intent;
@@ -220,12 +220,11 @@ export function seedSession(intent: string): { sessionId: string } {
 	pendingSynthesis = false;
 
 	emitSessionReady({ intent });
+
+	// Await cold-start so scouts get axis assignments on their first iteration
+	await runColdStart(intent, context.sessionId);
+
 	setOracleStatus('idle', 'monitoring');
-
-	// Cold-start analysis runs in background — doesn't block session creation
-	// or scout startup. Synthesis arrives via SSE when ready.
-	runColdStart(intent, context.sessionId);
-
 	console.log(`[oracle] session created for "${intent}"`);
 	return { sessionId: context.sessionId };
 }
@@ -241,6 +240,12 @@ async function runColdStart(intent: string, capturedSessionId: string) {
 		});
 
 		if (context.sessionId !== capturedSessionId) return;
+
+		// Don't overwrite evidence-backed synthesis with stale cold-start
+		if (context.synthesis && context.evidence.length > 0) {
+			debugLog('Oracle', 'cold-start-skipped', { reason: 'real synthesis already landed' });
+			return;
+		}
 
 		if (result.output) {
 			context.synthesis = {
