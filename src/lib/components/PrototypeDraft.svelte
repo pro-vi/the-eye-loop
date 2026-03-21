@@ -12,10 +12,28 @@
 	let hasPatterns = $derived(draft.acceptedPatterns.length > 0 || draft.rejectedPatterns.length > 0);
 </script>
 
-<div class="flex flex-col gap-4" style="font-family: var(--font-family-body);">
+<div
+	class="flex flex-col gap-4 rounded-2xl p-5"
+	style="background: var(--color-surface); font-family: var(--font-family-body);"
+>
+	<!-- Header -->
+	<div class="flex items-center justify-between">
+		<h2
+			class="text-xs font-semibold uppercase tracking-[0.2em]"
+			style="color: var(--color-outline); font-family: var(--font-family-display);"
+		>
+			{isReveal ? 'Final Prototype' : 'Live Draft'}
+		</h2>
+		{#if draft.title && !isReveal}
+			<span class="text-xs" style="color: var(--color-outline-variant);">
+				{draft.title}
+			</span>
+		{/if}
+	</div>
+
 	<!-- Title + summary (reveal mode) -->
 	{#if isReveal && draft.title}
-		<div class="mb-2">
+		<div>
 			<h2
 				class="text-2xl font-bold"
 				style="color: var(--color-on-surface); font-family: var(--font-family-display);"
@@ -23,91 +41,109 @@
 				{draft.title}
 			</h2>
 			{#if draft.summary}
-				<p class="text-base mt-2" style="color: var(--color-on-surface-variant);">
+				<p class="text-sm mt-2 leading-relaxed" style="color: var(--color-on-surface-variant);">
 					{draft.summary}
 				</p>
 			{/if}
 		</div>
 	{/if}
 
-	<!-- Draft iframe -->
+	<!-- Phone frame + iframe -->
 	<div
-		class="rounded-2xl overflow-hidden"
+		class="relative mx-auto overflow-hidden"
 		style="
-			background: var(--color-surface-container);
+			background: var(--color-surface-highest);
+			border-radius: {isReveal ? '16px' : '32px'};
+			padding: {isReveal ? '0' : '8px'};
 			transition: all 0.5s ease-out;
+			width: {isReveal ? '100%' : 'fit-content'};
 		"
 	>
-		{#if draft.html}
-			<iframe
-				srcdoc={draft.html}
-				sandbox=""
-				title={draft.title || 'Prototype draft'}
-				style="
-					border: none;
-					width: {isReveal ? '100%' : '375px'};
-					height: {isReveal ? '80vh' : '667px'};
-					transition: width 0.5s ease-out, height 0.5s ease-out;
-				"
-			></iframe>
-		{:else}
+		<!-- Phone notch (swiping mode only) -->
+		{#if !isReveal}
 			<div
-				class="flex items-center justify-center text-sm"
+				class="absolute top-0 left-1/2 -translate-x-1/2 z-10"
 				style="
-					width: {isReveal ? '100%' : '375px'};
-					height: {isReveal ? '80vh' : '667px'};
-					color: var(--color-outline-variant);
-					transition: width 0.5s ease-out, height 0.5s ease-out;
+					width: 120px;
+					height: 24px;
+					background: var(--color-surface-highest);
+					border-radius: 0 0 16px 16px;
 				"
-			>
-				Waiting for builder...
-			</div>
+			></div>
 		{/if}
+
+		<div
+			class="overflow-hidden"
+			style="border-radius: {isReveal ? '16px' : '24px'};"
+		>
+			{#if draft.html}
+				<iframe
+					srcdoc={draft.html}
+					sandbox=""
+					title={draft.title || 'Prototype draft'}
+					style="
+						border: none;
+						display: block;
+						width: {isReveal ? '100%' : '320px'};
+						height: {isReveal ? '80vh' : '520px'};
+						transition: width 0.5s ease-out, height 0.5s ease-out;
+					"
+				></iframe>
+			{:else}
+				<div
+					class="flex flex-col items-center justify-center gap-3 text-sm"
+					style="
+						width: {isReveal ? '100%' : '320px'};
+						height: {isReveal ? '80vh' : '520px'};
+						color: var(--color-outline-variant);
+						background: var(--color-surface-container);
+						transition: width 0.5s ease-out, height 0.5s ease-out;
+					"
+				>
+					<div
+						class="w-6 h-6 rounded-full animate-pulse"
+						style="background: var(--color-surface-bright);"
+					></div>
+					<span class="text-xs">Waiting for builder...</span>
+				</div>
+			{/if}
+		</div>
 	</div>
+
+	<!-- Pattern chips -->
+	{#if hasPatterns}
+		<div class="flex flex-wrap gap-1.5">
+			{#each draft.acceptedPatterns as pattern}
+				<span
+					class="rounded-full px-2.5 py-1 text-[10px] font-medium"
+					style="background: rgba(34, 197, 94, 0.12); color: var(--color-accept);"
+				>
+					{pattern}
+				</span>
+			{/each}
+			{#each draft.rejectedPatterns as pattern}
+				<span
+					class="rounded-full px-2.5 py-1 text-[10px] font-medium line-through"
+					style="background: rgba(239, 68, 68, 0.08); color: var(--color-reject);"
+				>
+					{pattern}
+				</span>
+			{/each}
+		</div>
+	{/if}
 
 	<!-- Next hint alert -->
 	{#if draft.nextHint}
 		<div
-			class="rounded-xl p-3.5"
-			style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.2);"
+			class="rounded-xl p-3"
+			style="background: rgba(245, 158, 11, 0.06); border: 1px solid rgba(245, 158, 11, 0.15);"
 		>
-			<p class="text-xs font-semibold uppercase tracking-wide mb-1" style="color: #f59e0b;">
+			<p class="text-[10px] font-semibold uppercase tracking-wider mb-1" style="color: #f59e0b;">
 				Builder needs to know
 			</p>
-			<p class="text-sm leading-relaxed" style="color: var(--color-on-surface-variant);">
+			<p class="text-xs leading-relaxed" style="color: var(--color-on-surface-variant);">
 				{draft.nextHint}
 			</p>
-		</div>
-	{/if}
-
-	<!-- Pattern chips -->
-	{#if hasPatterns}
-		<div class="flex flex-col gap-2">
-			{#if draft.acceptedPatterns.length > 0}
-				<div class="flex flex-wrap gap-1.5">
-					{#each draft.acceptedPatterns as pattern}
-						<span
-							class="rounded-full px-2.5 py-1 text-xs"
-							style="background: rgba(34, 197, 94, 0.12); color: var(--color-accept);"
-						>
-							{pattern}
-						</span>
-					{/each}
-				</div>
-			{/if}
-
-			{#if draft.rejectedPatterns.length > 0}
-				<div class="flex flex-wrap gap-1.5">
-					{#each draft.rejectedPatterns as pattern}
-						<span
-							class="rounded-full px-2.5 py-1 text-xs line-through"
-							style="background: rgba(239, 68, 68, 0.08); color: var(--color-reject);"
-						>
-							{pattern}
-						</span>
-					{/each}
-				</div>
-			{/if}
 		</div>
 	{/if}
 </div>

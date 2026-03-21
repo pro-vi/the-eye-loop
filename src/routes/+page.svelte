@@ -181,24 +181,47 @@
 
 <!-- ── Swiping mode ──────────────────────────────────────────────── -->
 {:else if mode === 'swiping'}
-	<div
-		class="grid grid-cols-1 md:grid-cols-[240px_1fr_360px] gap-4 h-screen p-4 max-w-[1440px] mx-auto"
-		style="background: var(--color-surface-lowest);"
-	>
-		<!-- Left: Anima + Agents -->
-		<div class="hidden md:flex flex-col gap-4 overflow-y-auto pr-1" style="scrollbar-width: thin;">
-			<AnimaPanel {evidence} {synthesis} {antiPatterns} />
-			<AgentStatus {agents} />
-		</div>
+	<div class="h-screen flex flex-col" style="background: var(--color-surface-lowest);">
+		<!-- Top bar -->
+		<header class="flex items-center justify-between px-6 py-3 shrink-0">
+			<h1
+				class="text-sm font-bold uppercase tracking-[0.2em]"
+				style="font-family: var(--font-family-display); color: var(--color-on-surface);"
+			>
+				The Eye Loop
+			</h1>
+			<div class="flex items-center gap-4">
+				<span class="text-xs" style="color: var(--color-outline);">
+					{evidence.length} swipes
+				</span>
+				<span
+					class="text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-full"
+					style="background: var(--color-surface-container); color: var(--color-on-surface-variant);"
+				>
+					{stage}
+				</span>
+			</div>
+		</header>
 
-		<!-- Center: Swipe feed -->
-		<div class="flex items-center justify-center">
-			<SwipeFeed {facades} onswipe={handleSwipe} onremove={handleRemove} />
-		</div>
+		<!-- Main grid -->
+		<div
+			class="grid grid-cols-1 md:grid-cols-[260px_1fr_340px] gap-4 flex-1 min-h-0 px-4 pb-4 max-w-[1440px] mx-auto w-full"
+		>
+			<!-- Left: Anima + Agents -->
+			<div class="hidden md:flex flex-col gap-3 overflow-y-auto" style="scrollbar-width: thin;">
+				<AnimaPanel {evidence} {synthesis} {antiPatterns} />
+				<AgentStatus {agents} />
+			</div>
 
-		<!-- Right: Draft -->
-		<div class="hidden md:flex flex-col gap-4 overflow-y-auto pl-1" style="scrollbar-width: thin;">
-			<PrototypeDraftPanel {draft} mode="swiping" />
+			<!-- Center: Swipe feed -->
+			<div class="flex items-center justify-center">
+				<SwipeFeed {facades} onswipe={handleSwipe} onremove={handleRemove} />
+			</div>
+
+			<!-- Right: Draft -->
+			<div class="hidden md:flex flex-col overflow-y-auto" style="scrollbar-width: thin;">
+				<PrototypeDraftPanel {draft} mode="swiping" />
+			</div>
 		</div>
 	</div>
 
@@ -211,7 +234,17 @@
 
 <!-- ── Reveal mode ───────────────────────────────────────────────── -->
 {:else if mode === 'reveal'}
-	<div class="min-h-screen p-4 md:p-8 flex flex-col items-center">
-		<PrototypeDraftPanel {draft} mode="reveal" />
+	<div class="min-h-screen flex flex-col items-center p-4 md:p-8" style="background: var(--color-surface-lowest);">
+		<header class="w-full max-w-4xl mb-8">
+			<h1
+				class="text-sm font-bold uppercase tracking-[0.2em]"
+				style="font-family: var(--font-family-display); color: var(--color-on-surface);"
+			>
+				The Eye Loop
+			</h1>
+		</header>
+		<div class="w-full max-w-4xl">
+			<PrototypeDraftPanel {draft} mode="reveal" />
+		</div>
 	</div>
 {/if}
