@@ -25,6 +25,7 @@ const SCOUT_ROSTER = [
 const ScoutOutputSchema = z.object({
 	label: z.string(),
 	hypothesis: z.string(),
+	axis_targeted: z.string(),
 	format: z.enum(['word', 'image', 'mockup']),
 	content: z.string(),
 	accept_implies: z.string(),
@@ -64,8 +65,14 @@ hesitant = they took a long time to decide):
 
 {EVIDENCE}
 
-ORACLE SYNTHESIS (if available):
-{ORACLE_SYNTHESIS}
+EMERGENT AXES (oracle-discovered taste dimensions):
+{EMERGENT_AXES}
+
+YOUR AXIS ASSIGNMENT:
+{AXIS_ASSIGNMENT}
+
+QUEUE (probes already pending — do NOT duplicate):
+{QUEUE_CONTENTS}
 
 ANTI-PATTERNS (hard constraints — NEVER use these):
 {ANTI_PATTERNS}
@@ -80,13 +87,14 @@ FORMAT INSTRUCTION:
 {FORMAT_INSTRUCTION}
 
 RULES:
+- Follow your axis assignment OR pick the most uncertain axis not already queued
+- Do NOT duplicate what's already in the queue
 - Do NOT repeat patterns the user already rejected
-- Do NOT re-confirm things we already know
-- Target the GAPS — what aspects of their taste are we still uncertain about?
-- A probe the user would HESITATE on is more informative than one they'd
-  instantly accept or reject
-- Think like Akinator — each question should maximally partition the
-  remaining possibility space
+- Do NOT re-confirm things we already know (resolved axes)
+- Target EXPLORING or UNPROBED axes
+- A probe the user would HESITATE on is more informative
+- Think like Akinator — maximally partition the remaining space
+- Set axis_targeted to the emergent axis label you're probing
 - Respect the format instruction above`;
 
 // ── Local history ────────────────────────────────────────────────────
@@ -114,19 +122,28 @@ function recentHypotheses(entries: HistoryEntry[]): string {
 		.join(', ');
 }
 
-function getOracleSynthesis(): string {
-	if (!context.synthesis) return 'Not yet available (need 4+ swipes).';
-	const s = context.synthesis;
-	const lines = [
-		`Known: ${s.known.join('; ') || '(none)'}`,
-		`Unknown: ${s.unknown.join('; ') || '(none)'}`,
-		`Contradictions: ${s.contradictions.join('; ') || '(none)'}`,
-		`Scout guidance: ${s.scout_guidance}`
-	];
-	if (s.persona_anima_divergence) {
-		lines.push(`Divergence: ${s.persona_anima_divergence}`);
-	}
-	return lines.join('\n');
+function getEmergentAxes(): string {
+	if (!context.synthesis?.axes?.length) return 'Not yet available (need 4+ swipes).';
+	return context.synthesis.axes
+		.map((a) => {
+			const leaning = a.leaning_toward ? ` → ${a.leaning_toward}` : '';
+			return `  - ${a.label} [${a.confidence}${leaning}]: ${a.poleA} vs ${a.poleB}\n    Evidence: ${a.evidence_basis}`;
+		})
+		.join('\n');
+}
+
+function getAxisAssignment(scoutName: string): string {
+	if (!context.synthesis?.scout_assignments?.length) return 'No assignment yet — self-assign from most uncertain gap.';
+	const assignment = context.synthesis.scout_assignments.find((a) => a.scout === scoutName);
+	if (!assignment) return 'No assignment for you — pick the most uncertain axis not already queued.';
+	return `Probe "${assignment.probe_axis}" — ${assignment.reason}`;
+}
+
+function getQueueContents(): string {
+	if (!context.facades.length) return '(queue empty)';
+	return context.facades
+		.map((f) => `  - "${f.label}" (${f.agentId}) — hypothesis: ${f.hypothesis}`)
+		.join('\n');
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────
@@ -191,70 +208,81 @@ export function startScout(agentId: string, name: string): () => void {
 					? `${probe.brief}\nContext: ${probe.context}`
 					: 'None — self-assign from most uncertain gap';
 
-				const antiStr = context.antiPatterns.length
-					? context.antiPatterns.map((p) => `  - ${p}`).join('\n')
-					: '  (none yet)';
+				let facadeQueued = false;
+				try {
+					const antiStr = context.antiPatterns.length
+						? context.antiPatterns.map((p) => `  - ${p}`).join('\n')
+						: '  (none yet)';
 
-				const { instruction } = getFormatInstruction(context.evidence.length);
+					const { instruction } = getFormatInstruction(context.evidence.length);
 
-				const system = SCOUT_PROMPT.replace('{INTENT}', context.intent)
-					.replace('{EVIDENCE}', context.toEvidencePrompt())
-					.replace('{ORACLE_SYNTHESIS}', getOracleSynthesis())
-					.replace('{ANTI_PATTERNS}', antiStr)
-					.replace('{RECENT_HYPOTHESES}', recentHypotheses(history))
-					.replace('{PROBE_BRIEF}', probeBrief)
-					.replace('{FORMAT_INSTRUCTION}', instruction);
+					const system = SCOUT_PROMPT.replace('{INTENT}', context.intent)
+						.replace('{EVIDENCE}', context.toEvidencePrompt())
+						.replace('{EMERGENT_AXES}', getEmergentAxes())
+						.replace('{AXIS_ASSIGNMENT}', getAxisAssignment(name))
+						.replace('{QUEUE_CONTENTS}', getQueueContents())
+						.replace('{ANTI_PATTERNS}', antiStr)
+						.replace('{RECENT_HYPOTHESES}', recentHypotheses(history))
+						.replace('{PROBE_BRIEF}', probeBrief)
+						.replace('{FORMAT_INSTRUCTION}', instruction);
 
-				const result = await generateText({
-					model: MODEL,
-					output: Output.object({ schema: ScoutOutputSchema }),
-					temperature: 1.0,
-					system,
-					prompt: 'Generate the next taste probe. Follow the format instruction.',
-					abortSignal: signal
-				});
+					const result = await generateText({
+						model: MODEL,
+						output: Output.object({ schema: ScoutOutputSchema }),
+						temperature: 1.0,
+						system,
+						prompt: 'Generate the next taste probe. Follow the format instruction.',
+						abortSignal: signal
+					});
 
-				if (!alive()) break;
+					if (!alive()) break;
 
-				const output = result.output;
-				if (!output) continue;
+					const output = result.output;
+					if (!output) continue;
 
-				const facade: Facade = {
-					id: crypto.randomUUID(),
-					agentId,
-					hypothesis: output.hypothesis,
-					label: output.label,
-					content: output.content,
-					format: output.format
-				};
+					const facade: Facade = {
+						id: crypto.randomUUID(),
+						agentId,
+						hypothesis: output.hypothesis,
+						label: output.label,
+						content: output.content,
+						format: output.format
+					};
 
-				context.pushFacade(facade);
-				agent.lastFacadeId = facade.id;
+					context.pushFacade(facade);
+					facadeQueued = true;
+					agent.lastFacadeId = facade.id;
 
-				setStatus(agent, 'waiting', `"${facade.label}"`);
+					setStatus(agent, 'waiting', `"${facade.label}"`);
 
-				const outcome = await awaitFacadeSwipe(facade.id, SWIPE_TIMEOUT_MS, signal);
+					const outcome = await awaitFacadeSwipe(facade.id, SWIPE_TIMEOUT_MS, signal);
 
-				if (!alive() || outcome === 'aborted') break;
-				if (outcome === 'timeout') {
-					const idx = context.facades.findIndex((f) => f.id === facade.id);
-					if (idx !== -1) context.facades.splice(idx, 1);
-					emitFacadeStale({ facadeId: facade.id });
-					continue;
+					if (!alive() || outcome === 'aborted') break;
+					if (outcome === 'timeout') {
+						const idx = context.facades.findIndex((f) => f.id === facade.id);
+						if (idx !== -1) context.facades.splice(idx, 1);
+						emitFacadeStale({ facadeId: facade.id });
+						continue;
+					}
+					if (outcome === 'stale') continue;
+
+					history.unshift({
+						label: facade.label,
+						hypothesis: output.hypothesis,
+						decision: outcome.decision,
+						latency_signal: outcome.latencyBucket ?? 'slow',
+						lesson:
+							outcome.decision === 'accept'
+								? output.accept_implies
+								: output.reject_implies
+					});
+					if (history.length > MAX_HISTORY) history.pop();
+				} finally {
+					// Requeue claimed probe if we failed before queuing the facade
+					if (probe && !facadeQueued) {
+						context.probes.unshift(probe);
+					}
 				}
-				if (outcome === 'stale') continue;
-
-				history.unshift({
-					label: facade.label,
-					hypothesis: output.hypothesis,
-					decision: outcome.decision,
-					latency_signal: outcome.latencyBucket ?? 'slow',
-					lesson:
-						outcome.decision === 'accept'
-							? output.accept_implies
-							: output.reject_implies
-				});
-				if (history.length > MAX_HISTORY) history.pop();
 			} catch (err) {
 				if (!alive()) break;
 				console.error(`[scout:${agentId}]`, err);

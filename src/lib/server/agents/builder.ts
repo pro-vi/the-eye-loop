@@ -16,7 +16,7 @@ import type { AgentState, Facade, SwipeRecord } from '$lib/context/types';
 // ── Constants ────────────────────────────────────────────────────────
 
 const google = createGoogleGenerativeAI({ apiKey: GEMINI_API_KEY });
-const MODEL = google('gemini-2.5-flash');
+const MODEL = google('gemini-3.1-flash-lite-preview');
 const BUILDER_ID = 'builder-01';
 const BUILDER_NAME = 'Meridian';
 
@@ -68,6 +68,10 @@ The user said they want to build: "{intent}"
 EVIDENCE HISTORY:
 
 {evidence}
+
+EMERGENT AXES (oracle-discovered taste dimensions):
+{oracle_synthesis}
+Use RESOLVED axes as constraints. EXPLORING axes = don't commit yet. LEANING = likely direction.
 
 CURRENT DRAFT:
   title: {draft_title}
@@ -147,9 +151,22 @@ async function rebuild(facade: Facade, record: SwipeRecord) {
 			? context.antiPatterns.map((p) => `  - ${p}`).join('\n')
 			: '  (none yet)';
 
+		const synthStr = context.synthesis
+			? context.synthesis.axes
+					.map((a) => `  ${a.label}: ${a.poleA} ↔ ${a.poleB} [${a.confidence}${a.leaning_toward ? ` → ${a.leaning_toward}` : ''}]`)
+					.join('\n') +
+				(context.synthesis.persona_anima_divergence
+					? `\nDivergence: ${context.synthesis.persona_anima_divergence}`
+					: '') +
+				(context.synthesis.edge_case_flags.length
+					? `\nFlags: ${context.synthesis.edge_case_flags.join(', ')}`
+					: '')
+			: 'Not yet available.';
+
 		const system = SWIPE_PROMPT
 			.replace('{intent}', context.intent)
 			.replace('{evidence}', context.toEvidencePrompt())
+			.replace('{oracle_synthesis}', synthStr)
 			.replace('{draft_title}', context.draft.title || '(empty)')
 			.replace('{draft_summary}', context.draft.summary || '(empty)')
 			.replace('{current_draft_html}', context.draft.html || '(empty)')

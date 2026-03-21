@@ -25,11 +25,25 @@ const MODEL = google('gemini-3.1-pro-preview');
 
 // ── Synthesis schema (snake_case — matches spec + Zod output) ────────
 
+const emergentAxisSchema = z.object({
+	label: z.string(),
+	poleA: z.string(),
+	poleB: z.string(),
+	confidence: z.enum(['unprobed', 'exploring', 'leaning', 'resolved']),
+	leaning_toward: z.string().nullable(),
+	evidence_basis: z.string()
+});
+
 const synthesisSchema = z.object({
-	known: z.array(z.string()),
-	unknown: z.array(z.string()),
-	contradictions: z.array(z.string()),
-	scout_guidance: z.string(),
+	axes: z.array(emergentAxisSchema),
+	edge_case_flags: z.array(z.string()),
+	scout_assignments: z.array(
+		z.object({
+			scout: z.string(),
+			probe_axis: z.string(),
+			reason: z.string()
+		})
+	),
 	persona_anima_divergence: z.string().nullable()
 });
 
@@ -41,12 +55,21 @@ FULL EVIDENCE (accept/reject + latency only — no user reasoning):
 
 {evidence}
 
-Produce a strategic synthesis:
-1. KNOWN — consistent patterns in accepts and rejects
-2. UNKNOWN — gaps where we have no evidence or mixed signals
-3. CONTRADICTIONS — hesitant swipes or mixed signals
-4. SCOUT GUIDANCE — what should scouts probe NEXT? Be specific.
-5. PERSONA-ANIMA DIVERGENCE — does revealed taste diverge from stated intent?`;
+Analyze the evidence and produce EMERGENT TASTE AXES — dimensions that
+have revealed themselves through the user's choices. These are NOT
+pre-seeded. They are DISCOVERED from patterns in the evidence.
+
+For each axis:
+- label: short name for the taste dimension
+- poleA / poleB: the two ends discovered from evidence
+- confidence: unprobed | exploring | leaning | resolved
+- leaning_toward: which pole (null if exploring/unprobed)
+- evidence_basis: which accepts/rejects support this
+
+Also produce:
+- edge_case_flags: patterns needing special handling ("user accepts everything", "axis X contradictory", "all hesitant")
+- scout_assignments: for 3 scouts (Iris, Prism, Lumen), assign each a DIFFERENT axis to probe next
+- persona_anima_divergence: where revealed taste diverges from stated intent (null if none detected)`;
 
 // ── Agent state ──────────────────────────────────────────────────────
 
@@ -59,6 +82,7 @@ const ORACLE_AGENT: AgentState = {
 };
 
 let cleanup: Array<() => void> = [];
+let synthesisRunId = 0; // ownership token — only the owning run can clear the gate
 let busy = false;
 
 // ── Helpers ──────────────────────────────────────────────────────────
@@ -88,6 +112,7 @@ function checkFloor() {
 // ── Synthesis (async, non-blocking) ──────────────────────────────────
 
 async function runSynthesis() {
+	const myRunId = ++synthesisRunId;
 	busy = true;
 	const capturedSessionId = context.sessionId;
 	const evidenceSnapshot = context.toEvidencePrompt();
@@ -120,8 +145,11 @@ async function runSynthesis() {
 	} catch (err) {
 		console.error('[oracle] synthesis failed:', err);
 	} finally {
-		busy = false;
-		setOracleStatus('idle', 'monitoring');
+		// Only clear the gate if this run still owns it
+		if (synthesisRunId === myRunId) {
+			busy = false;
+			setOracleStatus('idle', 'monitoring');
+		}
 	}
 }
 
@@ -132,6 +160,7 @@ export function seedSession(intent: string): { sessionId: string } {
 	context.intent = intent;
 	context.sessionId = crypto.randomUUID();
 	lastFloor = 'word';
+	synthesisRunId++; // invalidate any in-flight synthesis from previous session
 	busy = false;
 
 	setOracleStatus('thinking', 'session init');

@@ -53,40 +53,75 @@
 		</p>
 	{/if}
 
-	<!-- Synthesis -->
-	{#if synthesis}
-		<div class="flex flex-col gap-3">
-			{#if synthesis.known.length > 0}
-				<div>
-					<p class="text-xs font-semibold uppercase tracking-wide mb-1" style="color: var(--color-accept);">Known</p>
-					<ul class="flex flex-col gap-1">
-						{#each synthesis.known as item}
-							<li class="text-xs leading-relaxed" style="color: var(--color-on-surface-variant);">{item}</li>
-						{/each}
-					</ul>
+	<!-- Emergent axes -->
+	{#if synthesis && synthesis.axes.length > 0}
+		<div class="flex flex-col gap-2.5">
+			<p
+				class="text-xs font-semibold uppercase tracking-wide"
+				style="color: var(--color-outline);"
+			>
+				Taste Axes
+			</p>
+			{#each synthesis.axes as axis (axis.label)}
+				{@const confColor =
+					axis.confidence === 'resolved'
+						? 'var(--color-accept)'
+						: axis.confidence === 'leaning'
+							? '#f59e0b'
+							: axis.confidence === 'exploring'
+								? 'var(--color-outline)'
+								: 'var(--color-outline-variant)'}
+				<div
+					class="rounded-xl px-3 py-2"
+					style="background: var(--color-surface-container);"
+				>
+					<div class="flex items-center justify-between mb-1">
+						<span class="text-xs font-semibold" style="color: var(--color-on-surface);">
+							{axis.label}
+						</span>
+						<span
+							class="text-xs rounded-full px-2 py-0.5"
+							style="background: var(--color-surface-bright); color: {confColor};"
+						>
+							{axis.confidence}
+						</span>
+					</div>
+					<div class="flex justify-between text-xs" style="color: var(--color-on-surface-variant);">
+						<span>{axis.poleA}</span>
+						<span>{axis.poleB}</span>
+					</div>
+					{#if axis.leaning_toward}
+						<p class="text-xs mt-1" style="color: {confColor};">
+							→ {axis.leaning_toward}
+						</p>
+					{/if}
 				</div>
-			{/if}
-
-			{#if synthesis.unknown.length > 0}
-				<div>
-					<p class="text-xs font-semibold uppercase tracking-wide mb-1" style="color: var(--color-outline);">Unknown</p>
-					<ul class="flex flex-col gap-1">
-						{#each synthesis.unknown as item}
-							<li class="text-xs leading-relaxed" style="color: var(--color-on-surface-variant);">{item}</li>
-						{/each}
-					</ul>
-				</div>
-			{/if}
-
-			{#if synthesis.persona_anima_divergence}
-				<div>
-					<p class="text-xs font-semibold uppercase tracking-wide mb-1" style="color: var(--color-reject);">Divergence</p>
-					<p class="text-xs leading-relaxed" style="color: var(--color-on-surface-variant);">
-						{synthesis.persona_anima_divergence}
-					</p>
-				</div>
-			{/if}
+			{/each}
 		</div>
+
+		<!-- Edge case flags -->
+		{#if synthesis.edge_case_flags.length > 0}
+			<div class="flex flex-wrap gap-1.5">
+				{#each synthesis.edge_case_flags as flag}
+					<span
+						class="rounded-full px-2.5 py-1 text-xs"
+						style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;"
+					>
+						{flag}
+					</span>
+				{/each}
+			</div>
+		{/if}
+
+		<!-- Divergence -->
+		{#if synthesis.persona_anima_divergence}
+			<div>
+				<p class="text-xs font-semibold uppercase tracking-wide mb-1" style="color: var(--color-reject);">Divergence</p>
+				<p class="text-xs leading-relaxed" style="color: var(--color-on-surface-variant);">
+					{synthesis.persona_anima_divergence}
+				</p>
+			</div>
+		{/if}
 	{/if}
 
 	<!-- Anti-patterns -->
