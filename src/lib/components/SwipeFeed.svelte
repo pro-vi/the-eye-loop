@@ -168,7 +168,10 @@
 				</span>
 
 				<!-- Content area -->
-				<div class="flex-1 flex flex-col items-center justify-center p-6 gap-3">
+				<div
+					class="flex-1 flex flex-col items-center justify-center"
+					class:p-6={facade.format === 'word'}
+				>
 					{#if facade.format === 'word'}
 						<p
 							class="text-4xl font-black text-center leading-tight tracking-tight"
@@ -180,10 +183,10 @@
 						<img
 							src={facade.imageDataUrl}
 							alt={facade.hypothesis}
-							class="w-full h-auto rounded-2xl object-cover max-h-72"
+							class="w-full h-full object-cover"
 						/>
 					{:else if facade.format === 'image'}
-						<div class="text-center px-4">
+						<div class="text-center px-6">
 							<p
 								class="text-2xl font-bold leading-tight mb-3"
 								style="font-family: var(--font-family-display); color: var(--color-on-surface);"
@@ -197,13 +200,14 @@
 							{/if}
 						</div>
 					{:else if facade.format === 'mockup'}
-						<iframe
-							srcdoc={facade.content}
-							sandbox=""
-							title={facade.hypothesis}
-							class="rounded-2xl"
-							style="width: 100%; height: 340px; border: none; pointer-events: none;"
-						></iframe>
+						<div class="w-full h-full overflow-hidden">
+							<iframe
+								srcdoc={facade.content}
+								sandbox=""
+								title={facade.hypothesis}
+								style="border: none; pointer-events: none; width: 375px; height: 667px; transform: scale({CARD_WIDTH / 375}); transform-origin: top left;"
+							></iframe>
+						</div>
 					{/if}
 				</div>
 
