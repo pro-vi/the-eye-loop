@@ -276,7 +276,7 @@
 				bind:value={intentText}
 				placeholder="What do you want to build?"
 				disabled={loading}
-				class="flex-1 rounded-xl px-5 py-3.5 text-sm outline-none placeholder:text-[var(--color-outline-variant)]"
+				class="flex-1 w-full rounded-xl px-5 py-3.5 text-sm outline-none placeholder:text-[var(--color-outline-variant)]"
 				style="
 					background: var(--color-surface-container);
 					color: var(--color-on-surface);
@@ -289,7 +289,7 @@
 			<button
 				onclick={startSession}
 				disabled={!intentText.trim() || loading}
-				class="rounded-xl px-6 py-3.5 text-sm font-bold uppercase tracking-wider transition-all disabled:opacity-30 hover:opacity-90 active:scale-95"
+				class="w-full sm:w-auto rounded-xl px-6 py-3.5 text-sm font-bold uppercase tracking-wider transition-all disabled:opacity-30 hover:opacity-90 active:scale-95"
 				style="
 					background: var(--color-on-surface);
 					color: var(--color-surface-lowest);
@@ -307,7 +307,7 @@
 
 		<!-- Example prompts -->
 		<div class="relative flex gap-3 mt-2">
-			{#each ['design playground', 'ai workspace', 'finance app'] as example}
+			{#each ['travel journal for solo backpackers', 'music app for bedroom producers', 'coffee shop loyalty app'] as example}
 				<button
 					onclick={() => { intentText = example; }}
 					class="text-[10px] uppercase tracking-wider px-3 py-1.5 rounded-full transition-colors hover:opacity-80"
