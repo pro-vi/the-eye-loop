@@ -4,14 +4,14 @@
 Initialize SvelteKit project with Svelte 5, Tailwind CSS, Vercel AI SDK 6, and Vercel deploy configuration. This is the foundation everything else builds on.
 
 ## Design
-Standard SvelteKit init + adapter-vercel + Tailwind + pinned AI SDK deps. vercel.json with fluid:true. maxDuration:300 on server routes. GOOGLE_GENERATIVE_AI_API_KEY in .env.
+Standard SvelteKit init + adapter-vercel + Tailwind + pinned AI SDK deps. vercel.json with fluid:true. maxDuration:300 on server routes. GEMINI_API_KEY in .env (use `createGoogleGenerativeAI({ apiKey })` — do not rely on SDK default env var).
 
 ## Scope
 ### Files
 - svelte.config.js (adapter-vercel, Node.js runtime)
 - vercel.json (fluid: true)
 - package.json (pinned deps)
-- .env.example (GOOGLE_GENERATIVE_AI_API_KEY template)
+- .env.example (GEMINI_API_KEY template)
 - tailwind.config.js
 - src/app.css (Tailwind imports)
 - tsconfig.json (strict: true)
@@ -42,7 +42,7 @@ Push to GitHub, connect to Vercel, verify deploy succeeds with blank page.
 - [ ] Tailwind utility classes render in browser
 - [ ] Deployed to Vercel, accessible via URL
 - [ ] vercel.json has `"fluid": true`
-- [ ] .env.example lists GOOGLE_GENERATIVE_AI_API_KEY
+- [ ] .env.example lists GEMINI_API_KEY
 
 ### Dependencies
 None — this is L0, no dependencies.

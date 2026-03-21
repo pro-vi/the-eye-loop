@@ -2,6 +2,8 @@
 .env
 node_modules/
 .claude/
+.svelte-kit/
+.vercel/
 
 # Cloned repos for research (other people's code)
 .research/gemini-cli/
