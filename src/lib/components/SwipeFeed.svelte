@@ -22,12 +22,18 @@
 	let swiping = $state(false);
 	let startX = 0;
 	let startTime = 0;
+	let cardShownAt = $state(performance.now()); // tracks when current top card appeared
 	let flyingOff = $state<string | null>(null);
 	let flyDirection = $state(0);
 
 	// ── Derived ──────────────────────────────────────────────────────
 	let topFacade = $derived(facades[0]);
 	let visibleFacades = $derived(facades.slice(0, 3));
+
+	// Reset card timer when top card changes
+	$effect(() => {
+		if (topFacade) cardShownAt = performance.now();
+	});
 
 	// ── Card dimensions ──────────────────────────────────────────────
 	const CARD_WIDTH = 340;
@@ -84,7 +90,7 @@
 	// ── Button swipe (tap targets for accessibility) ─────────────────
 	function buttonSwipe(decision: 'accept' | 'reject') {
 		if (!topFacade || flyingOff) return;
-		const latencyMs = performance.now() - (startTime || performance.now());
+		const latencyMs = performance.now() - cardShownAt;
 		flyDirection = decision === 'accept' ? 1 : -1;
 		flyingOff = topFacade.id;
 		onswipe({ facadeId: topFacade.id, decision, latencyMs });

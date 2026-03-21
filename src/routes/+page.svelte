@@ -112,7 +112,11 @@
 		es.addEventListener('stage-changed', (e) => {
 			const data = JSON.parse(e.data);
 			stage = data.stage;
-			if (data.stage === 'reveal') mode = 'reveal';
+			if (data.stage === 'reveal') {
+				// Delay mode transition so trailing events (final draft-updated,
+				// agent-status) arrive before the $effect cleanup closes EventSource
+				setTimeout(() => { mode = 'reveal'; }, 2000);
+			}
 		});
 
 		es.onerror = () => {
@@ -328,11 +332,9 @@
 		</div>
 	</div>
 
-	<!-- Mobile: collapsed panels below -->
+	<!-- Mobile: Anima only (agents in header, draft is desktop-only) -->
 	<div class="flex md:hidden flex-col gap-4 px-4 pb-4">
-		<AgentStatus {agents} />
 		<AnimaPanel {evidence} {synthesis} {antiPatterns} />
-		<PrototypeDraftPanel {draft} mode="swiping" />
 	</div>
 
 <!-- ── Reveal mode ───────────────────────────────────────────────── -->
