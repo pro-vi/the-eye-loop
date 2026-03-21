@@ -5,11 +5,13 @@ import { GEMINI_API_KEY } from '$env/static/private';
 import { context } from '$lib/server/context';
 import { awaitFacadeSwipe, emitFacadeStale, emitAgentStatus } from '$lib/server/bus';
 import type { Facade, AgentState } from '$lib/context/types';
+import { debugLog } from '$lib/server/debug-log';
 
 // ── Constants ────────────────────────────────────────────────────────
 
 const google = createGoogleGenerativeAI({ apiKey: GEMINI_API_KEY });
 const MODEL = google('gemini-3.1-flash-lite-preview');
+const IMAGE_MODEL = google('gemini-3.1-flash-image-preview');
 const SWIPE_TIMEOUT_MS = 30_000;
 const MAX_HISTORY = 8;
 // ── Scout roster ────────────────────────────────────────────────────
@@ -19,6 +21,12 @@ const SCOUT_ROSTER = [
 	{ id: 'scout-02', name: 'Prism' },
 	{ id: 'scout-03', name: 'Lumen' }
 ] as const;
+
+const SCOUT_LENSES: Record<string, string> = {
+	Iris: 'Your lens: LOOK AND FEEL — colors, shapes, light vs dark, rounded vs sharp, photos vs illustrations.',
+	Prism: 'Your lens: LAYOUT AND INTERACTION — sidebar vs tabs, cards vs lists, dense vs spacious, scroll vs pages.',
+	Lumen: 'Your lens: VOICE AND PERSONALITY — friendly vs professional, playful vs serious, branded vs neutral.'
+};
 
 // ── Zod schema (flat — no z.union for Gemini compat) ─────────────────
 
@@ -35,67 +43,63 @@ const ScoutOutputSchema = z.object({
 // ── Concreteness floor ──────────────────────────────────────────────
 
 function getFormatInstruction(evidenceCount: number): { floor: Facade['format']; instruction: string } {
-	if (evidenceCount < 4) {
+	if (evidenceCount < 5) {
 		return {
 			floor: 'word',
-			instruction: `You have ${evidenceCount} swipes of evidence. This is early exploration — use a single evocative WORD or short phrase (2-3 words max). Set format to "word" and put the word in both label and content.`
+			instruction: `FORMAT: word. Output a single evocative word or 2-3 word phrase. The label IS the content. Examples: "Warm glow", "Sharp edges", "Cozy nook", "Open sky". NOT: "Biophilic brutalism", "Synaptic Echo", "Tectonic Granularity".`
 		};
 	}
-	if (evidenceCount < 8) {
+	if (evidenceCount < 10) {
 		return {
 			floor: 'image',
-			instruction: `You have ${evidenceCount} swipes of evidence. Describe an IMAGE — a moodboard, color palette, or visual concept. Set format to "image" and put the visual description in content. Label should be a short title.`
+			instruction: `FORMAT: image. Describe a visual moodboard or UI screenshot for an image generator. Be CONCRETE and VISUAL — describe what someone would SEE, not abstract concepts. Good: "A warm finance app card with rounded corners showing $420 spent, peach background, friendly serif font". Bad: "Gravitational Topology of ephemeral data flows".`
 		};
 	}
 	return {
 		floor: 'mockup',
-		instruction: `You have ${evidenceCount} swipes of evidence. Describe a concrete MOCKUP with specific layout, typography, and color decisions. Set format to "mockup" and put the full description in content. Label should be a short title.`
+		instruction: `FORMAT: mockup. Describe a specific UI screen with layout, components, colors, and typography. Be a DESIGNER, not a philosopher. Good: "Mobile screen with top balance card ($2,400), 3 spending category pills below, warm cream background, Georgia font". Bad: "The Monolithic Monolith vs. The Fractal Lattice".`
 	};
 }
 
 // ── Prompt ───────────────────────────────────────────────────────────
 
-const SCOUT_PROMPT = `You are a taste scout — your job is to generate the next visual probe
-that will be most informative about this user's preferences.
+const SCOUT_PROMPT = `You are {SCOUT_NAME} — a taste scout. You show the user one thing and they swipe accept or reject. That's it.
+{SCOUT_LENS}
 
-The user said they want to build: "{INTENT}"
+The user wants to build: "{INTENT}"
 
-EVIDENCE HISTORY (accept = they liked it, reject = they didn't,
-hesitant = they took a long time to decide):
-
+EVIDENCE:
 {EVIDENCE}
 
-EMERGENT AXES (oracle-discovered taste dimensions):
+EMERGENT AXES:
 {EMERGENT_AXES}
 
-YOUR AXIS ASSIGNMENT:
-{AXIS_ASSIGNMENT}
+YOUR ASSIGNMENT: {AXIS_ASSIGNMENT}
 
-QUEUE (probes already pending — do NOT duplicate):
-{QUEUE_CONTENTS}
+ALREADY QUEUED (don't duplicate): {QUEUE_CONTENTS}
 
-ANTI-PATTERNS (hard constraints — NEVER use these):
-{ANTI_PATTERNS}
+ANTI-PATTERNS (NEVER use): {ANTI_PATTERNS}
 
-DIVERSITY: Your last 3 probes tested: {RECENT_HYPOTHESES}.
-Do NOT probe the same territory again. Find a DIFFERENT gap.
+RECENT PROBES (don't repeat): {RECENT_HYPOTHESES}
 
-PROBE BRIEF (from Builder — if present, this takes priority):
-{PROBE_BRIEF}
+BUILDER BRIEF: {PROBE_BRIEF}
 
-FORMAT INSTRUCTION:
 {FORMAT_INSTRUCTION}
 
+CRITICAL — LABEL RULES:
+- The label is what the user SEES on the swipe card
+- It must be understandable in 1 SECOND by a normal person
+- 1-4 words max. Plain language. No jargon. No philosophy.
+- GOOD labels: "Dark mode", "Friendly cards", "Clean grid", "Sidebar nav", "Playful icons"
+- BAD labels: "Synaptic Echo", "Tectonic Granularity", "Ephemeral Layering", "Biophilic brutalism"
+- Think app store screenshot caption, NOT art exhibition title
+
 RULES:
-- Follow your axis assignment OR pick the most uncertain axis not already queued
-- Do NOT duplicate what's already in the queue
-- Do NOT repeat patterns the user already rejected
-- Do NOT re-confirm things we already know (resolved axes)
-- Target EXPLORING or UNPROBED axes
-- A probe the user would HESITATE on is more informative
-- Think like Akinator — maximally partition the remaining space
-- Set axis_targeted to the emergent axis label you're probing
-- Respect the format instruction above`;
+- Follow your assignment or pick the most uncertain axis
+- Don't duplicate what's queued
+- Don't repeat rejected patterns
+- A probe the user would HESITATE on is most informative
+- Be a DESIGNER showing options, not a philosopher naming concepts`;
 
 // ── Local history ────────────────────────────────────────────────────
 
@@ -218,6 +222,14 @@ export function startScout(agentId: string, name: string): () => void {
 
 				setStatus(agent, 'thinking', 'generating probe');
 
+				debugLog(name, 'iter', {
+					evidence: context.evidence.length,
+					queue: context.facades.map((f) => `${f.label} (${f.agentId})`),
+					probes: context.probes.length,
+					synthesis: context.synthesis ? `${context.synthesis.axes.length} axes` : 'none',
+					antiPatterns: context.antiPatterns.length
+				});
+
 				const probe = context.getNextProbe();
 				const probeBrief = probe
 					? `${probe.brief}\nContext: ${probe.context}`
@@ -229,9 +241,11 @@ export function startScout(agentId: string, name: string): () => void {
 						? context.antiPatterns.map((p) => `  - ${p}`).join('\n')
 						: '  (none yet)';
 
-					const { instruction } = getFormatInstruction(context.evidence.length);
+					const { floor, instruction } = getFormatInstruction(context.evidence.length);
 
-					const system = SCOUT_PROMPT.replace('{INTENT}', context.intent)
+					const system = SCOUT_PROMPT.replace('{SCOUT_NAME}', name)
+						.replace('{SCOUT_LENS}', SCOUT_LENSES[name] ?? '')
+						.replace('{INTENT}', context.intent)
 						.replace('{EVIDENCE}', context.toEvidencePrompt())
 						.replace('{EMERGENT_AXES}', getEmergentAxes())
 						.replace('{AXIS_ASSIGNMENT}', getAxisAssignment(name))
@@ -255,31 +269,131 @@ export function startScout(agentId: string, name: string): () => void {
 					const output = result.output;
 					if (!output) continue;
 
+					// Enforce concreteness floor — LLM may ignore format instruction
+					const ALLOWED: Record<Facade['format'], Facade['format'][]> = {
+						word: ['word'],
+						image: ['image', 'mockup'],
+						mockup: ['mockup']
+					};
+					const format = ALLOWED[floor].includes(output.format) ? output.format : floor;
+
+					// Dedup: skip if another scout already queued the same axis
+					const axisLower = output.axis_targeted.toLowerCase();
+					const isDuplicate = context.facades.some(
+						(f) => f.axisTargeted?.toLowerCase() === axisLower
+					);
+					if (isDuplicate) {
+						debugLog(name, 'dedup-skip', { axis: output.axis_targeted, label: output.label });
+						continue;
+					}
+
 					const facade: Facade = {
 						id: crypto.randomUUID(),
 						agentId,
 						hypothesis: output.hypothesis,
+						axisTargeted: output.axis_targeted,
 						label: output.label,
-						content: output.content,
-						format: output.format
+						content: format === 'word' ? output.label : output.content,
+						format
 					};
+
+					// ── Rendering pipeline ──────────────────────────────
+					// Image/mockup facades must be fully rendered before
+					// reaching the queue. If rendering fails, skip this
+					// facade entirely — loop and regenerate.
+
+					if (format === 'image') {
+						setStatus(agent, 'thinking', `rendering image: "${facade.label}"`);
+						try {
+							const imgResult = await generateText({
+								model: IMAGE_MODEL,
+								providerOptions: {
+									google: {
+										responseModalities: ['TEXT', 'IMAGE'],
+										imageConfig: { aspectRatio: '3:2', imageSize: '1K' }
+									}
+								},
+								prompt: output.content,
+								abortSignal: signal
+							});
+
+							if (!alive()) break;
+
+							if (imgResult.files?.length) {
+								const file = imgResult.files[0];
+								facade.imageDataUrl = `data:${file.mediaType};base64,${file.base64}`;
+							} else {
+								debugLog(name, 'image-no-files', { label: facade.label });
+								continue; // no image = don't queue
+							}
+						} catch (err) {
+							if (!alive()) break;
+							debugLog(name, 'image-fail', { label: facade.label, err: String(err) });
+							continue; // rendering failed = don't queue
+						}
+					} else if (format === 'mockup' && !/<div|<html|<section/i.test(output.content)) {
+						setStatus(agent, 'thinking', `generating mockup HTML: "${facade.label}"`);
+						try {
+							const htmlResult = await generateText({
+								model: MODEL,
+								prompt: `Generate complete HTML+CSS for this mockup description. Mobile viewport 375x667, inline styles only, no scripts.\n\nDescription: ${output.content}\n\nAnti-patterns (NEVER use): ${context.antiPatterns.join(', ') || 'none'}`,
+								maxOutputTokens: 2000,
+								abortSignal: signal
+							});
+
+							if (!alive()) break;
+
+							const text = htmlResult.text ?? '';
+							const htmlMatch = text.match(/```html?\n?([\s\S]*?)```/);
+							const html = htmlMatch ? htmlMatch[1] : text;
+
+							if (/<div|<html|<section/i.test(html)) {
+								facade.content = html;
+							} else {
+								debugLog(name, 'mockup-no-html', { label: facade.label });
+								continue; // no renderable HTML = don't queue
+							}
+						} catch (err) {
+							if (!alive()) break;
+							debugLog(name, 'mockup-fail', { label: facade.label, err: String(err) });
+							continue;
+						}
+					}
 
 					context.pushFacade(facade);
 					facadeQueued = true;
 					agent.lastFacadeId = facade.id;
 
+					debugLog(name, 'push', {
+						label: facade.label,
+						format,
+						axis: output.axis_targeted,
+						hypothesis: output.hypothesis,
+						probe: probe ? 'from builder' : 'self-assigned'
+					});
+
 					setStatus(agent, 'waiting', `"${facade.label}"`);
 
 					const outcome = await awaitFacadeSwipe(facade.id, SWIPE_TIMEOUT_MS, signal);
 
-					if (!alive() || outcome === 'aborted') break;
+					const outcomeType = typeof outcome === 'string' ? outcome : outcome.decision;
+					debugLog(name, 'swipe', { label: facade.label, outcome: outcomeType });
+
+					if (!alive() || outcome === 'aborted') {
+						if (probe) context.probes.unshift(probe);
+						break;
+					}
 					if (outcome === 'timeout') {
+						if (probe) context.probes.unshift(probe);
 						const idx = context.facades.findIndex((f) => f.id === facade.id);
 						if (idx !== -1) context.facades.splice(idx, 1);
 						emitFacadeStale({ facadeId: facade.id });
 						continue;
 					}
-					if (outcome === 'stale') continue;
+					if (outcome === 'stale') {
+						if (probe) context.probes.unshift(probe);
+						continue;
+					}
 
 					history.unshift({
 						label: facade.label,
@@ -314,10 +428,16 @@ export function startScout(agentId: string, name: string): () => void {
 	return stop;
 }
 
+const pendingTimers: ReturnType<typeof setTimeout>[] = [];
+
 export function startAllScouts(): void {
-	for (const { id, name } of SCOUT_ROSTER) {
-		startScout(id, name);
-	}
+	SCOUT_ROSTER.forEach(({ id, name }, i) => {
+		if (i === 0) {
+			startScout(id, name);
+		} else {
+			pendingTimers.push(setTimeout(() => startScout(id, name), i * 500));
+		}
+	});
 }
 
 export function stopScout(agentId: string) {
@@ -325,6 +445,8 @@ export function stopScout(agentId: string) {
 }
 
 export function stopAllScouts() {
+	for (const t of pendingTimers) clearTimeout(t);
+	pendingTimers.length = 0;
 	for (const stop of activeRuns.values()) stop();
 	activeRuns.clear();
 }
