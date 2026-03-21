@@ -49,8 +49,30 @@ const FORMAT_INSTRUCTIONS: Record<Facade['format'], string> = {
 	mockup: 'FORMAT: mockup. Describe a specific UI screen with layout, components, colors, and typography. Be a DESIGNER, not a philosopher. Good: "Mobile screen with top balance card ($2,400), 3 spending category pills below, warm cream background, Georgia font". Bad: "The Monolithic Monolith vs. The Fractal Lattice".'
 };
 
-function getFormatInstruction(): { floor: Facade['format']; instruction: string } {
+function getFormatInstruction(scoutName: string): { floor: Facade['format']; instruction: string } {
 	const floor = context.concretenessFloor;
+
+	// Iris pre-buffers images during word stage so they're ready when floor advances.
+	// Other scouts stay on words — ensures the queue always has fast facades to swipe.
+	if (scoutName === 'Iris' && floor === 'word' && context.evidence.length >= 1) {
+		return {
+			floor: 'image',
+			instruction: FORMAT_INSTRUCTIONS.image + '\nYou are PRE-BUFFERING. The user is still swiping words — your image will be ready when the stage advances. Make it count.'
+		};
+	}
+
+	// Mixed queue rule: if queue already has a slow facade (image), other scouts
+	// generate fast formats (word/mockup) to keep the user swiping.
+	if (scoutName !== 'Iris' && floor === 'image') {
+		const queueHasImage = context.facades.some((f) => f.format === 'image');
+		if (queueHasImage) {
+			return {
+				floor: 'word',
+				instruction: FORMAT_INSTRUCTIONS.word + '\nQueue already has an image pending. Generate a fast word probe so the user has something to swipe while the image renders.'
+			};
+		}
+	}
+
 	return { floor, instruction: FORMAT_INSTRUCTIONS[floor] };
 }
 
@@ -234,7 +256,7 @@ export function startScout(agentId: string, name: string): () => void {
 						? context.antiPatterns.map((p) => `  - ${p}`).join('\n')
 						: '  (none yet)';
 
-					const { floor, instruction } = getFormatInstruction();
+					const { floor, instruction } = getFormatInstruction(name);
 
 					const system = SCOUT_PROMPT.replace('{SCOUT_NAME}', name)
 						.replace('{SCOUT_LENS}', SCOUT_LENSES[name] ?? '')
@@ -393,13 +415,15 @@ Mobile viewport 375x667. No scripts. No external resources.`;
 							if (/<div|<html|<section/i.test(html)) {
 								facade.content = html;
 							} else {
-								debugLog(name, 'mockup-no-html', { label: facade.label });
-								continue; // no renderable HTML = don't queue
+								debugLog(name, 'mockup-fallback-word', { label: facade.label });
+								facade.format = 'word';
+								facade.content = facade.label;
 							}
 						} catch (err) {
 							if (!alive()) break;
-							debugLog(name, 'mockup-fail', { label: facade.label, err: String(err) });
-							continue;
+							debugLog(name, 'mockup-fallback-word', { label: facade.label, err: String(err) });
+							facade.format = 'word';
+							facade.content = facade.label;
 						}
 					}
 
