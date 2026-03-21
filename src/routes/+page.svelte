@@ -12,6 +12,9 @@
 	import AgentStatus from '$lib/components/AgentStatus.svelte';
 	import PrototypeDraftPanel from '$lib/components/PrototypeDraft.svelte';
 
+	// ── Debug mode (toggle with ?debug in URL) ──────────────────────
+	let debug = $state(typeof window !== 'undefined' && window.location.search.includes('debug'));
+
 	// ── State machine ────────────────────────────────────────────────
 	let mode = $state<'intent' | 'swiping' | 'reveal'>('intent');
 	let intentText = $state('');
@@ -315,7 +318,7 @@
 
 			<!-- Center: Swipe feed -->
 			<div class="flex items-center justify-center">
-				<SwipeFeed {facades} onswipe={handleSwipe} onremove={handleRemove} onvibetoken={handleVibeToken} />
+				<SwipeFeed {facades} {debug} onswipe={handleSwipe} onremove={handleRemove} onvibetoken={handleVibeToken} />
 			</div>
 
 			<!-- Right: Draft -->

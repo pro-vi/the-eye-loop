@@ -9,12 +9,13 @@
 
 	interface Props {
 		facades: Facade[];
+		debug?: boolean;
 		onswipe: (event: { facadeId: string; decision: 'accept' | 'reject'; latencyMs: number }) => void;
 		onremove: (facadeId: string) => void;
 		onvibetoken?: (token: VibeToken) => void;
 	}
 
-	let { facades, onswipe, onremove, onvibetoken }: Props = $props();
+	let { facades, debug = false, onswipe, onremove, onvibetoken }: Props = $props();
 
 	// ── Gesture state ────────────────────────────────────────────────
 	let deltaX = $state(0);
@@ -97,8 +98,8 @@
 </script>
 
 <div class="relative flex flex-col items-center justify-center gap-6" style="min-height: 560px;">
-	<!-- Stage label -->
-	{#if topFacade}
+	<!-- Stage label (debug only) -->
+	{#if topFacade && debug}
 		<p
 			class="text-xs uppercase tracking-[0.2em] font-semibold"
 			style="color: var(--color-outline-variant); font-family: var(--font-family-display);"
@@ -142,13 +143,15 @@
 				role="button"
 				tabindex={isTop ? 0 : -1}
 			>
-				<!-- Hypothesis -->
-				<p
-					class="px-5 pt-5 pb-2 text-[10px] uppercase tracking-[0.15em] leading-relaxed"
-					style="color: var(--color-outline); font-family: var(--font-family-body);"
-				>
-					{facade.hypothesis}
-				</p>
+				<!-- Hypothesis (debug only) -->
+				{#if debug}
+					<p
+						class="px-5 pt-5 pb-2 text-[10px] uppercase tracking-[0.15em] leading-relaxed"
+						style="color: var(--color-outline); font-family: var(--font-family-body);"
+					>
+						{facade.hypothesis}
+					</p>
+				{/if}
 
 				<!-- Agent badge -->
 				<span
@@ -181,9 +184,11 @@
 							>
 								{facade.label}
 							</p>
-							<p class="text-xs leading-relaxed" style="color: var(--color-on-surface-variant);">
-								{facade.content.slice(0, 150)}
-							</p>
+							{#if debug}
+								<p class="text-xs leading-relaxed" style="color: var(--color-on-surface-variant);">
+									{facade.content.slice(0, 150)}
+								</p>
+							{/if}
 						</div>
 					{:else if facade.format === 'mockup'}
 						<iframe
