@@ -45,6 +45,12 @@ class EyeLoopContext {
 		return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
 	}
 
+	get queuePressure(): 'hungry' | 'healthy' | 'full' {
+		if (this.facades.length < QUEUE_MIN) return 'hungry';
+		if (this.facades.length > QUEUE_MAX) return 'full';
+		return 'healthy';
+	}
+
 	// ── Methods ─────────────────────────────────────────────────────
 
 	seedAxes(axes: TasteAxis[]) {
@@ -131,10 +137,6 @@ class EyeLoopContext {
 			}
 		}
 		return most;
-	}
-
-	queueHealthy(): boolean {
-		return this.facades.length >= QUEUE_MIN && this.facades.length <= QUEUE_MAX;
 	}
 
 	reset() {
