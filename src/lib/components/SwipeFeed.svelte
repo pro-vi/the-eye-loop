@@ -312,33 +312,23 @@
 
 	<!-- Accept/Reject buttons -->
 	{#if topFacade && !flyingOff}
-		<div class="flex items-center gap-12">
-			<div class="flex flex-col items-center gap-1.5">
-				<button
-					onclick={() => buttonSwipe('reject')}
-					class="w-14 h-14 rounded-full flex items-center justify-center text-xl transition-all hover:scale-110 active:scale-95"
-					style="background: var(--color-surface-container); color: var(--color-reject); border: 1px solid rgba(239, 68, 68, 0.2);"
-					aria-label="Reject"
-				>
-					✕
-				</button>
-				<span class="text-[10px] uppercase tracking-widest font-medium" style="color: var(--color-outline-variant);">
-					reject
-				</span>
-			</div>
-			<div class="flex flex-col items-center gap-1.5">
-				<button
-					onclick={() => buttonSwipe('accept')}
-					class="w-14 h-14 rounded-full flex items-center justify-center text-xl transition-all hover:scale-110 active:scale-95"
-					style="background: var(--color-surface-container); color: var(--color-accept); border: 1px solid rgba(34, 197, 94, 0.2);"
-					aria-label="Accept"
-				>
-					♥
-				</button>
-				<span class="text-[10px] uppercase tracking-widest font-medium" style="color: var(--color-outline-variant);">
-					accept
-				</span>
-			</div>
+		<div class="flex items-center gap-10">
+			<button
+				onclick={() => buttonSwipe('reject')}
+				class="w-16 h-16 rounded-full flex items-center justify-center text-2xl transition-all hover:scale-110 active:scale-95"
+				style="background: transparent; color: var(--color-outline); border: 2px solid var(--color-outline-variant);"
+				aria-label="Reject"
+			>
+				✕
+			</button>
+			<button
+				onclick={() => buttonSwipe('accept')}
+				class="w-16 h-16 rounded-full flex items-center justify-center text-2xl transition-all hover:scale-110 active:scale-95"
+				style="background: var(--color-on-surface); color: var(--color-surface-lowest);"
+				aria-label="Accept"
+			>
+				♥
+			</button>
 		</div>
 	{/if}
 
