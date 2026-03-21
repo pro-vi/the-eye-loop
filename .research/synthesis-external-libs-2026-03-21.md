@@ -55,13 +55,16 @@ unexplored_threads:
 ## Total new dependencies: 3-4 packages
 
 ```
-pnpm add ai @ai-sdk/google @ai-sdk/svelte d3-hierarchy
+pnpm add ai@6.0.134 @ai-sdk/google@3.0.52 @ai-sdk/svelte@4.0.134 zod d3-hierarchy
+pnpm add -D @types/d3-hierarchy
 ```
 
 Optional (if we want gesture library instead of custom):
 ```
 pnpm add svelte-gestures
 ```
+
+> **UPDATED:** Versions pinned after code verification (see synthesis-sdk-verified-2026-03-21.md).
 
 ---
 
@@ -105,8 +108,11 @@ This means scouts are better modeled as **manual async loops** calling `generate
 
 ## 2. Gemini Image Generation (Nano Banana)
 
-### Critical API pattern
-Nano Banana is NOT accessed via `generateImage()`. It uses `generateText()` with a model that can output images:
+### Critical API pattern (CODE-VERIFIED against ai@6.0.134, @ai-sdk/google@3.0.52)
+
+Nano Banana is NOT accessed via `generateImage()`. It uses `generateText()` with a model that can output images.
+
+**CRITICAL:** Must pass `responseModalities: ['TEXT', 'IMAGE']` in providerOptions to enable image output. Without this, model returns text only.
 
 ```typescript
 import { generateText } from 'ai';
@@ -114,29 +120,43 @@ import { google } from '@ai-sdk/google';
 
 const result = await generateText({
   model: google('gemini-2.5-flash-image'),
+  providerOptions: {
+    google: {
+      responseModalities: ['TEXT', 'IMAGE'],
+      imageConfig: {
+        aspectRatio: '3:2',  // also: '1:1', '9:16', '16:9', etc.
+        imageSize: '1K',     // also: '512', '2K', '4K'
+      },
+    },
+  },
   prompt: 'Generate a dark atmospheric moodboard...',
 });
 
-// Images are in result.files[]
+// GeneratedFile interface (code-verified):
+//   .base64: string
+//   .uint8Array: Uint8Array
+//   .mediaType: string
 for (const file of result.files) {
   if (file.mediaType.startsWith('image/')) {
-    const base64 = Buffer.from(file.uint8Array).toString('base64');
-    // Use as data:image/png;base64,${base64}
+    const dataUrl = `data:${file.mediaType};base64,${file.base64}`;
   }
 }
 ```
 
 ### Image editing (one-axis sweep)
-Feed an existing image back with edit instructions:
+Feed an existing image back with edit instructions. Use `type: 'file'` (not `type: 'image'`):
 
 ```typescript
 const result = await generateText({
   model: google('gemini-2.5-flash-image'),
+  providerOptions: {
+    google: { responseModalities: ['TEXT', 'IMAGE'] },
+  },
   messages: [{
     role: 'user',
     content: [
       { type: 'text', text: 'Change only the color temperature to warm golden hour. Keep everything else identical.' },
-      { type: 'image', image: existingImageBuffer, mediaType: 'image/png' }
+      { type: 'file', data: existingImageBase64, mediaType: 'image/png' }
     ]
   }]
 });
@@ -240,16 +260,10 @@ Supports radial layout trivially (polar coordinate transform on the same data).
 
 ---
 
-## Install Plan
+## Install Plan (pinned, code-verified)
 
 ```bash
-# Core
-pnpm add ai @ai-sdk/google @ai-sdk/svelte
-
-# Tree visualization
-pnpm add d3-hierarchy
-
-# Types
+pnpm add ai@6.0.134 @ai-sdk/google@3.0.52 @ai-sdk/svelte@4.0.134 zod d3-hierarchy
 pnpm add -D @types/d3-hierarchy
 ```
 

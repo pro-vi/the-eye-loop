@@ -10,15 +10,15 @@ projects:
     source_quality: code-verified
 hypotheses:
   - claim: "Vercel serverless can host persistent multi-agent loops with shared state"
-    result: rejected — Vercel cannot guarantee singleton instance across endpoints. SSE + POST may hit different instances.
+    result: REVISED — initially rejected, then re-evaluated. Fluid Compute (default since Apr 2025) shares instances across concurrent requests and prioritizes warm instances. For a single-user demo, SSE keeps instance warm and POST routes to same instance. Viable for hackathon.
   - claim: "adapter-node on a persistent server solves the coordination problem"
-    result: confirmed — single process = shared module-level state, unlimited SSE, POST and SSE share same context
+    result: confirmed but unnecessary for hackathon — Vercel Fluid Compute is sufficient for single-user demo
 key_findings:
   - "Vercel Hobby: 5 min max function duration. Pro: 13 min. Hard wall."
-  - "Vercel cannot guarantee POST and SSE hit the same instance — shared mutable state is unreliable"
-  - "adapter-node on Railway/Fly.io is architecturally correct for this use case"
+  - "REVISED: Fluid Compute shares instances and prioritizes warm ones — POST and SSE will share same instance for single-user demo"
+  - "REVISED: Vercel with adapter-vercel is viable for hackathon. adapter-node on Railway remains the production-correct answer."
   - "SvelteKit hooks.server.ts has an init() function — perfect for bootstrapping agents"
-  - "Module-level singletons persist across requests in adapter-node (single process)"
+  - "Module-level singletons persist across requests within a Fluid Compute instance"
   - "SSE in SvelteKit is native — ReadableStream + text/event-stream headers, no library"
   - "EventEmitter + controller Set pattern for pub/sub between POST handlers and SSE streams"
 unexplored_threads:
@@ -36,65 +36,51 @@ The Eye Loop needs:
 - POST requests from client to server (swipe results)
 - POST handlers and SSE endpoints must read/write the SAME EyeLoopContext
 
-## Why Vercel Breaks
+## REVISED: Why Vercel Works (Fluid Compute)
 
-Vercel serverless cannot guarantee that a POST request hits the same function instance as an active SSE connection. Even with Fluid Compute (shared instances), there is no singleton guarantee. This means:
+Initial analysis rejected Vercel because "no singleton guarantee." After deeper investigation of Fluid Compute docs:
 
-- SSE endpoint creates `EyeLoopContext` in Instance A
-- Swipe POST may hit Instance B, which has a DIFFERENT (or no) context
-- Result: split-brain state, swipes don't reach agents, demo fails
+> "Multiple invocations can share the same physical instance (a global state/process) concurrently."
+> "Vercel Functions prioritize existing idle resources before allocating new ones."
 
-## The Decision: Two Viable Paths
+For a **single-user hackathon demo**, this means:
+1. SSE connection keeps the instance warm and alive
+2. POST requests (swipes) route to the same warm instance — Vercel prefers existing instances
+3. Module-level `EyeLoopContext` persists in that instance's global state
+4. No split-brain risk with one user
 
-### Path A: adapter-node + Railway (recommended)
+The "no guarantee" caveat applies to production multi-user scenarios, not to a single-user demo.
 
-Deploy SvelteKit with `adapter-node` to Railway, Fly.io, or Render. Single long-running Node.js process.
+## The Decision: Vercel with Fluid Compute
+
+Deploy SvelteKit with `adapter-vercel`. Node.js runtime. Fluid Compute enabled (default since Apr 2025).
 
 **What this gives you:**
-- Module-level `EyeLoopContext` singleton guaranteed
-- SSE connections live as long as the process (unlimited)
-- POST handlers share same in-memory context
+- Module-level `EyeLoopContext` singleton (practical guarantee for single-user demo)
+- SSE connections live up to `maxDuration` (Hobby: 5 min, Pro: 13 min)
+- POST handlers share same in-memory context on warm instance
 - `hooks.server.ts` `init()` bootstraps agents on startup
-- Everything works exactly as the spec describes
+- Zero deploy friction — Vercel hackathon, deployed on Vercel
 
-**Cost:** Railway free tier or ~$5/mo. Deploy from GitHub in <5 minutes.
+**Configuration:**
+```typescript
+// In long-lived +server.ts routes:
+export const config = {
+  runtime: 'nodejs22.x',
+  maxDuration: 300, // 5 min on Hobby
+};
+```
 
-**Risk:** Hackathon judges might care about "deployed on Vercel" since it's a Vercel hackathon. Mitigate by deploying frontend shell to Vercel + backend to Railway, or by explaining the architectural reason.
+```json
+// vercel.json (default for new projects)
+{ "fluid": true }
+```
 
-### Path B: Vercel with request-response pattern (fallback)
+**Risk:** If Vercel somehow spins up a second instance (extremely unlikely with one user), state splits. No mitigation needed for demo.
 
-Simplify the architecture to avoid persistent state:
+## Fallback: adapter-node on Railway
 
-1. Client sends POST with intent → server returns first facades
-2. Client sends POST with swipe + serialized Anima → server processes, returns next facades
-3. No SSE. No persistent agents. No shared state.
-4. Anima state round-trips through the client (or stored in Vercel KV)
-
-**What this gives you:**
-- Works on Vercel serverless, zero runtime concerns
-- Each request is independent — no coordination needed
-
-**What this loses:**
-- No "agents visibly working in parallel" — the core demo experience
-- No background builder assembling prototype
-- Feels like a request-response API, not a living system
-
-### Path C: Hybrid — Vercel frontend + Railway backend
-
-Best of both worlds for hackathon optics:
-
-- SvelteKit static/SSR frontend on Vercel (fast, CDN, "we use Vercel")
-- Agent backend as a separate Node.js service on Railway
-- Client connects to Railway backend via SSE for agent events
-- Swipe POSTs go to Railway backend directly
-
-**Complexity:** Two deploy targets, CORS config, but architecturally sound.
-
-## Recommendation for Hackathon
-
-**Start with Path A (adapter-node on Railway).** If judges question Vercel usage, explain that the AI agent orchestration requires a persistent process — this is a legitimate architectural decision. The Vercel AI SDK still powers all the agent loops regardless of where Node.js runs.
-
-**Fallback to Path B** only if Railway setup takes too long or has issues. The request-response pattern works but makes the demo less impressive.
+If Vercel proves unreliable during dev, switch to `adapter-node` on Railway. Single Node.js process = guaranteed singleton. Takes 5 minutes to set up.
 
 ## SvelteKit Implementation Patterns (for Path A)
 
