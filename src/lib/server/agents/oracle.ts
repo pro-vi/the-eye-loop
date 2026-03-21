@@ -2,11 +2,13 @@ import type { AgentState, TasteSynthesis } from '$lib/context/types';
 import { context } from '$lib/server/context';
 import {
 	emitAgentStatus,
+	emitFacadeStale,
 	emitSessionReady,
 	emitStageChanged,
 	emitSynthesisUpdated,
 	onSwipeResult
 } from '$lib/server/bus';
+import { stopAllScouts } from './scout';
 import { generateText, Output } from 'ai';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { z } from 'zod';
@@ -19,7 +21,7 @@ const REVEAL_THRESHOLD = 15;
 const SYNTHESIS_CADENCE = 4;
 
 const google = createGoogleGenerativeAI({ apiKey: GEMINI_API_KEY });
-const MODEL = google('gemini-3.1-flash-lite-preview');
+const MODEL = google('gemini-3.1-pro-preview');
 
 // ── Synthesis schema (snake_case — matches spec + Zod output) ────────
 
@@ -130,6 +132,7 @@ export function seedSession(intent: string): { sessionId: string } {
 	context.intent = intent;
 	context.sessionId = crypto.randomUUID();
 	lastFloor = 'word';
+	busy = false;
 
 	setOracleStatus('thinking', 'session init');
 	emitSessionReady({ intent });
@@ -163,6 +166,16 @@ export function startOracle(): void {
 			if (context.stage !== 'reveal' && context.evidence.length >= REVEAL_THRESHOLD) {
 				context.stage = 'reveal';
 				emitStageChanged({ stage: 'reveal', swipeCount: context.swipeCount });
+
+				// Stale all queued facades so no more swipes are accepted
+				for (const facade of [...context.facades]) {
+					emitFacadeStale({ facadeId: facade.id });
+				}
+				context.facades.length = 0;
+
+				// Stop all scouts — they'll see stage=reveal via alive() check
+				stopAllScouts();
+
 				setOracleStatus('thinking', 'reveal triggered');
 				console.log(`[oracle] reveal at ${context.evidence.length} evidence`);
 				return;
