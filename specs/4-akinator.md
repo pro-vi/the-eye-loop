@@ -162,6 +162,8 @@ The oracle's assignments are a **menu**, not a leash. Between syntheses, scouts 
 ```
 You are {SCOUT_NAME} — a taste scout generating the next probe.
 
+{SCOUT_LENS}
+
 The user wants to build: "{INTENT}"
 
 EVIDENCE:
@@ -186,19 +188,63 @@ RULES:
 - Think like Akinator — maximally partition the remaining space
 ```
 
+### Scout Lenses (dedup mechanism #1)
+
+Each scout has a permanent personality that biases toward a different domain. This prevents cold-start duplication (before oracle assigns axes) and provides natural diversity between synthesis rounds.
+
+```typescript
+const SCOUT_LENSES = {
+  Iris:  'You naturally gravitate toward VISUAL and SENSORY questions — color, texture, materiality, atmosphere, visual weight.',
+  Prism: 'You naturally gravitate toward INTERACTION and STRUCTURE questions — navigation, density, information flow, layout, hierarchy.',
+  Lumen: 'You naturally gravitate toward IDENTITY and NARRATIVE questions — tone, personality, brand voice, emotional arc, metaphor.',
+} as const;
+```
+
+The lens is permanent — it doesn't change between syntheses. Oracle assignments override the lens when present ("probe this specific axis") but the lens biases what the scout generates when self-assigning.
+
+### Queue Dedup Check (dedup mechanism #2)
+
+After generating a probe but before pushing to queue, check for axis overlap:
+
+```typescript
+// After generateText, before context.pushFacade:
+const isDuplicate = context.facades.some(f =>
+  f.hypothesis.toLowerCase().includes(output.axis_targeted.toLowerCase()) ||
+  output.axis_targeted.toLowerCase().includes(f.hypothesis.toLowerCase().split(' ').slice(0, 3).join(' '))
+);
+if (isDuplicate) continue; // regenerate
+```
+
+This catches race conditions where two scouts generate simultaneously and target the same gap.
+
+### Staggered Starts (dedup mechanism #3)
+
+Don't fire all 3 scouts at t=0. Stagger by 500ms:
+
+```typescript
+export function startAllScouts(): void {
+  startScout('scout-01', 'Iris');
+  setTimeout(() => startScout('scout-02', 'Prism'), 500);
+  setTimeout(() => startScout('scout-03', 'Lumen'), 1000);
+}
+```
+
+First scout's probe lands in queue before the second scout starts generating. Combined with queue visibility in the prompt, natural dedup.
+
 ### Required scout prompt injections
 
-1. **Evidence history** — raw evidence list
-2. **Emergent axes** — from oracle synthesis (after first 4 swipes)
-3. **Scout assignment** — which axis this scout should probe, from oracle
-4. **Queue contents** — facades already pending, to prevent duplication
-5. **Format instruction** — concreteness floor from oracle
+1. **Scout lens** — permanent personality bias (visual / interaction / narrative)
+2. **Evidence history** — raw evidence list
+3. **Emergent axes** — from oracle synthesis (after first 4 swipes)
+4. **Scout assignment** — which axis this scout should probe, from oracle
+5. **Queue contents** — facades already pending, to prevent duplication
+6. **Format instruction** — concreteness floor from oracle
 
 ### Before first oracle synthesis (swipes 1-3)
 
-Scouts get just intent + evidence (no axes, no assignment). Each generates its "first Akinator question" independently. Cold start validated: 6/6 quality from intent alone.
+Scouts get intent + evidence + their lens (no axes, no assignment). The lens ensures Iris probes something visual, Prism probes something structural, and Lumen probes something narrative — three different first questions without any coordination infrastructure.
 
-**Benchmark:** 3/3 scout diversity across all edge cases (normal, contradictory, reject-everything).
+**Benchmark:** 3/3 scout diversity across all edge cases (with oracle assignments). Cold start diversity depends on lenses (not yet benchmarked in codebase — needs implementation).
 
 ---
 
@@ -310,11 +356,13 @@ This is the oracle's synthesis job, extended — the synthesis already summarize
 
 No axis seeding. On session init:
 1. `context.reset(); context.intent = intent; context.sessionId = randomUUID();`
-2. Fire 3 scouts in parallel — each generates its "first Akinator question" from just the intent
-3. Queue fills with 3 word-level facades before user sees the first card
-4. ~2s latency for first facade (Flash Lite word generation)
+2. Fire 3 scouts **staggered by 500ms** — each generates its "first Akinator question" from intent + lens
+3. Scout lenses ensure diversity: Iris probes visual, Prism probes structure, Lumen probes narrative
+4. First scout's probe lands in queue before second scout starts — queue visibility prevents overlap
+5. Queue fills with 3 word-level facades before user sees the first card
+6. ~2s latency for first facade (Flash Lite word generation)
 
-Validated: H1 Round 1, scouts produce 6/6 quality probes from intent alone with zero evidence.
+Validated: H1 Round 1, scouts produce 6/6 quality probes from intent alone with zero evidence. Cold start diversity validated with oracle assignments (3/3). Lens-based cold start diversity to be validated after implementation.
 
 ---
 
