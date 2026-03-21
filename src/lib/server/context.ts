@@ -54,8 +54,8 @@ class EyeLoopContext {
 	}
 
 	get concretenessFloor(): 'word' | 'image' | 'mockup' {
-		if (this.evidence.length < 4) return 'word';
-		if (this.evidence.length < 8) return 'image';
+		if (this.evidence.length < 3) return 'word';
+		if (this.evidence.length < 7) return 'image';
 		return 'mockup';
 	}
 
@@ -78,7 +78,8 @@ class EyeLoopContext {
 			content: facade?.label ?? facade?.content ?? record.facadeId,
 			hypothesis: facade?.hypothesis ?? '',
 			decision: record.decision,
-			latencySignal: record.latencyBucket
+			latencySignal: record.latencyBucket,
+			format: facade?.format ?? 'word'
 		};
 		this.evidence.push(entry);
 
@@ -149,7 +150,7 @@ class EyeLoopContext {
 				const tag = e.decision === 'accept' ? 'ACCEPT' : 'REJECT';
 				const hesitant = e.latencySignal === 'slow' ? ' (hesitant)' : '';
 				return (
-					`${i + 1}. [${tag}${hesitant}] "${e.content}"\n` +
+					`${i + 1}. [${tag}${hesitant}] (${e.format}) "${e.content}"\n` +
 					`   Hypothesis: ${e.hypothesis}`
 				);
 			})

@@ -10,6 +10,7 @@ export interface SwipeEvidence {
 	hypothesis: string;
 	decision: 'accept' | 'reject';
 	latencySignal: 'fast' | 'slow';
+	format: 'word' | 'image' | 'mockup';  // what the user actually saw — same hypothesis at different concreteness
 }
 
 export interface Facade {
