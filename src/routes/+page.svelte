@@ -135,24 +135,40 @@
 
 <!-- ── Intent entry ──────────────────────────────────────────────── -->
 {#if mode === 'intent'}
-	<div class="flex flex-col items-center justify-center min-h-screen gap-6 px-6">
-		<h1
-			class="text-4xl font-bold tracking-tight"
-			style="font-family: var(--font-family-display); color: var(--color-on-surface);"
-		>
-			The Eye Loop
-		</h1>
-		<p class="text-sm" style="color: var(--color-outline);">
-			Discover your taste through swipes. AI builds what you actually want.
-		</p>
+	<div
+		class="relative flex flex-col items-center justify-center min-h-screen gap-8 px-6"
+		style="background: var(--color-surface-lowest);"
+	>
+		<!-- Radial gradient glow -->
+		<div
+			class="absolute pointer-events-none"
+			style="
+				width: 600px; height: 400px;
+				top: 50%; left: 50%;
+				transform: translate(-50%, -60%);
+				background: radial-gradient(ellipse, rgba(30,30,30,0.8) 0%, transparent 70%);
+			"
+		></div>
 
-		<div class="flex gap-3 w-full max-w-md mt-4">
+		<div class="relative flex flex-col items-center gap-4">
+			<h1
+				class="text-3xl md:text-5xl font-bold uppercase tracking-[0.2em]"
+				style="font-family: var(--font-family-display); color: var(--color-on-surface);"
+			>
+				The Eye Loop
+			</h1>
+			<p class="text-sm" style="color: var(--color-outline); font-family: var(--font-family-body);">
+				Discover your taste through swipes. AI builds what you actually want.
+			</p>
+		</div>
+
+		<div class="relative flex gap-3 w-full max-w-lg">
 			<input
 				type="text"
 				bind:value={intentText}
 				placeholder="What do you want to build?"
 				disabled={loading}
-				class="flex-1 rounded-xl px-4 py-3 text-sm outline-none"
+				class="flex-1 rounded-xl px-5 py-3.5 text-sm outline-none placeholder:text-[var(--color-outline-variant)]"
 				style="
 					background: var(--color-surface-container);
 					color: var(--color-on-surface);
@@ -163,20 +179,33 @@
 			<button
 				onclick={startSession}
 				disabled={!intentText.trim() || loading}
-				class="rounded-xl px-5 py-3 text-sm font-semibold transition-opacity disabled:opacity-40"
+				class="rounded-xl px-6 py-3.5 text-sm font-bold uppercase tracking-wider transition-all disabled:opacity-30 hover:opacity-90 active:scale-95"
 				style="
 					background: var(--color-on-surface);
 					color: var(--color-surface-lowest);
-					font-family: var(--font-family-body);
+					font-family: var(--font-family-display);
 				"
 			>
-				{loading ? 'Starting...' : 'Go'}
+				{loading ? '...' : 'GO \u2192'}
 			</button>
 		</div>
 
 		{#if error}
 			<p class="text-sm" style="color: var(--color-reject);">{error}</p>
 		{/if}
+
+		<!-- Example prompts -->
+		<div class="relative flex gap-3 mt-2">
+			{#each ['design playground', 'ai workspace', 'finance app'] as example}
+				<button
+					onclick={() => { intentText = example; }}
+					class="text-[10px] uppercase tracking-wider px-3 py-1.5 rounded-full transition-colors hover:opacity-80"
+					style="background: var(--color-surface-container); color: var(--color-outline); font-family: var(--font-family-body);"
+				>
+					{example}
+				</button>
+			{/each}
+		</div>
 	</div>
 
 <!-- ── Swiping mode ──────────────────────────────────────────────── -->
@@ -234,17 +263,75 @@
 
 <!-- ── Reveal mode ───────────────────────────────────────────────── -->
 {:else if mode === 'reveal'}
-	<div class="min-h-screen flex flex-col items-center p-4 md:p-8" style="background: var(--color-surface-lowest);">
-		<header class="w-full max-w-4xl mb-8">
+	<div class="min-h-screen flex flex-col" style="background: var(--color-surface-lowest);">
+		<!-- Top bar -->
+		<header class="flex items-center justify-between px-8 py-4 shrink-0">
 			<h1
 				class="text-sm font-bold uppercase tracking-[0.2em]"
 				style="font-family: var(--font-family-display); color: var(--color-on-surface);"
 			>
 				The Eye Loop
 			</h1>
+			<div class="flex items-center gap-6">
+				<span
+					class="text-[10px] uppercase tracking-wider font-semibold"
+					style="color: var(--color-on-surface); border-bottom: 1px solid var(--color-on-surface); padding-bottom: 2px;"
+				>
+					Gallery
+				</span>
+				<span class="text-[10px] uppercase tracking-wider" style="color: var(--color-outline);">
+					{evidence.length} swipes
+				</span>
+			</div>
 		</header>
-		<div class="w-full max-w-4xl">
-			<PrototypeDraftPanel {draft} mode="reveal" />
+
+		<!-- Reveal content -->
+		<div class="flex-1 flex flex-col items-center px-6 py-8 md:py-16">
+			<div class="w-full max-w-3xl flex flex-col items-center gap-10">
+				<!-- Label + Title + Summary -->
+				<div class="text-center">
+					<p
+						class="text-[10px] uppercase tracking-[0.3em] mb-4"
+						style="color: var(--color-outline); font-family: var(--font-family-display);"
+					>
+						Final Prototype
+					</p>
+					{#if draft.title}
+						<h2
+							class="text-3xl md:text-5xl font-bold tracking-tight mb-4"
+							style="font-family: var(--font-family-display); color: var(--color-on-surface);"
+						>
+							{draft.title}
+						</h2>
+					{/if}
+					{#if draft.summary}
+						<p
+							class="text-base leading-relaxed max-w-xl mx-auto"
+							style="color: var(--color-on-surface-variant); font-family: var(--font-family-body);"
+						>
+							{draft.summary}
+						</p>
+					{/if}
+				</div>
+
+				<!-- Phone frame -->
+				<PrototypeDraftPanel {draft} mode="reveal" />
+
+				<!-- Divergence insight -->
+				{#if synthesis?.persona_anima_divergence}
+					<div
+						class="w-full max-w-lg rounded-2xl p-5"
+						style="background: rgba(245, 158, 11, 0.06); border: 1px solid rgba(245, 158, 11, 0.12);"
+					>
+						<p class="text-[10px] font-semibold uppercase tracking-wider mb-2" style="color: #f59e0b;">
+							Taste Divergence
+						</p>
+						<p class="text-sm leading-relaxed" style="color: var(--color-on-surface-variant);">
+							{synthesis.persona_anima_divergence}
+						</p>
+					</div>
+				{/if}
+			</div>
 		</div>
 	</div>
 {/if}
