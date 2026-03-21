@@ -306,7 +306,7 @@ RULES:
 | `getMostUncertainAxis()` | **Drop** | Scout identifies gaps from evidence, not code |
 | `addEvidence()` confidence delta | **Simplify** | Just append to evidence array |
 | Swipe-count stage transitions | **Replace** | Oracle concreteness floor + scout format choice |
-| Axis seeding prompt | **Drop** | First probes ARE the seed questions |
+| Axis seeding prompt | **Replace** | Oracle cold-start: 3 intent-specific hypotheses, not 5-7 generic axes |
 
 ---
 
@@ -352,17 +352,94 @@ This is the oracle's synthesis job, extended — the synthesis already summarize
 
 ---
 
-## Cold Start
+## Cold Start — Oracle Intent Analysis
 
-No axis seeding. On session init:
-1. `context.reset(); context.intent = intent; context.sessionId = randomUUID();`
-2. Fire 3 scouts **staggered by 500ms** — each generates its "first Akinator question" from intent + lens
-3. Scout lenses ensure diversity: Iris probes visual, Prism probes structure, Lumen probes narrative
-4. First scout's probe lands in queue before second scout starts — queue visibility prevents overlap
-5. Queue fills with 3 word-level facades before user sees the first card
-6. ~2s latency for first facade (Flash Lite word generation)
+On session init, the oracle does ONE fast LLM call to analyze the intent and produce 3 intent-specific first hypotheses — one per scout. This replaces axis seeding AND solves cold-start diversity.
 
-Validated: H1 Round 1, scouts produce 6/6 quality probes from intent alone with zero evidence. Cold start diversity validated with oracle assignments (3/3). Lens-based cold start diversity to be validated after implementation.
+### Why
+
+Generic lenses (visual/structure/voice) don't know that "ai workspace" should probe canvas-vs-linear, realtime-vs-async, solo-vs-collaborative. The intent itself contains domain-specific axes that lenses can't infer. The oracle reads the intent and produces hypotheses grounded in what THIS product needs to discover.
+
+### Cold Start Prompt
+
+```
+You are the Oracle. A user just started a session.
+
+INTENT: "{INTENT}"
+
+Produce 3 FIRST QUESTIONS — one for each scout. These are the opening
+Akinator moves. Each question should probe a different taste dimension
+that matters specifically for THIS product.
+
+For each:
+- scout: Iris | Prism | Lumen
+- hypothesis: what accept vs reject would reveal
+- word_probe: the 1-3 word label the user will see (PLAIN LANGUAGE, not jargon)
+
+Iris probes look and feel. Prism probes layout and interaction. Lumen probes voice and personality.
+
+RULES:
+- Questions must be INTENT-SPECIFIC, not generic design axes
+- word_probe must be understandable in 1 second by a normal person
+- Each question should target a DIFFERENT dimension
+- Good: "Dark workspace" (tests atmosphere), "Sidebar tools" (tests layout), "Friendly helper" (tests personality)
+- Bad: "Biophilic brutalism" (jargon), "Ephemeral layering" (nonsense), "Synaptic echo" (pretentious)
+```
+
+### Cold Start Output
+
+```typescript
+interface ColdStartHypothesis {
+  scout: 'Iris' | 'Prism' | 'Lumen';
+  hypothesis: string;
+  word_probe: string;
+}
+
+type ColdStartOutput = ColdStartHypothesis[];
+```
+
+### Cold Start Flow
+
+```
+1. context.reset(); context.intent = intent;
+2. Oracle cold-start LLM call (~2s, Flash Lite, temperature 0)
+   → produces 3 intent-specific hypotheses
+3. Store as initial scout assignments on context.synthesis
+4. Fire 3 scouts staggered by 500ms
+5. Each scout reads its cold-start assignment instead of self-assigning
+6. Queue fills with 3 intent-specific word facades
+7. First facade visible in ~2-3s
+```
+
+### Cold Start vs Full Synthesis
+
+| | Cold Start | Full Synthesis |
+|---|---|---|
+| **When** | Session init (0 evidence) | Every 4 swipes |
+| **Input** | Intent string only | Full evidence history |
+| **Output** | 3 hypotheses + word probes | Emergent axes + assignments + flags |
+| **Model** | Flash Lite (fast, ~2s) | Flash Lite (3s) or Pro |
+| **Stored as** | Initial `context.synthesis` with 3 unprobed axes | Full `TasteSynthesis` replacing prior |
+
+The cold-start output can be structured as a lightweight `TasteSynthesis` with 3 axes at confidence `unprobed`, so scouts read it through the same code path as full synthesis. No special casing needed.
+
+### Example
+
+Intent: "ai workspace"
+
+```
+Iris   → "Dark canvas"     — Does the user want a dark, immersive workspace or a bright, airy one?
+Prism  → "Infinite scroll"  — Does the user want a spatial canvas or a structured document flow?
+Lumen  → "Copilot chat"    — Does the user want AI as a visible companion or an invisible engine?
+```
+
+Intent: "recipe app for people who hate cooking"
+
+```
+Iris   → "Cozy kitchen"    — Does the user want warm homey vibes or clean clinical efficiency?
+Prism  → "One big button"  — Does the user want extreme simplicity or browsable variety?
+Lumen  → "Friendly coach"  — Does the user want encouragement or just-the-facts instructions?
+```
 
 ---
 
