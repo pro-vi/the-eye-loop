@@ -11,11 +11,10 @@ export async function POST({ request }: { request: Request }) {
 		return json({ error: 'intent is required' }, { status: 400 });
 	}
 
-	try {
-		const { axes, sessionId } = await seedSession(intent.trim());
-		return json({ intent: intent.trim(), axes, sessionId });
-	} catch (e) {
-		const message = e instanceof Error ? e.message : 'Failed to seed session';
-		return json({ error: message }, { status: 500 });
-	}
+	const { sessionId } = seedSession(intent.trim());
+
+	// Scouts fill the initial queue — started here by scout ticket (05),
+	// not by oracle. "The first probes ARE the seed." (specs/4-akinator.md:139)
+
+	return json({ intent: intent.trim(), sessionId });
 }

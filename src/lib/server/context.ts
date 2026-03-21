@@ -1,17 +1,16 @@
 import type {
 	Stage,
-	TasteAxis,
+	SwipeEvidence,
 	Facade,
 	SwipeRecord,
 	AgentState,
 	PrototypeDraft,
 	ProbeBrief
 } from '$lib/context/types';
-import { emitFacadeReady, emitSwipeResult, emitAnimaUpdated } from './bus';
+import { emitFacadeReady, emitSwipeResult, emitEvidenceUpdated } from './bus';
 
-// ── Confidence threshold ──────────────────────────────────────────────
+// ── Queue thresholds ─────────────────────────────────────────────────
 
-const RESOLVED_THRESHOLD = 0.8;
 const QUEUE_MIN = 3;
 const QUEUE_MAX = 5;
 
@@ -19,9 +18,10 @@ const QUEUE_MAX = 5;
 
 class EyeLoopContext {
 	intent = '';
+	sessionId = ''; // V0: invalidation token, not a routing boundary
 	swipeCount = 0;
 	stage: Stage = 'words';
-	axes: Map<string, TasteAxis> = new Map();
+	evidence: SwipeEvidence[] = [];
 	facades: Facade[] = [];
 	consumedFacades: Facade[] = [];
 	probes: ProbeBrief[] = [];
@@ -53,59 +53,30 @@ class EyeLoopContext {
 
 	// ── Methods ─────────────────────────────────────────────────────
 
-	seedAxes(axes: TasteAxis[]) {
-		this.axes.clear();
-		for (const axis of axes) {
-			this.axes.set(axis.id, axis);
-		}
-	}
-
 	addEvidence(record: SwipeRecord) {
 		this.swipeCount++;
 
-		// Compute latency bucket BEFORE mutation so threshold is pre-swipe
+		// Compute latency bucket from session median
 		const median = this.sessionMedianLatency;
 		record.latencyBucket = median > 0 && record.latencyMs < median ? 'fast' : 'slow';
 		this.swipeLatencies.push(record.latencyMs);
 
-		// Update axis
-		const axis = this.axes.get(record.axisId);
-		if (axis) {
-			axis.evidenceCount++;
-			const delta = record.latencyBucket === 'fast' ? 0.15 : 0.1;
+		// Build evidence entry from facade + record
+		const facade = this.facades.find((f) => f.id === record.facadeId)
+			?? this.consumedFacades.find((f) => f.id === record.facadeId);
 
-			if (record.decision === 'accept') {
-				// Reinforce the hypothesis direction
-				axis.confidence = Math.min(1, axis.confidence + delta);
-			} else {
-				// Reject nudges confidence toward the other pole
-				axis.confidence = Math.min(1, axis.confidence + delta * 0.6);
-			}
+		const entry: SwipeEvidence = {
+			facadeId: record.facadeId,
+			content: facade?.label ?? facade?.content ?? record.facadeId,
+			hypothesis: facade?.hypothesis ?? '',
+			decision: record.decision,
+			latencySignal: record.latencyBucket
+		};
+		this.evidence.push(entry);
 
-			// Set leaning based on the facade's hypothesis
-			const facade = this.facades.find((f) => f.id === record.facadeId)
-				?? this.consumedFacades.find((f) => f.id === record.facadeId);
-
-			if (facade && axis.options.length === 2) {
-				if (record.decision === 'accept') {
-					// Lean toward whichever pole the hypothesis was testing
-					const hypLower = facade.hypothesis.toLowerCase();
-					axis.leaning = axis.options.find((o: string) => hypLower.includes(o.toLowerCase()))
-						?? axis.leaning;
-				} else {
-					// Lean away from the hypothesis
-					const hypLower = facade.hypothesis.toLowerCase();
-					const rejected = axis.options.find((o: string) => hypLower.includes(o.toLowerCase()));
-					axis.leaning = axis.options.find((o: string) => o !== rejected) ?? axis.leaning;
-				}
-			}
-
-			// Emit updates
-			emitSwipeResult({ record, axisUpdate: axis });
-			emitAnimaUpdated({ axes: [...this.axes.values()], antiPatterns: this.antiPatterns });
-		}
-
-		// NOTE: stage advancement is NOT done here — owned by oracle (07)
+		// Emit updates
+		emitSwipeResult({ record });
+		emitEvidenceUpdated({ evidence: [...this.evidence], antiPatterns: this.antiPatterns });
 	}
 
 	pushFacade(facade: Facade) {
@@ -122,28 +93,17 @@ class EyeLoopContext {
 	}
 
 	getNextProbe(): ProbeBrief | undefined {
-		// Sort by priority, pop highest
 		const highIdx = this.probes.findIndex((p) => p.priority === 'high');
 		if (highIdx !== -1) return this.probes.splice(highIdx, 1)[0];
 		return this.probes.shift();
 	}
 
-	getMostUncertainAxis(): TasteAxis | undefined {
-		let most: TasteAxis | undefined;
-		for (const axis of this.axes.values()) {
-			if (axis.confidence >= RESOLVED_THRESHOLD) continue;
-			if (!most || axis.confidence < most.confidence) {
-				most = axis;
-			}
-		}
-		return most;
-	}
-
 	reset() {
 		this.intent = '';
+		this.sessionId = '';
 		this.swipeCount = 0;
 		this.stage = 'words';
-		this.axes.clear();
+		this.evidence = [];
 		this.facades = [];
 		this.consumedFacades = [];
 		this.probes = [];
@@ -159,55 +119,21 @@ class EyeLoopContext {
 		this.swipeLatencies = [];
 	}
 
-	// ── Anima YAML serializer ───────────────────────────────────────
+	// ── Evidence serializer for agent prompts ────────────────────────
 
-	toAnimaYAML(): string {
-		const resolved: string[] = [];
-		const exploring: string[] = [];
-		const unprobed: string[] = [];
+	toEvidencePrompt(): string {
+		if (this.evidence.length === 0) return 'No evidence yet.';
 
-		for (const axis of this.axes.values()) {
-			if (axis.evidenceCount === 0) {
-				unprobed.push(`  - ${axis.label}`);
-			} else if (axis.confidence >= RESOLVED_THRESHOLD && axis.leaning) {
-				resolved.push(
-					`  ${axis.label}:\n` +
-					`    value: ${axis.leaning}\n` +
-					`    confidence: ${axis.confidence.toFixed(2)}`
+		return this.evidence
+			.map((e, i) => {
+				const tag = e.decision === 'accept' ? 'ACCEPT' : 'REJECT';
+				const hesitant = e.latencySignal === 'slow' ? ' (hesitant)' : '';
+				return (
+					`${i + 1}. [${tag}${hesitant}] "${e.content}"\n` +
+					`   Hypothesis: ${e.hypothesis}`
 				);
-			} else {
-				const [a, b] = axis.options;
-				const pA = axis.leaning === a
-					? axis.confidence.toFixed(2)
-					: (1 - axis.confidence).toFixed(2);
-				const pB = (1 - parseFloat(pA)).toFixed(2);
-				exploring.push(
-					`  ${axis.label}:\n` +
-					`    hypotheses: [${a}, ${b}]\n` +
-					`    distribution: [${pA}, ${pB}]\n` +
-					`    probes_spent: ${axis.evidenceCount}`
-				);
-			}
-		}
-
-		const antiLines = this.antiPatterns.map((p) => `  - ${p}`);
-
-		return [
-			`# Anima | ${this.swipeCount} swipes | stage: ${this.stage}`,
-			`intent: "${this.intent}"`,
-			'',
-			'resolved:',
-			resolved.length ? resolved.join('\n') : '  {}',
-			'',
-			'exploring:',
-			exploring.length ? exploring.join('\n') : '  {}',
-			'',
-			'unprobed:',
-			unprobed.length ? unprobed.join('\n') : '  []',
-			'',
-			'anti_patterns:',
-			antiLines.length ? antiLines.join('\n') : '  []'
-		].join('\n');
+			})
+			.join('\n\n');
 	}
 }
 

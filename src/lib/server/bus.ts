@@ -33,8 +33,8 @@ export const emitSwipeResult: (p: SSEEventMap['swipe-result']) => void =
 		emitter.emit(`swipe:${p.record.facadeId}`, { record: p.record });
 	};
 
-export const emitAnimaUpdated: (p: SSEEventMap['anima-updated']) => void =
-	(p) => emit('anima-updated', p);
+export const emitEvidenceUpdated: (p: SSEEventMap['evidence-updated']) => void =
+	(p) => emit('evidence-updated', p);
 
 export const emitAgentStatus: (p: SSEEventMap['agent-status']) => void =
 	(p) => emit('agent-status', p);
@@ -62,8 +62,8 @@ export const onFacadeStale = (cb: (p: SSEEventMap['facade-stale']) => void) =>
 export const onSwipeResult = (cb: (p: SSEEventMap['swipe-result']) => void) =>
 	on('swipe-result', cb);
 
-export const onAnimaUpdated = (cb: (p: SSEEventMap['anima-updated']) => void) =>
-	on('anima-updated', cb);
+export const onEvidenceUpdated = (cb: (p: SSEEventMap['evidence-updated']) => void) =>
+	on('evidence-updated', cb);
 
 export const onAgentStatus = (cb: (p: SSEEventMap['agent-status']) => void) =>
 	on('agent-status', cb);
@@ -96,7 +96,7 @@ const SSE_EVENTS: SSEEventType[] = [
 	'facade-ready',
 	'facade-stale',
 	'swipe-result',
-	'anima-updated',
+	'evidence-updated',
 	'agent-status',
 	'builder-hint',
 	'stage-changed',

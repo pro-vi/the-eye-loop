@@ -24,17 +24,16 @@ export async function POST({ request }: { request: Request }) {
 	const record: SwipeRecord = {
 		facadeId,
 		agentId: facade.agentId,
-		axisId: facade.axisId,
 		decision,
 		latencyMs
 	};
 
-	// Anti-patterns BEFORE addEvidence so anima-updated includes them
+	// Anti-patterns BEFORE addEvidence so evidence-updated includes them
 	if (decision === 'reject') {
 		context.antiPatterns.push(facade.hypothesis);
 	}
 
-	// Update context (emits swipe-result and anima-updated on bus)
+	// Append evidence, emit swipe-result + evidence-updated
 	context.addEvidence(record);
 	context.markFacadeConsumed(facadeId);
 
