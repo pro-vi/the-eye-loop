@@ -1,31 +1,30 @@
-// V0 Data Contract — single source of truth for all shared types.
+// V0 Data Contract — Akinator pattern.
+// Evidence-based taste discovery. No explicit axes.
 // No runtime imports. No Zod. No classes. No z.union().
 
 export type Stage = 'words' | 'images' | 'mockups' | 'reveal';
 
-export interface TasteAxis {
-	id: string;
-	label: string;
-	options: [string, string];
-	confidence: number;
-	leaning?: string;
-	evidenceCount: number;
+export interface SwipeEvidence {
+	facadeId: string;
+	content: string;
+	hypothesis: string;
+	decision: 'accept' | 'reject';
+	latencySignal: 'fast' | 'slow';
 }
 
 export interface Facade {
 	id: string;
 	agentId: string;
-	stage: Stage;
 	hypothesis: string;
-	axisId: string;
+	label: string;
 	content: string;
+	format: 'word' | 'image' | 'mockup';
 	imageDataUrl?: string;
 }
 
 export interface SwipeRecord {
 	facadeId: string;
 	agentId: string;
-	axisId: string;
 	decision: 'accept' | 'reject';
 	latencyMs: number;
 	latencyBucket?: 'fast' | 'slow';
@@ -60,13 +59,13 @@ export interface ProbeBrief {
 export type SSEEvent =
 	| { type: 'facade-ready'; facade: Facade }
 	| { type: 'facade-stale'; facadeId: string }
-	| { type: 'swipe-result'; record: SwipeRecord; axisUpdate: TasteAxis }
-	| { type: 'anima-updated'; axes: TasteAxis[]; antiPatterns: string[] }
+	| { type: 'swipe-result'; record: SwipeRecord }
+	| { type: 'evidence-updated'; evidence: SwipeEvidence[]; antiPatterns: string[] }
 	| { type: 'agent-status'; agent: AgentState }
 	| { type: 'draft-updated'; draft: PrototypeDraft }
 	| { type: 'builder-hint'; hint: string }
 	| { type: 'stage-changed'; stage: Stage; swipeCount: number }
-	| { type: 'session-ready'; intent: string; axes: TasteAxis[] }
+	| { type: 'session-ready'; intent: string }
 	| { type: 'error'; message: string };
 
 // Derive event map from SSEEvent — bus helpers and SSE forwarding use this
