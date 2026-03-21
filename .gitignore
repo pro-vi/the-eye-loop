@@ -5,11 +5,8 @@ node_modules/
 .svelte-kit/
 .vercel/
 
-# Cloned repos for research (other people's code)
-.research/gemini-cli/
-.research/ai-chatbot-svelte/
-.research/nano-banana-2-skill/
-.research/gemimg/
-.research/*.sha
+# Research (cloned repos, syntheses, internal findings)
+.research/
+scripts/
 debug.jsonl
 scripts/boss-run/
