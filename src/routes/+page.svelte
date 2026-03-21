@@ -181,10 +181,14 @@
 
 <!-- ── Swiping mode ──────────────────────────────────────────────── -->
 {:else if mode === 'swiping'}
-	<div class="grid grid-cols-1 md:grid-cols-[1fr_2.5fr_1.5fr] gap-4 h-screen p-4">
-		<!-- Left: Anima -->
-		<div class="hidden md:flex flex-col gap-4 overflow-y-auto">
+	<div
+		class="grid grid-cols-1 md:grid-cols-[240px_1fr_360px] gap-4 h-screen p-4 max-w-[1440px] mx-auto"
+		style="background: var(--color-surface-lowest);"
+	>
+		<!-- Left: Anima + Agents -->
+		<div class="hidden md:flex flex-col gap-4 overflow-y-auto pr-1" style="scrollbar-width: thin;">
 			<AnimaPanel {evidence} {synthesis} {antiPatterns} />
+			<AgentStatus {agents} />
 		</div>
 
 		<!-- Center: Swipe feed -->
@@ -192,10 +196,9 @@
 			<SwipeFeed {facades} onswipe={handleSwipe} onremove={handleRemove} />
 		</div>
 
-		<!-- Right: Draft + Agents -->
-		<div class="hidden md:flex flex-col gap-4 overflow-y-auto">
+		<!-- Right: Draft -->
+		<div class="hidden md:flex flex-col gap-4 overflow-y-auto pl-1" style="scrollbar-width: thin;">
 			<PrototypeDraftPanel {draft} mode="swiping" />
-			<AgentStatus {agents} />
 		</div>
 	</div>
 
