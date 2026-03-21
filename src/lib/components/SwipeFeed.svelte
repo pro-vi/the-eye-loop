@@ -1,13 +1,20 @@
 <script lang="ts">
 	import type { Facade } from '$lib/context/types';
 
+	interface VibeToken {
+		label: string;
+		decision: 'accept' | 'reject';
+		sourceRect: DOMRect;
+	}
+
 	interface Props {
 		facades: Facade[];
 		onswipe: (event: { facadeId: string; decision: 'accept' | 'reject'; latencyMs: number }) => void;
 		onremove: (facadeId: string) => void;
+		onvibetoken?: (token: VibeToken) => void;
 	}
 
-	let { facades, onswipe, onremove }: Props = $props();
+	let { facades, onswipe, onremove, onvibetoken }: Props = $props();
 
 	// ── Gesture state ────────────────────────────────────────────────
 	let deltaX = $state(0);
@@ -41,7 +48,13 @@
 		deltaX = e.clientX - startX;
 	}
 
-	function onpointerup(_e: PointerEvent) {
+	function emitVibeToken(decision: 'accept' | 'reject', el?: HTMLElement) {
+		if (!topFacade || !onvibetoken) return;
+		const rect = el?.getBoundingClientRect() ?? new DOMRect(0, 0, CARD_WIDTH, 460);
+		onvibetoken({ label: topFacade.label, decision, sourceRect: rect });
+	}
+
+	function onpointerup(e: PointerEvent) {
 		if (!swiping || !topFacade) return;
 		swiping = false;
 
@@ -53,6 +66,7 @@
 			flyDirection = deltaX > 0 ? 1 : -1;
 			flyingOff = topFacade.id;
 			onswipe({ facadeId: topFacade.id, decision, latencyMs });
+			emitVibeToken(decision, e.currentTarget as HTMLElement);
 		}
 
 		deltaX = 0;
@@ -73,6 +87,8 @@
 		flyDirection = decision === 'accept' ? 1 : -1;
 		flyingOff = topFacade.id;
 		onswipe({ facadeId: topFacade.id, decision, latencyMs });
+		const cardEl = document.querySelector('[role="button"][tabindex="0"]') as HTMLElement | null;
+		emitVibeToken(decision, cardEl ?? undefined);
 	}
 
 	// ── Accept/reject indicator opacity ──────────────────────────────

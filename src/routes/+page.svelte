@@ -131,7 +131,58 @@
 	function handleRemove(facadeId: string) {
 		facades = facades.filter((f) => f.id !== facadeId);
 	}
+
+	// ── Vibe token animation ─────────────────────────────────────────
+	function handleVibeToken(token: { label: string; decision: 'accept' | 'reject'; sourceRect: DOMRect }) {
+		const overlay = document.getElementById('vibe-overlay');
+		if (!overlay) return;
+
+		const chip = document.createElement('div');
+		chip.className = `vibe-token ${token.decision}`;
+		chip.textContent = `${token.decision === 'accept' ? '✓' : '✗'} ${token.label}`;
+		chip.style.left = `${token.sourceRect.x + token.sourceRect.width / 2}px`;
+		chip.style.top = `${token.sourceRect.y + token.sourceRect.height / 2}px`;
+		overlay.appendChild(chip);
+
+		const targetEl = token.decision === 'accept'
+			? document.getElementById('draft-panel')
+			: document.getElementById('anti-patterns');
+		const targetRect = targetEl?.getBoundingClientRect();
+		const tx = targetRect ? targetRect.x + 40 : window.innerWidth - 100;
+		const ty = targetRect ? targetRect.y + 20 : 100;
+
+		chip.animate([
+			{ left: chip.style.left, top: chip.style.top, scale: '1', opacity: '1' },
+			{ left: `${tx}px`, top: `${ty}px`, scale: '0.6', opacity: '0.8' }
+		], { duration: 400, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)', fill: 'forwards' })
+			.finished.then(() => {
+				chip.remove();
+				targetEl?.classList.add(token.decision === 'accept' ? 'pulse-green' : 'pulse-red');
+				setTimeout(() => targetEl?.classList.remove('pulse-green', 'pulse-red'), 300);
+			});
+	}
 </script>
+
+<style>
+	:global(.vibe-token) {
+		position: fixed;
+		z-index: 50;
+		padding: 4px 12px;
+		border-radius: 9999px;
+		font-size: 0.75rem;
+		font-weight: 600;
+		pointer-events: none;
+		white-space: nowrap;
+		transform: translate(-50%, -50%);
+	}
+	:global(.vibe-token.accept) { background: #22c55e; color: white; }
+	:global(.vibe-token.reject) { background: #ef4444; color: white; }
+	:global(.pulse-green) { box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.4); }
+	:global(.pulse-red) { box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.4); }
+</style>
+
+<!-- Vibe token animation overlay -->
+<div id="vibe-overlay" class="fixed inset-0 pointer-events-none z-50"></div>
 
 <!-- ── Intent entry ──────────────────────────────────────────────── -->
 {#if mode === 'intent'}
@@ -158,7 +209,7 @@
 				The Eye Loop
 			</h1>
 			<p class="text-sm" style="color: var(--color-outline); font-family: var(--font-family-body);">
-				Discover your taste through swipes. AI builds what you actually want.
+				Swipe to vibe. AI builds what you actually want.
 			</p>
 		</div>
 
@@ -244,7 +295,7 @@
 
 			<!-- Center: Swipe feed -->
 			<div class="flex items-center justify-center">
-				<SwipeFeed {facades} onswipe={handleSwipe} onremove={handleRemove} />
+				<SwipeFeed {facades} onswipe={handleSwipe} onremove={handleRemove} onvibetoken={handleVibeToken} />
 			</div>
 
 			<!-- Right: Draft -->

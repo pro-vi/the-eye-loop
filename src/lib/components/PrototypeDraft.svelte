@@ -13,7 +13,8 @@
 </script>
 
 <div
-	class="flex flex-col gap-4 rounded-2xl p-5"
+	id="draft-panel"
+	class="flex flex-col gap-4 rounded-2xl p-5 transition-shadow duration-300"
 	style="background: var(--color-surface); font-family: var(--font-family-body);"
 >
 	<!-- Header -->
@@ -112,7 +113,7 @@
 
 	<!-- Pattern chips -->
 	{#if hasPatterns}
-		<div class="flex flex-wrap gap-1.5">
+		<div id="anti-patterns" class="flex flex-wrap gap-1.5">
 			{#each draft.acceptedPatterns as pattern}
 				<span
 					class="rounded-full px-2.5 py-1 text-[10px] font-medium"
