@@ -73,6 +73,38 @@ Also produce:
 - scout_assignments: for 3 scouts (Iris, Prism, Lumen), assign each a DIFFERENT axis to probe next
 - persona_anima_divergence: where revealed taste diverges from stated intent (null if none detected)`;
 
+// ── Cold-start schema + prompt ───────────────────────────────────────
+
+const coldStartSchema = z.array(
+	z.object({
+		scout: z.enum(['Iris', 'Prism', 'Lumen']),
+		hypothesis: z.string(),
+		word_probe: z.string()
+	})
+);
+
+const COLD_START_PROMPT = `You are the Oracle. A user just started a session.
+
+INTENT: "{INTENT}"
+
+Produce 3 FIRST QUESTIONS — one for each scout. These are the opening
+Akinator moves. Each question should probe a different taste dimension
+that matters specifically for THIS product.
+
+For each:
+- scout: Iris | Prism | Lumen
+- hypothesis: what accept vs reject would reveal
+- word_probe: the 1-3 word label the user will see (PLAIN LANGUAGE, not jargon)
+
+Iris probes look and feel. Prism probes layout and interaction. Lumen probes voice and personality.
+
+RULES:
+- Questions must be INTENT-SPECIFIC, not generic design axes
+- word_probe must be understandable in 1 second by a normal person
+- Each question should target a DIFFERENT dimension
+- Good: "Dark workspace" (tests atmosphere), "Sidebar tools" (tests layout), "Friendly helper" (tests personality)
+- Bad: "Biophilic brutalism" (jargon), "Ephemeral layering" (nonsense), "Synaptic echo" (pretentious)`;
+
 // ── Agent state ──────────────────────────────────────────────────────
 
 const ORACLE_AGENT: AgentState = {
@@ -84,7 +116,7 @@ const ORACLE_AGENT: AgentState = {
 };
 
 let cleanup: Array<() => void> = [];
-let synthesisRunId = 0; // ownership token — only the owning run can clear the gate
+let synthesisRunId = 0;
 let busy = false;
 let pendingSynthesis = false;
 
@@ -174,7 +206,7 @@ async function runSynthesis() {
 	}
 }
 
-// ── Session seed (no LLM — first probes ARE the seed) ────────────────
+// ── Session seed (cold-start intent analysis) ────────────────────────
 
 export function seedSession(intent: string): { sessionId: string } {
 	debugLog('Oracle', 'session-start', { intent: intent.trim() });
@@ -183,16 +215,62 @@ export function seedSession(intent: string): { sessionId: string } {
 	context.sessionId = crypto.randomUUID();
 	lastFloor = 'word';
 	lastSynthesizedAt = -1;
-	synthesisRunId++; // invalidate any in-flight synthesis from previous session
+	synthesisRunId++;
 	busy = false;
 	pendingSynthesis = false;
 
-	setOracleStatus('thinking', 'session init');
 	emitSessionReady({ intent });
 	setOracleStatus('idle', 'monitoring');
 
+	// Cold-start analysis runs in background — doesn't block session creation
+	// or scout startup. Synthesis arrives via SSE when ready.
+	runColdStart(intent, context.sessionId);
+
 	console.log(`[oracle] session created for "${intent}"`);
 	return { sessionId: context.sessionId };
+}
+
+async function runColdStart(intent: string, capturedSessionId: string) {
+	setOracleStatus('thinking', 'cold-start analysis');
+	try {
+		const result = await generateText({
+			model: MODEL,
+			output: Output.object({ schema: coldStartSchema }),
+			temperature: 0,
+			prompt: COLD_START_PROMPT.replace('{INTENT}', intent)
+		});
+
+		if (context.sessionId !== capturedSessionId) return;
+
+		if (result.output) {
+			context.synthesis = {
+				axes: result.output.map((h) => ({
+					label: h.hypothesis,
+					poleA: h.word_probe,
+					poleB: '(unknown)',
+					confidence: 'unprobed' as const,
+					leaning_toward: null,
+					evidence_basis: 'intent analysis (no evidence yet)'
+				})),
+				edge_case_flags: [],
+				scout_assignments: result.output.map((h) => ({
+					scout: h.scout,
+					probe_axis: h.hypothesis,
+					reason: `Cold start: first question for ${h.scout}`
+				})),
+				persona_anima_divergence: null
+			};
+			emitSynthesisUpdated({ synthesis: context.synthesis });
+			debugLog('Oracle', 'cold-start', {
+				hypotheses: result.output.map((h) => `${h.scout}: "${h.word_probe}"`)
+			});
+		}
+	} catch (err) {
+		console.error('[oracle] cold-start failed, scouts will self-assign:', err);
+	}
+	if (context.sessionId === capturedSessionId) {
+		setOracleStatus('idle', 'monitoring');
+	}
 }
 
 // ── Start oracle (idempotent) ────────────────────────────────────────

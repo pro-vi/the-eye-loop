@@ -30,6 +30,12 @@
 	let topFacade = $derived(facades[0]);
 	let visibleFacades = $derived(facades.slice(0, 3));
 
+	const SCOUT_NAMES: Record<string, string> = {
+		'scout-01': 'Iris',
+		'scout-02': 'Prism',
+		'scout-03': 'Lumen'
+	};
+
 	// Reset card timer when top card changes
 	$effect(() => {
 		if (topFacade) cardShownAt = performance.now();
@@ -149,23 +155,22 @@
 				role="button"
 				tabindex={isTop ? 0 : -1}
 			>
-				<!-- Hypothesis (debug only) -->
-				{#if debug}
-					<p
-						class="px-5 pt-5 pb-2 text-[10px] uppercase tracking-[0.15em] leading-relaxed"
-						style="color: var(--color-outline); font-family: var(--font-family-body);"
+				<!-- Card header -->
+				<div class="flex items-center justify-between px-5 pt-5 pb-2">
+					<span
+						class="text-[10px] uppercase tracking-[0.15em] font-medium"
+						style="color: var(--color-outline); font-family: var(--font-family-display);"
 					>
-						{facade.hypothesis}
-					</p>
-				{/if}
-
-				<!-- Agent badge -->
-				<span
-					class="absolute top-4 right-4 text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider font-semibold"
-					style="background: var(--color-surface-bright); color: var(--color-on-surface-variant);"
-				>
-					{facade.agentId}
-				</span>
+						hypothesis
+					</span>
+					<span
+						class="text-[10px] px-2.5 py-1 rounded-full uppercase tracking-wider font-semibold flex items-center gap-1.5"
+						style="background: var(--color-surface-bright); color: var(--color-on-surface-variant);"
+					>
+						<span class="w-1.5 h-1.5 rounded-full" style="background: var(--color-accept);"></span>
+						{SCOUT_NAMES[facade.agentId] ?? facade.agentId}
+					</span>
+				</div>
 
 				<!-- Content area -->
 				<div
@@ -174,10 +179,16 @@
 				>
 					{#if facade.format === 'word'}
 						<p
-							class="text-4xl font-black text-center leading-tight tracking-tight"
+							class="text-5xl font-black text-center leading-none tracking-tight"
 							style="font-family: var(--font-family-display); color: var(--color-on-surface);"
 						>
 							{facade.label}
+						</p>
+						<p
+							class="text-sm text-center leading-relaxed mt-4 px-4 max-w-[280px]"
+							style="color: var(--color-outline);"
+						>
+							{facade.hypothesis}
 						</p>
 					{:else if facade.format === 'image' && facade.imageDataUrl}
 						<img
@@ -236,7 +247,7 @@
 								transition: opacity 0.1s;
 							"
 						>
-							✓
+							♥
 						</div>
 					</div>
 				{/if}
@@ -261,29 +272,41 @@
 
 	<!-- Accept/Reject buttons -->
 	{#if topFacade && !flyingOff}
-		<div class="flex items-center gap-8">
-			<button
-				onclick={() => buttonSwipe('reject')}
-				class="w-12 h-12 rounded-full flex items-center justify-center text-lg transition-all hover:scale-110 active:scale-95"
-				style="background: var(--color-surface-container); color: var(--color-reject);"
-				aria-label="Reject"
-			>
-				✕
-			</button>
-			<p
-				class="text-xs tracking-[0.15em] uppercase"
-				style="color: var(--color-outline-variant); font-family: var(--font-family-body);"
-			>
-				swipe to decide
-			</p>
-			<button
-				onclick={() => buttonSwipe('accept')}
-				class="w-12 h-12 rounded-full flex items-center justify-center text-lg transition-all hover:scale-110 active:scale-95"
-				style="background: var(--color-surface-container); color: var(--color-accept);"
-				aria-label="Accept"
-			>
-				✓
-			</button>
+		<div class="flex items-center gap-12">
+			<div class="flex flex-col items-center gap-1.5">
+				<button
+					onclick={() => buttonSwipe('reject')}
+					class="w-14 h-14 rounded-full flex items-center justify-center text-xl transition-all hover:scale-110 active:scale-95"
+					style="background: var(--color-surface-container); color: var(--color-reject); border: 1px solid rgba(239, 68, 68, 0.2);"
+					aria-label="Reject"
+				>
+					✕
+				</button>
+				<span class="text-[10px] uppercase tracking-widest font-medium" style="color: var(--color-outline-variant);">
+					reject
+				</span>
+			</div>
+			<div class="flex flex-col items-center gap-1.5">
+				<button
+					onclick={() => buttonSwipe('accept')}
+					class="w-14 h-14 rounded-full flex items-center justify-center text-xl transition-all hover:scale-110 active:scale-95"
+					style="background: var(--color-surface-container); color: var(--color-accept); border: 1px solid rgba(34, 197, 94, 0.2);"
+					aria-label="Accept"
+				>
+					♥
+				</button>
+				<span class="text-[10px] uppercase tracking-widest font-medium" style="color: var(--color-outline-variant);">
+					accept
+				</span>
+			</div>
 		</div>
 	{/if}
+
+	<!-- Swipe hint -->
+	<p
+		class="text-[10px] tracking-[0.2em] uppercase"
+		style="color: var(--color-outline-variant); font-family: var(--font-family-display);"
+	>
+		swipe to decide
+	</p>
 </div>
