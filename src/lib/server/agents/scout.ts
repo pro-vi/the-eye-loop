@@ -386,13 +386,25 @@ export function startScout(agentId: string, name: string): () => void {
 								? context.draft.acceptedPatterns.join(', ')
 								: 'none yet';
 
-							const mockupPrompt = `Generate complete HTML+CSS that VISUALLY DEMONSTRATES this hypothesis.
-The user will swipe accept/reject on this mockup — they should be able to tell what it tests by LOOKING at it.
+							const draftHtml = context.draft.html;
+						const hasDraft = draftHtml && draftHtml.length > 50;
+
+						const mockupPrompt = `Generate complete HTML+CSS that VISUALLY DEMONSTRATES this hypothesis.
+The user will swipe accept/reject — they should tell what it tests by LOOKING at it.
 
 Hypothesis: ${output.hypothesis}
 Visual direction: ${output.content}
 Anti-patterns (NEVER use): ${antiStr}
 Accepted patterns (respect these): ${acceptedStr}
+
+${hasDraft ? `BUILDER'S CURRENT DRAFT (use as gravity well, not template):
+${draftHtml.slice(0, 1500)}
+
+The builder has an evolving prototype above. Your mockup should feel like
+it BELONGS in the same product — same color palette, same typography, same
+visual language. But you are testing something NEW within that world.
+Don't copy the draft — RIFF on it. Keep what's settled, explore what's open.
+Change the thing your hypothesis tests. Be creative with HOW you show it.` : `No builder draft yet — generate a fresh mockup from evidence.`}
 
 ${HTML_QUALITY_RULES}
 
