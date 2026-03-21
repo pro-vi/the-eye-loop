@@ -100,6 +100,8 @@ RULES:
 - Probe briefs must be about SPECIFIC UI COMPONENTS, not abstract dimensions
 - acceptedPatterns and rejectedPatterns are DELTAS — only new patterns from THIS swipe
 - html must be COMPLETE — include all sections, not just changes
+- html is rendered in a 375x667 mobile viewport with inline styles only, no scripts
+- Use width: 100% and max-width: 375px on the body/root. No horizontal overflow.
 
 OUTPUT: updated title, summary, html, pattern deltas, probe briefs, nextHint`;
 
