@@ -41,21 +41,42 @@ const DraftUpdateSchema = z.object({
 	nextHint: z.string().nullable()
 });
 
+// ── HTML quality rules (derived from v0, Lovable, Same.dev, Bolt research) ──
+
+const HTML_QUALITY_RULES = `HTML QUALITY RULES (apply to ALL html output):
+1. Start with a <style> block defining CSS variables derived from evidence:
+   :root { --bg: #FFF8F0; --card: #FFF; --accent: #FF8C69; --text: #4A3E38; --muted: #A1887F; --radius: 16px; --space: 20px; }
+   Adjust these colors based on accepted evidence. NEVER use defaults blindly.
+2. NEVER use blue (#0066CC, #2196F3, indigo) or purple unless evidence explicitly demands it.
+   Blue/indigo is the universal marker of "AI-generated default."
+3. NEVER leave placeholder comments, TODO sections, or "rest remains the same."
+   Every section must have real content — text, numbers, labels.
+4. ALWAYS ensure text contrast — no light text on light backgrounds.
+5. Use flex/grid for layout. No absolute positioning unless intentional.
+6. No emojis in UI text. Use text labels for icons ("Menu", "Back", not 🔔).
+7. No external resources — no Google Fonts, no CDN links, no <img src="http...">.
+   For placeholder images: <div style="background:linear-gradient(135deg, var(--accent), var(--bg)); height:200px; border-radius:var(--radius)"></div>
+8. Every element needs INTENTIONAL styling — specific border-radius, padding, font-size.
+   No unstyled defaults. No browser-default buttons, inputs, or links.
+9. Mobile-first: width 100%, max-width 375px, no horizontal overflow.
+10. Typography: pick ONE font family (serif or sans-serif) and use a consistent scale (14/16/20/28px).`;
+
 // ── Prompts ──────────────────────────────────────────────────────────
 
 const SCAFFOLD_PROMPT = `You are the Builder agent in The Eye Loop.
 
-The user just started a session. Generate an initial draft prototype scaffold
-from their intent. This is the FIRST draft — a plausible starting point that
-will evolve as the user swipes. Keep it simple but visible.
+The user just started a session. Generate an initial draft prototype scaffold.
+This is the FIRST draft — a plausible starting point that evolves as the user swipes.
 
 USER INTENT: "{intent}"
 
+${HTML_QUALITY_RULES}
+
 OUTPUT:
 - title: a working title for the prototype
-- summary: 1-2 sentence description of what this will become
-- html: basic HTML+CSS scaffold (mobile viewport 375x667, inline styles, no scripts).
-  Show the intent visually — placeholder sections, approximate layout, muted palette.
+- summary: 1-2 sentence description
+- html: basic HTML+CSS scaffold (mobile 375x667, inline styles, no scripts).
+  Start with a CSS variable palette, then build 2-3 placeholder sections.
 - acceptedPatterns: [] (none yet)
 - rejectedPatterns: [] (none yet)
 - probeBriefs: [] (no evidence yet)
@@ -100,8 +121,8 @@ RULES:
 - Probe briefs must be about SPECIFIC UI COMPONENTS, not abstract dimensions
 - acceptedPatterns and rejectedPatterns are DELTAS — only new patterns from THIS swipe
 - html must be COMPLETE — include all sections, not just changes
-- html is rendered in a 375x667 mobile viewport with inline styles only, no scripts
-- Use width: 100% and max-width: 375px on the body/root. No horizontal overflow.
+
+${HTML_QUALITY_RULES}
 
 OUTPUT: updated title, summary, html, pattern deltas, probe briefs, nextHint`;
 
