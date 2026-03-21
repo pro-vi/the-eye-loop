@@ -8,90 +8,76 @@ State machine with three modes: `intent`, `swiping`, `reveal`. IntentEntry is in
 
 ## Scope
 ### Files
-- src/routes/+page.svelte
+- src/routes/+page.svelte (~215 LOC)
 
 ### State ($state declarations)
 - `mode: 'intent' | 'swiping' | 'reveal'` — current session phase
 - `intentText: string` — bound to input field
 - `loading: boolean` — true while POST /api/session is in flight
+- `error: string` — error message from session creation
 - `sessionId: string | null` — returned from session creation
 - `facades: Facade[]` — queued facades for SwipeFeed
-- `axes: TasteAxis[]` — current Anima state for AnimaPanel
+- `evidence: SwipeEvidence[]` — swipe evidence for AnimaPanel
+- `synthesis: TasteSynthesis | null` — oracle synthesis for AnimaPanel (emergent axes, edge case flags, scout assignments, persona-anima divergence)
+- `antiPatterns: string[]` — rejected patterns for AnimaPanel
 - `agents: AgentState[]` — agent statuses for AgentStatus
-- `draft: PrototypeDraft` — builder output for PrototypeDraft component
+- `draft: PrototypeDraft` — builder output for PrototypeDraft component (initialized with empty title, summary, html, and empty pattern arrays)
 - `stage: Stage` — current stage (words/images/mockups/reveal)
+
+No `TasteAxis[]` state. Taste model is evidence-based: `SwipeEvidence[]` + `TasteSynthesis` (emergent axes format).
 
 ### Subtasks
 
 ## IntentEntry UI
 Inline intent form rendered when `mode === 'intent'`:
-- Text input bound to `intentText` with `bind:value`, placeholder "What do you want to build?" or similar
-- Submit button: "Start Discovery", disabled when `intentText.trim() === ''` or `loading === true`
-- `onclick` handler (not `on:click`): sets `loading = true`, POSTs to `/api/session` with `{intent: intentText}`, receives `{sessionId, intent, axes}`, sets `sessionId`, `axes`, transitions `mode = 'swiping'`, sets `loading = false`
-- Loading state: button shows spinner or "Starting..." text, input disabled
-- Centered layout: `flex flex-col items-center justify-center min-h-screen gap-4`
-- Error handling: if POST fails, set `loading = false`, show error message
+- Text input bound to `intentText` with `bind:value`, placeholder "What do you want to build?"
+- Submit button: "Go" (or "Starting..." when loading), disabled when `intentText.trim() === ''` or `loading === true`
+- `onclick` handler (not `on:click`): sets `loading = true`, POSTs to `/api/session` with `{intent: intentText.trim()}`, receives `{sessionId}`, sets `sessionId`, transitions `mode = 'swiping'`, sets `loading = false`
+- Loading state: button shows "Starting..." text, input disabled
+- Centered layout: `flex flex-col items-center justify-center min-h-screen gap-6 px-6`
+- Error handling: if POST fails, set `error` message, show below input
+- `onkeydown` on input: Enter key triggers `startSession()`
 
 ## SSE connection management
 `$effect` that runs when `mode === 'swiping'`:
-- Create `EventSource` pointing to `/api/stream?sessionId=${sessionId}`
+- Create `EventSource` pointing to `/api/stream` (no query params — server uses singleton context)
 - Parse incoming events by type:
-  - `facade-ready`: parse JSON data, push to `facades` array
-  - `anima-updated`: parse JSON data, replace `axes` array
-  - `agent-status`: parse JSON data, replace `agents` array
-  - `draft-updated`: parse JSON data, replace `draft` object (carries full PrototypeDraft with html, patterns, nextHint)
-  - `builder-hint`: parse JSON data, update `draft.nextHint` only (lightweight signal, optional — `draft-updated` is authoritative)
+  - `facade-ready`: parse JSON data, spread-append to `facades` array
+  - `facade-stale`: parse JSON data, filter out stale facade by id
+  - `evidence-updated`: parse JSON data, replace `evidence` array and `antiPatterns` array
+  - `synthesis-updated`: parse JSON data, replace `synthesis` object
+  - `agent-status`: parse JSON data, upsert into `agents` array (replace existing by id or append)
+  - `draft-updated`: parse JSON data, replace `draft` object
+  - `builder-hint`: parse JSON data, merge `hint` into `draft.nextHint`
   - `stage-changed`: parse JSON data, update `stage`. If `stage === 'reveal'`, set `mode = 'reveal'`
-- Each event listener: `eventSource.addEventListener('eventType', (e) => { ... })`
-- Cleanup: return a teardown function from `$effect` that calls `eventSource.close()`
-- Also close on mode change away from swiping (handled by effect re-run)
-- Connection error handling: `eventSource.onerror` — log, optionally show reconnecting indicator
+- Each event listener: `es.addEventListener('eventType', (e) => { ... })`
+- Cleanup: return a teardown function from `$effect` that calls `es.close()`
+- Connection error handling: `es.onerror` — log to console
 
 ## Layout grid
 Responsive layout rendered when `mode === 'swiping'`:
 - **Desktop (md+ breakpoint):** 3-column CSS grid: `grid grid-cols-[1fr_2.5fr_1.5fr] gap-4 h-screen p-4`
-  - Left column (20%): `<AnimaPanel axes={axes} />`
-  - Center column (50%): `<SwipeFeed facades={facades} onswipe={handleSwipe} />`
-  - Right column (30%): `<PrototypeDraft draft={draft} mode="swiping" />` stacked above `<AgentStatus agents={agents} />`
-- **Mobile (below md):** stacked single column: SwipeFeed on top (full width), AnimaPanel and AgentStatus in a horizontal scroll or collapsed accordion below, PrototypeDraft at bottom
+  - Left column: `<AnimaPanel {evidence} {synthesis} {antiPatterns} />`
+  - Center column: `<SwipeFeed {facades} onswipe={handleSwipe} onremove={handleRemove} />`
+  - Right column: `<PrototypeDraftPanel {draft} mode="swiping" />` stacked above `<AgentStatus {agents} />`
+- **Mobile (below md):** stacked single column: SwipeFeed on top (full width), then AgentStatus, AnimaPanel, and PrototypeDraftPanel below in a `flex flex-col gap-4` container
 
 Reveal mode layout:
-- `<PrototypeDraft draft={draft} mode="reveal" />` rendered full-width
-- SwipeFeed, AnimaPanel, AgentStatus hidden (not rendered, not just `display:none` — avoid SSE waste)
-- Back button or "Start Over" to reset to intent mode (optional, stretch)
-
-## State management
-All state declared at component top level with `$state`:
-```
-let mode = $state<'intent' | 'swiping' | 'reveal'>('intent');
-let facades = $state<Facade[]>([]);
-let axes = $state<TasteAxis[]>([]);
-// etc.
-```
-Use `$derived` for:
-- `currentStage`: derived from `stage` state
-- `isLoading`: derived from `loading` state (for template conditionals)
-- `hasFacades`: `facades.length > 0` (show empty state in SwipeFeed if false)
+- `<PrototypeDraftPanel {draft} mode="reveal" />` rendered full-width, centered
+- SwipeFeed, AnimaPanel, AgentStatus not rendered
 
 ## Swipe handler
-Async function called by SwipeFeed's `onswipe` callback:
+Function called by SwipeFeed's `onswipe` callback:
 ```
-async function handleSwipe(event: {facadeId: string, decision: 'accept' | 'reject', latencyMs: number}) {
-  // Do NOT remove the facade from the facades array here.
-  // SwipeFeed owns card removal: it triggers the fly-off animation
-  // and emits transitionend, then removes from its rendered list.
-  // Main page facades array is updated by SSE (anima-updated rebuilds state).
-
-  // POST to server (fire-and-forget, don't await if latency is a concern)
+function handleSwipe(event: {facadeId: string, decision: 'accept' | 'reject', latencyMs: number}) {
   fetch('/api/swipe', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify(event)
-  });
-
-  // SSE handles all subsequent state updates (new facades, anima, draft, agents)
+  }).catch(err => console.error('[swipe] POST failed:', err));
 }
 ```
+- Fire-and-forget POST — SSE handles all subsequent state updates
 - **SwipeFeed owns card removal timing.** It runs the fly-off animation, listens for `transitionend`, then calls `onremove(facadeId)`. Main page splices on that callback:
   ```
   function handleRemove(facadeId: string) {
@@ -99,8 +85,6 @@ async function handleSwipe(event: {facadeId: string, decision: 'accept' | 'rejec
   }
   ```
 - Wire both callbacks: `<SwipeFeed {facades} onswipe={handleSwipe} onremove={handleRemove} />`
-- No need to process POST response body — SSE delivers all downstream updates
-- Error handling: if POST fails, log error
 
 ### Acceptance criteria
 - [ ] Intent form is visible on initial page load (`mode === 'intent'`)
@@ -108,8 +92,10 @@ async function handleSwipe(event: {facadeId: string, decision: 'accept' | 'rejec
 - [ ] Submitting intent POSTs to `/api/session` and transitions to swiping mode on success
 - [ ] SSE EventSource connects when mode transitions to `swiping`
 - [ ] `facade-ready` SSE events add facades to the SwipeFeed
-- [ ] `anima-updated` SSE events update the AnimaPanel axes
-- [ ] `agent-status` SSE events update the AgentStatus panel
+- [ ] `facade-stale` SSE events remove stale facades from the array
+- [ ] `evidence-updated` SSE events update the AnimaPanel evidence and anti-patterns
+- [ ] `synthesis-updated` SSE events update the AnimaPanel synthesis (emergent axes with confidence badges)
+- [ ] `agent-status` SSE events upsert into the AgentStatus panel
 - [ ] `draft-updated` SSE events replace the full draft state in PrototypeDraft component
 - [ ] `builder-hint` SSE events update `draft.nextHint` (lightweight secondary signal)
 - [ ] `stage-changed` SSE event with `stage='reveal'` transitions mode to `reveal`
@@ -119,6 +105,7 @@ async function handleSwipe(event: {facadeId: string, decision: 'accept' | 'rejec
 - [ ] Desktop layout shows 3-column grid (AnimaPanel | SwipeFeed | PrototypeDraft + AgentStatus)
 - [ ] Mobile layout stacks components vertically
 - [ ] Reveal mode hides SwipeFeed, AnimaPanel, and AgentStatus; shows PrototypeDraft full-width
+- [ ] No `TasteAxis[]` state — uses `SwipeEvidence[]` + `TasteSynthesis` (emergent axes format) + `string[]` anti-patterns
 - [ ] All state uses `$state` runes, computed values use `$derived`
 - [ ] No `on:click` syntax — all handlers use `onclick`
 
@@ -126,4 +113,4 @@ async function handleSwipe(event: {facadeId: string, decision: 'accept' | 'rejec
 Depends on 09-swipe-feed, 10-panels, 11-draft-reveal (child components), and 04-endpoints (SSE stream + swipe POST + session POST).
 
 ### Estimate
-~200-250 LOC.
+~215 LOC.

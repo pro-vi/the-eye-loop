@@ -140,6 +140,18 @@
 							alt={facade.hypothesis}
 							class="w-full h-auto rounded-2xl object-cover max-h-80"
 						/>
+					{:else if facade.format === 'image'}
+						<div class="text-center px-4">
+							<p
+								class="text-2xl font-bold leading-tight mb-3"
+								style="font-family: var(--font-family-display); color: var(--color-on-surface);"
+							>
+								{facade.label}
+							</p>
+							<p class="text-sm leading-relaxed" style="color: var(--color-on-surface-variant);">
+								{facade.content}
+							</p>
+						</div>
 					{:else if facade.format === 'mockup'}
 						<iframe
 							srcdoc={facade.content}

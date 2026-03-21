@@ -1,7 +1,7 @@
 # 07 — Oracle (Code + LLM Synthesis, Akinator Pattern)
 
 ## Summary
-The oracle is the strategic brain of the system. It has three jobs: evidence synthesis (LLM, every 4 swipes), concreteness floor gating (code), and reveal triggering (code). Session init is pure code — no axis seeding. src/lib/server/agents/oracle.ts.
+The oracle is the strategic brain of the system. It has three jobs: emergent axis synthesis (LLM, every 4 swipes), concreteness floor gating (code), and reveal triggering (code). Session init is pure code — no axis seeding. src/lib/server/agents/oracle.ts.
 
 ## Design
 Two exports:
@@ -13,12 +13,14 @@ Two exports:
    - **Reveal** (synchronous): if evidence >= 15, trigger reveal.
    - **Synthesis** (async, non-blocking): every 4 swipes, run LLM synthesis. Captures evidence snapshot before async call. Session staleness guard on result commit.
 
-### Evidence Synthesis
+### Emergent Axis Synthesis
 - Runs `generateText` with `gemini-2.5-flash` at temperature 0
-- Produces `TasteSynthesis`: known, unknown, contradictions, scout_guidance, persona_anima_divergence
+- Discovers 3-5 emergent taste axes from evidence patterns
+- Produces `TasteSynthesis`: `axes` (EmergentAxis[]), `edge_case_flags`, `scout_assignments` (each scout assigned a different axis), `persona_anima_divergence`
+- Each `EmergentAxis` has: label, poleA, poleB, confidence (unprobed/exploring/leaning/resolved), leaning_toward, evidence_basis
 - Stored on `context.synthesis`, emitted as `synthesis-updated` on bus
-- Injected into scout + builder prompts for coordination
-- Shown in Anima panel as the visible taste model forming
+- Injected into scout prompts (axes + assignment + edge case flags) and builder prompts for coordination
+- Shown in Anima panel as emergent axes with confidence badges
 - Busy gate: if synthesis running and another 4th-swipe fires, skip
 
 ### Queue Health
@@ -41,7 +43,7 @@ Exposed via `context.concretenessFloor` getter ('word' | 'image' | 'mockup'). Se
 - [x] Synthesis runs every 4 swipes via `generateText`
 - [x] Synthesis captures evidence snapshot before async call
 - [x] Session staleness guard discards stale synthesis results
-- [x] `synthesis-updated` event fires on bus with `TasteSynthesis` payload
+- [x] `synthesis-updated` event fires on bus with `TasteSynthesis` payload (emergent axes format: axes, edge_case_flags, scout_assignments, persona_anima_divergence)
 - [x] Concreteness floor advances: word (< 4) → image (4-7) → mockup (8+)
 - [x] `stage-changed` fires when floor advances
 - [x] Reveal triggers at evidence >= 15

@@ -1,68 +1,101 @@
 # 10 — AnimaPanel + AgentStatus Components
 
 ## Summary
-Two display-only panel components fed by SSE events. AnimaPanel shows the evolving taste model as a flat axis list with confidence bars. AgentStatus shows named agents with live status badges. Both in `src/lib/components/`.
+Two display-only panel components fed by SSE events. AnimaPanel shows evidence tags and oracle synthesis as emergent axes with confidence badges (unprobed/exploring/leaning/resolved), edge case flags, and persona-anima divergence — not flat text lists, not confidence bars. AgentStatus shows named agents with live status badges. Both in `src/lib/components/`.
 
 ## Design
-Both components are purely presentational — they receive props and render. No internal data fetching. Parent page manages SSE connection and passes updated data down. Svelte 5 runes for all reactivity. Tailwind for styling.
+Both components are purely presentational — they receive props and render. No internal data fetching. Parent page manages SSE connection and passes updated data down. Svelte 5 runes for all reactivity. Tailwind + CSS custom properties for styling.
 
 ## Scope
 ### Files
-- src/lib/components/AnimaPanel.svelte
-- src/lib/components/AgentStatus.svelte
+- src/lib/components/AnimaPanel.svelte (~110 LOC)
+- src/lib/components/AgentStatus.svelte (~77 LOC)
 
 ### Subtasks
 
 ## AnimaPanel component
-`src/lib/components/AnimaPanel.svelte` (~100-120 LOC).
+`src/lib/components/AnimaPanel.svelte`.
 
-Props: `axes: TasteAxis[]` (from V0 data contract).
+Props:
+- `evidence: SwipeEvidence[]`
+- `synthesis: TasteSynthesis | null`
+- `antiPatterns: string[]`
 
-Renders a vertical list of axis rows. Each row contains:
-- **Label:** axis label text (e.g., "mood"), left-aligned, `text-sm font-medium`
-- **Binary options:** both pole labels shown (e.g., "calm" on left, "energetic" on right), `text-xs text-gray-400`
-- **Confidence bar:** outer `div` with `bg-gray-700 rounded-full h-2 w-full`, inner `div` with width set to `{axis.confidence * 100}%` via inline style. Color derived from confidence:
-  - `confidence > 0.75` (resolved): `bg-green-500`
-  - `0.3 <= confidence <= 0.75` (exploring): `bg-amber-500`
-  - `confidence < 0.3` (unprobed): `bg-gray-500`
-- **Leaning indicator:** if `axis.leaning` is set, show it as small text below the bar: `text-xs` with an arrow pointing toward the preferred pole
+Derived state:
+- `accepts` — evidence filtered to `decision === 'accept'`
+- `rejects` — evidence filtered to `decision === 'reject'`
 
-Use `$derived` to compute bar color from confidence thresholds. Use `$props` for the axes input. Wrap in a container with heading "Taste Profile" or "Anima".
+Renders three sections:
+
+1. **Evidence tags** — a flex-wrap row of small pills, one per `SwipeEvidence`. Each pill shows:
+   - `+` for accept, `−` for reject
+   - `?` suffix if `latencySignal === 'slow'` (hesitant)
+   - The `content` text
+   - Green background tint for accepts, red for rejects
+   - Below the tags: summary counts ("N accepted", "N rejected")
+   - Empty state: "No evidence yet. Start swiping."
+
+2. **Emergent axes** (rendered only when `synthesis` is non-null) — vertical stack of axis rows. Each axis row shows:
+   - **Label** — the discovered taste dimension name
+   - **Poles** — poleA and poleB at opposite ends
+   - **Confidence badge** — colored pill showing confidence level:
+     - `unprobed`: gray
+     - `exploring`: amber
+     - `leaning`: blue (with `leaning_toward` pole highlighted)
+     - `resolved`: green (with resolved pole highlighted)
+   - **Evidence basis** — small text showing what evidence supports this axis
+   - Axes appear and evolve as the oracle discovers them — visually alive.
+
+3. **Edge case flags** (rendered when `synthesis.edge_case_flags.length > 0`) — amber-labeled pills showing each flag (e.g., "user accepts everything", "axis X contradictory").
+
+4. **Persona-anima divergence** (rendered when `synthesis.persona_anima_divergence` is truthy) — red-labeled section with single paragraph highlighting where revealed taste diverges from stated intent.
+
+5. **Anti-patterns** (rendered only when `antiPatterns.length > 0`) — red-labeled section with flex-wrap pills showing each anti-pattern string.
+
+Heading: "Anima". No confidence bars. No flat known/unknown/contradictions text lists.
 
 ## AgentStatus component
-`src/lib/components/AgentStatus.svelte` (~80-100 LOC).
+`src/lib/components/AgentStatus.svelte` (~77 LOC).
 
-Props: `agents: AgentState[]` (from V0 data contract).
+Props: `agents: AgentState[]`.
 
 Renders a vertical list of agent entries. Each entry contains:
-- **Name:** agent name (e.g., "Scout #1", "Builder"), `text-sm font-semibold`
-- **Status badge:** small colored indicator with icon/text:
-  - `thinking`: amber background, animated spinner (CSS `animate-spin` on a small circle or icon), "Thinking..." text
-  - `waiting`: blue background, pause icon or text, "Waiting" text
-  - `idle`: green background, checkmark or dot, "Idle" text
-  - `queued`: gray background, hourglass or text, "Queued" text
-- **Focus text:** `axis.focus` shown as `text-xs text-gray-400 italic` below the name (e.g., "Probing color temperature")
+- **Status dot:** small colored circle (2.5 unit), pulsing animation when `status === 'thinking'`
+- **Name:** agent name (e.g., "Iris", "Meridian", "Oracle"), `text-sm font-semibold`
+- **Status badge:** colored pill with label text:
+  - `thinking`: amber (`#f59e0b`), "Thinking..."
+  - `waiting`: blue (`#3b82f6`), "Waiting"
+  - `idle`: green (`var(--color-accept)`), "Idle"
+  - `queued`: gray (`var(--color-outline)`), "Queued"
+- **Focus text:** `agent.focus` shown as `text-xs italic` below the name (e.g., `"generating probe"`, `"queue full"`)
+- **Role badge:** right-aligned pill showing `agent.role` (scout/builder/oracle)
 
-Use `$derived` to map status to badge color and icon. Use `$props` for the agents input. Wrap in a container with heading "Agents".
+Status-to-config mapping uses a `Record<AgentState['status'], { color, label }>` lookup. Empty state: "No agents active."
+
+Heading: "Agents".
 
 ### Acceptance criteria
-- [ ] AnimaPanel renders all provided axes as rows
-- [ ] Confidence bar width is proportional to `axis.confidence` (0-1 mapped to 0-100%)
-- [ ] Bar color is green when `confidence > 0.75`
-- [ ] Bar color is amber when `confidence` is between 0.3 and 0.75
-- [ ] Bar color is gray when `confidence < 0.3`
-- [ ] Both binary option labels (poles) are visible per axis
-- [ ] Leaning text updates and displays correctly after a swipe changes `axis.leaning`
+- [ ] AnimaPanel renders evidence tags as accept/reject pills with content text
+- [ ] Hesitant swipes (`latencySignal === 'slow'`) show a `?` indicator
+- [ ] Accept/reject counts are displayed below the evidence tags
+- [ ] Emergent axes render when `synthesis` is non-null — each axis shows label, poles, confidence badge, and evidence basis
+- [ ] Confidence badges use distinct colors: unprobed=gray, exploring=amber, leaning=blue, resolved=green
+- [ ] Leaning/resolved axes highlight the `leaning_toward` pole
+- [ ] Edge case flags render as amber pills when `synthesis.edge_case_flags` is non-empty
+- [ ] Persona-anima divergence renders as red-labeled paragraph when truthy
+- [ ] No flat known/unknown/contradictions text lists, no confidence bars
+- [ ] Anti-patterns render as red-tinted pills when present
 - [ ] AgentStatus renders all provided agents by name
-- [ ] Status badge shows correct color per status value (thinking=amber, waiting=blue, idle=green, queued=gray)
-- [ ] Thinking status badge has an animated spinner (CSS animation, not JS interval)
+- [ ] Status dot color matches status value (thinking=amber, waiting=blue, idle=green, queued=gray)
+- [ ] Thinking status dot has `animate-pulse` CSS animation
 - [ ] Focus text displays below agent name when present
+- [ ] Role badge shows agent role (scout/builder/oracle)
 - [ ] Both components use `$props` for inputs and `$derived` for computed values
 - [ ] No `on:click` syntax — all event handlers use `onclick` (Svelte 5)
 - [ ] No internal data fetching — purely prop-driven
 
 ### Dependencies
-Depends on 04-endpoints (SSE delivers `anima-updated` and `agent-status` events that the parent page parses and passes as props).
+Depends on 04-endpoints (SSE delivers `evidence-updated`, `synthesis-updated`, and `agent-status` events that the parent page parses and passes as props).
 
 ### Estimate
-~180-220 LOC total across both components.
+~190 LOC total across both components.

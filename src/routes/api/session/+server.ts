@@ -1,5 +1,6 @@
 import { json } from '@sveltejs/kit';
 import { seedSession } from '$lib/server/agents/oracle';
+import { startAllScouts, stopAllScouts } from '$lib/server/agents/scout';
 
 export const config = { runtime: 'nodejs22.x', maxDuration: 300 };
 
@@ -11,10 +12,9 @@ export async function POST({ request }: { request: Request }) {
 		return json({ error: 'intent is required' }, { status: 400 });
 	}
 
+	stopAllScouts();
 	const { sessionId } = seedSession(intent.trim());
-
-	// Scouts fill the initial queue — started here by scout ticket (05),
-	// not by oracle. "The first probes ARE the seed." (specs/4-akinator.md:139)
+	startAllScouts();
 
 	return json({ intent: intent.trim(), sessionId });
 }

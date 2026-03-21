@@ -38,15 +38,15 @@ This satisfies all 5 demo contract items: intent → facades (1), visible Anima 
 ## Tickets
 
 - [ ] 01-scaffold — SvelteKit + AI SDK + Tailwind + deploy config
-- [ ] 02-types — V0 data contract (TasteAxis, Facade, SwipeRecord, AgentState, PrototypeDraft)
-- [ ] 03-context — EyeLoopContext singleton + event bus + Anima YAML serializer
-- [ ] 04-endpoints — SSE stream + swipe POST + session init (with axis seeding LLM call)
+- [ ] 02-types — V0 data contract (SwipeEvidence, Facade, SwipeRecord, AgentState, PrototypeDraft, TasteSynthesis, SSEEvent)
+- [ ] 03-context — EyeLoopContext singleton + event bus + evidence prompt serializer
+- [ ] 04-endpoints — SSE stream + swipe POST + session init (pure code, no LLM call)
 - [ ] 05-scout-words — Scout core loop end-to-end (words stage only)
 - [ ] 06-builder — Builder reactive loop (update draft on each swipe, emit hints)
 - [ ] 07-oracle — Queue health, stage advancement, freshness pruning (pure code)
 - [ ] 08-scout-stages — Image generation (Nano Banana) + HTML mockup generation
 - [ ] 09-swipe-feed — SwipeFeed component with gesture handler + latency capture
-- [ ] 10-panels — AnimaPanel (confidence bars) + AgentStatus (live agent activity)
+- [ ] 10-panels — AnimaPanel (oracle TasteSynthesis: emergent axes with confidence badges, edge case flags, divergence) + AgentStatus (live agent activity)
 - [ ] 11-draft-reveal — PrototypeDraft component + reveal mode transition
 - [ ] 12-main-page — Layout, SSE client, session flow (intent → swiping → reveal)
 

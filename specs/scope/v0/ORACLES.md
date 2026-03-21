@@ -1,9 +1,12 @@
 # V0 Oracle & Skill Guide
 
-> **Akinator pivot active.** For scout prompts, builder prompts, evidence
-> format, and Anima panel: follow `specs/4-akinator.md`, NOT `specs/1-prompts.md`
-> or the axis-based patterns in scope tickets. TasteAxis is dropped — use
-> SwipeEvidence. See CLAUDE.md for full pivot context.
+> **Akinator pivot active.** Evidence-based taste discovery — no `TasteAxis`,
+> no `axisId`, no `getMostUncertainAxis()`, no `toAnimaYAML()`. Scouts read
+> `context.toEvidencePrompt()` + oracle `TasteSynthesis` (emergent axes,
+> axis assignments, edge case flags). AnimaPanel shows emergent axes with
+> confidence badges (unprobed/exploring/leaning/resolved), NOT flat text
+> lists or confidence bars. `Facade` has `format: 'word' | 'image' | 'mockup'`
+> and `label` instead of `stage` and `axisId`.
 
 Every tab (CC+Codex pair) runs these checks. Human orchestrates; no Ralph loop.
 
@@ -31,10 +34,10 @@ After tickets that change user-facing behavior, verify with `/e2e-test` using ag
 
 | After ticket | What to verify |
 |-------------|----------------|
-| 04 (endpoints) | `curl POST /api/session` returns axes. `curl GET /api/stream` returns SSE headers. |
+| 04 (endpoints) | `curl POST /api/session` returns `{ sessionId }`. `curl GET /api/stream` returns SSE headers. |
 | 05 (scout-words) | Session creates → facades appear in SSE stream within 5s |
 | 09 (swipe-feed) | Cards render. Swipe right → accept POST fires. Swipe left → reject. |
-| 12 (main-page) | Full flow: enter intent → swipe 3 words → Anima panel updates → draft panel shows content |
+| 12 (main-page) | Full flow: enter intent → swipe 3 words → evidence tags update → draft panel shows content |
 
 These are the only 4 checkpoints. Don't run /e2e-test on every ticket — it's slow and most tickets are server-only.
 
@@ -80,13 +83,13 @@ Verify: Vercel deploy succeeds (push + check deploy URL)
 ```
 Oracle: pnpm check (types compile, no errors)
 Skills: /casting if any type feels wrong
-Verify: import { TasteAxis, Facade, ... } from '$lib/context/types' resolves
+Verify: import { Facade, SwipeEvidence, TasteSynthesis, ... } from '$lib/context/types' resolves
 ```
 
 **03-context**
 ```
 Oracle: pnpm check && pnpm build
-Skills: /vercel-ai-sdk (for toAnimaYAML pattern if unsure)
+Skills: /vercel-ai-sdk (for toEvidencePrompt pattern if unsure)
 Verify: import { context } from '$lib/server/context' resolves in +server.ts files
 ```
 
@@ -116,8 +119,8 @@ Verify: After a swipe, draft-updated event appears on SSE stream
 **07-oracle**
 ```
 Oracle: pnpm check && pnpm build
-Skills: none — pure code, no AI SDK
-Verify: Queue stays 3-5 during manual swipe testing. Stage advances at correct counts.
+Skills: /vercel-ai-sdk (generateText, Output.object for TasteSynthesis with EmergentAxis[])
+Verify: After 4 swipes, synthesis-updated event appears with emergent axes. Stage advances at correct evidence counts.
 ```
 
 **08-scout-stages**
@@ -140,7 +143,7 @@ Verify: /e2e-test checkpoint — cards render, swipe gestures work, latencyMs ca
 ```
 Oracle: pnpm check && pnpm build
 Skills: /svelte (reactive updates from SSE-driven $state)
-Verify: AnimaPanel shows bars that change width after swipe. AgentStatus shows thinking/waiting states.
+Verify: AnimaPanel shows evidence tags and emergent axes with confidence badges after swipes. AgentStatus shows thinking/waiting states.
 ```
 
 **11-draft-reveal**
@@ -184,9 +187,9 @@ Verify: /e2e-test checkpoint — full demo flow works end-to-end
 Before recording the demo video, all five must be manually verified:
 
 - [ ] User enters intent → first facades appear within 5s
-- [ ] Every swipe visibly updates the Anima panel
-- [ ] Next facades clearly respond to previous choices (different axis or refined hypothesis)
-- [ ] UI shows named agents with changing statuses
+- [ ] Every swipe visibly updates the Anima panel (evidence tags + emergent axes with confidence badges after 4 swipes)
+- [ ] Next facades clearly respond to previous choices (evidence-informed, not repeating rejected patterns)
+- [ ] UI shows named agents (Iris, Prism, Lumen, Meridian, Oracle) with changing statuses
 - [ ] Prototype draft pane shows evolving HTML before reveal
 
 This is the only human-evaluated gate. Everything else is exit codes.

@@ -56,11 +56,19 @@ export interface ProbeBrief {
 	heldConstant: string[];
 }
 
+export interface EmergentAxis {
+	label: string;
+	poleA: string;
+	poleB: string;
+	confidence: 'unprobed' | 'exploring' | 'leaning' | 'resolved';
+	leaning_toward: string | null;
+	evidence_basis: string;
+}
+
 export interface TasteSynthesis {
-	known: string[];
-	unknown: string[];
-	contradictions: string[];
-	scout_guidance: string;
+	axes: EmergentAxis[];
+	edge_case_flags: string[];
+	scout_assignments: Array<{ scout: string; probe_axis: string; reason: string }>;
 	persona_anima_divergence: string | null;
 }
 

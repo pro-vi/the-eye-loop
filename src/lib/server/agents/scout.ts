@@ -123,13 +123,28 @@ function recentHypotheses(entries: HistoryEntry[]): string {
 }
 
 function getEmergentAxes(): string {
-	if (!context.synthesis?.axes?.length) return 'Not yet available (need 4+ swipes).';
-	return context.synthesis.axes
-		.map((a) => {
-			const leaning = a.leaning_toward ? ` → ${a.leaning_toward}` : '';
-			return `  - ${a.label} [${a.confidence}${leaning}]: ${a.poleA} vs ${a.poleB}\n    Evidence: ${a.evidence_basis}`;
-		})
-		.join('\n');
+	const s = context.synthesis;
+	if (!s) return 'Not yet available (need 4+ swipes).';
+	const parts: string[] = [];
+	if (s.axes.length) {
+		parts.push(
+			s.axes
+				.map((a) => {
+					const leaning = a.leaning_toward ? ` → ${a.leaning_toward}` : '';
+					return `  - ${a.label} [${a.confidence}${leaning}]: ${a.poleA} vs ${a.poleB}\n    Evidence: ${a.evidence_basis}`;
+				})
+				.join('\n')
+		);
+	} else {
+		parts.push('  (no axes discovered yet)');
+	}
+	if (s.edge_case_flags.length) {
+		parts.push(`Flags: ${s.edge_case_flags.join(', ')}`);
+	}
+	if (s.persona_anima_divergence) {
+		parts.push(`Divergence: ${s.persona_anima_divergence}`);
+	}
+	return parts.join('\n');
 }
 
 function getAxisAssignment(scoutName: string): string {

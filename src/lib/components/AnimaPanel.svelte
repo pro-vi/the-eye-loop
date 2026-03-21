@@ -53,51 +53,54 @@
 		</p>
 	{/if}
 
-	<!-- Emergent axes -->
-	{#if synthesis && synthesis.axes.length > 0}
-		<div class="flex flex-col gap-2.5">
-			<p
-				class="text-xs font-semibold uppercase tracking-wide"
-				style="color: var(--color-outline);"
-			>
-				Taste Axes
-			</p>
-			{#each synthesis.axes as axis (axis.label)}
-				{@const confColor =
-					axis.confidence === 'resolved'
-						? 'var(--color-accept)'
-						: axis.confidence === 'leaning'
-							? '#f59e0b'
-							: axis.confidence === 'exploring'
-								? 'var(--color-outline)'
-								: 'var(--color-outline-variant)'}
-				<div
-					class="rounded-xl px-3 py-2"
-					style="background: var(--color-surface-container);"
+	<!-- Oracle synthesis -->
+	{#if synthesis}
+		<!-- Emergent axes -->
+		{#if synthesis.axes.length > 0}
+			<div class="flex flex-col gap-2.5">
+				<p
+					class="text-xs font-semibold uppercase tracking-wide"
+					style="color: var(--color-outline);"
 				>
-					<div class="flex items-center justify-between mb-1">
-						<span class="text-xs font-semibold" style="color: var(--color-on-surface);">
-							{axis.label}
-						</span>
-						<span
-							class="text-xs rounded-full px-2 py-0.5"
-							style="background: var(--color-surface-bright); color: {confColor};"
-						>
-							{axis.confidence}
-						</span>
+					Taste Axes
+				</p>
+				{#each synthesis.axes as axis (axis.label)}
+					{@const confColor =
+						axis.confidence === 'resolved'
+							? 'var(--color-accept)'
+							: axis.confidence === 'leaning'
+								? '#f59e0b'
+								: axis.confidence === 'exploring'
+									? 'var(--color-outline)'
+									: 'var(--color-outline-variant)'}
+					<div
+						class="rounded-xl px-3 py-2"
+						style="background: var(--color-surface-container);"
+					>
+						<div class="flex items-center justify-between mb-1">
+							<span class="text-xs font-semibold" style="color: var(--color-on-surface);">
+								{axis.label}
+							</span>
+							<span
+								class="text-xs rounded-full px-2 py-0.5"
+								style="background: var(--color-surface-bright); color: {confColor};"
+							>
+								{axis.confidence}
+							</span>
+						</div>
+						<div class="flex justify-between text-xs" style="color: var(--color-on-surface-variant);">
+							<span>{axis.poleA}</span>
+							<span>{axis.poleB}</span>
+						</div>
+						{#if axis.leaning_toward}
+							<p class="text-xs mt-1" style="color: {confColor};">
+								→ {axis.leaning_toward}
+							</p>
+						{/if}
 					</div>
-					<div class="flex justify-between text-xs" style="color: var(--color-on-surface-variant);">
-						<span>{axis.poleA}</span>
-						<span>{axis.poleB}</span>
-					</div>
-					{#if axis.leaning_toward}
-						<p class="text-xs mt-1" style="color: {confColor};">
-							→ {axis.leaning_toward}
-						</p>
-					{/if}
-				</div>
-			{/each}
-		</div>
+				{/each}
+			</div>
+		{/if}
 
 		<!-- Edge case flags -->
 		{#if synthesis.edge_case_flags.length > 0}

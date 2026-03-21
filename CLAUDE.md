@@ -6,7 +6,7 @@ duplicating them.
 ## Read Order
 
 1. `specs/2-v0-spec.md` — today's shipping contract. Start here.
-2. `specs/1-prompts.md` — scout/builder/oracle prompts, Anima YAML,
+2. `specs/1-prompts.md` — scout/builder/oracle prompts, evidence serialization,
    output shapes.
 3. `specs/0-spec.md` — full system design, upgraded contracts, traceability.
 4. `specs/hackathon-guide.md` — rules, judging, deadline.
@@ -16,8 +16,8 @@ duplicating them.
 ## Doc Roles
 
 - `specs/2-v0-spec.md`: smallest version that must work live.
-- `specs/1-prompts.md`: source of truth for prompt patterns and serialized
-  state formats.
+- `specs/1-prompts.md`: source of truth for prompt patterns and evidence
+  serialization format.
 - `specs/0-spec.md`: source of truth for architecture, data model,
   observation model, BALD/fracting contract.
 - `research/active-preference-learning.md`: BALD, frontier score, spawning
@@ -48,7 +48,7 @@ unless explicitly asked to implement the higher-ambition version.
 - Vercel AI SDK 6 + Gemini via `generateText`.
 - `EyeLoopContext` is the shared server-side state surface.
 - Scouts are manual async loops per swipe, not one long autonomous loop.
-- Anima goes into prompts as YAML.
+- Evidence goes into prompts via `context.toEvidencePrompt()`. No axes, no YAML distributions.
 - Anti-patterns from rejects are hard constraints.
 - No auth, database, caching, or tests unless asked.
 - Do not commit secrets; use env vars.
@@ -61,8 +61,8 @@ unless explicitly asked to implement the higher-ambition version.
   visible draft`
 - Keep theory-backed fields in types if cheap, but do not block on full
   fracting/BALD.
-- Prefer code-side updates for posterior/distributions; use LLMs for proposal,
-  compaction, and drafting.
+- Evidence-based Akinator pattern (specs/4-akinator.md). No axis management code.
+  LLMs navigate taste hyperspace implicitly from raw evidence.
 - When choosing where to spend time, optimize in this order:
   1. swipe responsiveness
   2. visible Anima updates
