@@ -1,6 +1,6 @@
 # Active Preference Learning
 
-> Spec sections that reference this file: Core Concepts: BALD, Core Concepts: Anima, Agent Spawning, Builder Loop, Orchestrator Watch, Builder-Driven Probes, Queue Equilibrium
+> Spec sections that reference this file: Core Concepts: BALD, Core Concepts: Anima, Agent Spawning, Builder Loop, Oracle Watch, Builder-Driven Probes, Queue Equilibrium
 
 ## Formal Basis
 
@@ -113,12 +113,12 @@ uniformly. UCT gives the same explore-exploit logic on a growing tree.
 ## Implementation Patterns
 
 **Distribution flatness as hackathon BALD**: BALD is not computed from
-LLM confidence (unreliable for aesthetic judgment). The orchestrator
+LLM confidence (unreliable for aesthetic judgment). The oracle
 watches accept/reject distribution across regions. Flat = high global
 uncertainty; lopsided = convergence. Builder briefs target the flattest
 region -- the practical equivalent of maximizing predictive entropy.
 
-**Two-level controller**: outer loop (orchestrator) selects node v via
+**Two-level controller**: outer loop (oracle) selects node v via
 frontier score; inner loop (builder) generates stimulus x via conditional
 BALD or AMPLe halving within that node.
 

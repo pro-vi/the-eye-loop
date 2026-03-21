@@ -58,15 +58,15 @@ with eligibility: step size >= local JND; children enter only after parent locks
 
 ## Agent Roster
 
-**Orchestrator** -- Gemini 3.1 Pro. The brain. Manages agent lifecycle, routes swipe results, assigns probe briefs, monitors queue health, triggers compaction. Never generates facades.
+**Oracle** -- Gemini 3.1 Pro. The brain. Manages agent lifecycle, routes swipe results, assigns probe briefs, monitors queue health, triggers compaction. Never generates facades.
 
 **Builder** -- Gemini 3.1 Pro. The architect. Runs continuously from first surviving artifact. Maintains a living draft prototype. Identifies construction ambiguities and writes probe briefs. Has the best view of what the system doesn't yet know -- because it's the one trying to build with incomplete information. Never generates facades. Never swipe-facing.
 
 **Scout (x3, expandable)** -- Gemini Flash for HTML, Nano Banana for images, Veo for interaction clips. The hands. Each runs a Ralph-style loop: generate -> push -> wait -> receive feedback -> decide -> loop. Pulls probe briefs from the builder first, self-assigns from Anima uncertainty if no briefs pending. Can request child agent spawning when fracting.
 
-**Compactor** -- function within orchestrator, uses Gemini 3.1 Pro. Runs every 5 swipes or on contradiction detection. Merges convergent evidence, prunes dead branches, promotes contradictions to new probe briefs, keeps Anima within token budget.
+**Compactor** -- function within oracle, uses Gemini 3.1 Pro. Runs every 5 swipes or on contradiction detection. Merges convergent evidence, prunes dead branches, promotes contradictions to new probe briefs, keeps Anima within token budget.
 
-> Depth: `research/iec-fatigue.md` -- Approximately 30-40 binary decisions before fatigue. Orchestrator is 80% code, 20% LLM. Most orchestrator functions (queue health, freshness pruning, scout retirement, event routing) are pure code. LLM used only for compaction, fract detection, and stuck detection.
+> Depth: `research/iec-fatigue.md` -- Approximately 30-40 binary decisions before fatigue. Oracle is 80% code, 20% LLM. Most oracle functions (queue health, freshness pruning, scout retirement, event routing) are pure code. LLM used only for compaction, fract detection, and stuck detection.
 
 ---
 
@@ -109,7 +109,7 @@ with eligibility: step size >= local JND; children enter only after parent locks
               +------+-------+-------+------+
                      |               |
               +------v------+  +-----v-------+
-              |   BUILDER   |  | ORCHESTRATOR|
+              |   BUILDER   |  | ORACLE|
               |    loop     |  |   watches   |
               +-------------+  +-------------+
 ```
@@ -122,7 +122,7 @@ Agents never call each other directly. Three communication channels:
 
 **Event bus** -- fire-and-forget notifications. `facade-ready`, `swipe-result`, `probe-requested`, `spawn-requested`, `anima-updated`. Agents subscribe to events they care about. The bus also streams to the client via SSE for live visualization.
 
-**Probe queue** -- the builder's voice. Builder identifies construction ambiguities, writes detailed probe briefs, pushes to queue. Scouts pull briefs from this queue first (builder-driven, high priority). If empty, scouts self-assign from Anima uncertainty (exploration-driven). The orchestrator never tells a scout what to do -- scouts pull work.
+**Probe queue** -- the builder's voice. Builder identifies construction ambiguities, writes detailed probe briefs, pushes to queue. Scouts pull briefs from this queue first (builder-driven, high priority). If empty, scouts self-assign from Anima uncertainty (exploration-driven). The oracle never tells a scout what to do -- scouts pull work.
 
 Tools go outward (agent -> Gemini). Events go sideways (agent <-> agent, mediated by bus). Shared state goes through the context (everyone reads, specific agents write).
 
@@ -203,7 +203,7 @@ The builder never generates facades. It reads the results and builds. Its probe 
 
 > Depth: `research/active-preference-learning.md` -- Construction-grounded uncertainty > abstract uncertainty. The builder's ambiguities are the system's best proxy for predictive information gain -- what knowledge would actually change the output artifact.
 
-### Orchestrator Watch
+### Oracle Watch
 
 ```
 on any event:
@@ -221,7 +221,7 @@ on any event:
       if hypothesis now redundant: drop, notify source scout
 ```
 
-> Depth: `research/active-preference-learning.md` -- HOO/UCT node selection. The orchestrator's spawn/retire logic is the code-level implementation of the frontier score: surface and child nodes compete in one frontier, highest conditional predictive value wins.
+> Depth: `research/active-preference-learning.md` -- HOO/UCT node selection. The oracle's spawn/retire logic is the code-level implementation of the frontier score: surface and child nodes compete in one frontier, highest conditional predictive value wins.
 
 ---
 
@@ -265,10 +265,10 @@ Then go deeper iff the best child probe score exceeds the best surface probe sco
 
 **Retirement:** Queue buffer full + information gain dropping -> retire, don't spawn.
 
-The `spawn-requested` event is emitted by scouts when a parent axis locks and candidate children exist. The orchestrator gates it: checks parent lock, depth budget, progressive widening threshold, and session swipe budget before honoring the request.
+The `spawn-requested` event is emitted by scouts when a parent axis locks and candidate children exist. The oracle gates it: checks parent lock, depth budget, progressive widening threshold, and session swipe budget before honoring the request.
 
 ```
-Orchestrator
+Oracle
   +-- Scout A (mood) -> resolved "dark atmospheric"
   |     +-- Scout A1 (texture) -> resolved "organic"
   |     |     +-- Scout A1a (rough vs smooth) -- active
@@ -419,7 +419,7 @@ The builder doesn't assemble at the end. It grows the prototype behind every swi
 
 - **SvelteKit + Svelte 5** -- runes, reactive context class
 - **Vercel AI SDK** -- agent tool calling, structured output, `generateText` with `maxSteps`
-- **Gemini 3.1 Pro** -- orchestrator, builder, compaction
+- **Gemini 3.1 Pro** -- oracle, builder, compaction
 - **Gemini Flash** -- scout HTML generation
 - **Nano Banana** -- scout image generation
 - **Veo** -- late-stage interaction clips
@@ -483,7 +483,7 @@ The builder doesn't assemble at the end. It grows the prototype behind every swi
 | Progressive widening from MCTS | research/fracting §Formal | Agent Spawning | rewritten |
 | Conditional-VOI for depth vs breadth: h_lock gating | research/fracting §Formal | Agent Spawning | rewritten |
 | Depth budget: 2 reliable, 3 max, never >3 in 30 swipes | research/fracting §Warnings, §Implementation | Agent Spawning | rewritten (convention) |
-| HOO/UCT for tree node selection | research/active-preference-learning §Formal | Orchestrator Watch | noted (annotation) |
+| HOO/UCT for tree node selection | research/active-preference-learning §Formal | Oracle Watch | noted (annotation) |
 | Branch isolation: observations must not leak across branches | research/fracting §Warnings, research/active-preference-learning §Warnings | Anima Compaction | rewritten |
 | Between-compaction updates are code, not LLM | research/active-preference-learning §Implementation | Anima Compaction | rewritten |
 | Promote contradiction -> reframed axis + new probe brief | research/fracting §Warnings | Anima Compaction | rewritten |

@@ -6,7 +6,7 @@ duplicating them.
 ## Read Order
 
 1. `specs/2-v0-spec.md` — today's shipping contract. Start here.
-2. `specs/1-prompts.md` — scout/builder/orchestrator prompts, Anima YAML,
+2. `specs/1-prompts.md` — scout/builder/oracle prompts, Anima YAML,
    output shapes.
 3. `specs/0-spec.md` — full system design, upgraded contracts, traceability.
 4. `specs/hackathon-guide.md` — rules, judging, deadline.
