@@ -266,7 +266,7 @@
 				The Eye Loop
 			</h1>
 			<p class="text-sm" style="color: var(--color-outline); font-family: var(--font-family-body); max-width: 360px; text-align: center;">
-				Swipe to vibe. AI builds what you actually want.
+				Swipe to vibe.
 			</p>
 		</div>
 
