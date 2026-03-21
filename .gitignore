@@ -1,1 +1,11 @@
 .prov/
+.env
+node_modules/
+.claude/
+
+# Cloned repos for research (other people's code)
+.research/gemini-cli/
+.research/ai-chatbot-svelte/
+.research/nano-banana-2-skill/
+.research/gemimg/
+.research/*.sha
