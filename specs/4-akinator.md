@@ -1,6 +1,6 @@
 # The Akinator Pattern — Validated Architecture
 
-**Status:** Validated via `scripts/bench-akinator.mjs` (H1-H3) and `scripts/bench-akinator-flow.mjs` (full loop). 4/5 quality checks pass on full 12-swipe simulation.
+**Status:** Validated via `scripts/bench-akinator.mjs` (H1-H3), `scripts/bench-akinator-flow.mjs` (full loop, 4/5), and `scripts/bench-emergent-axes.mjs` (3/3 scout diversity across all edge cases).
 
 ---
 
@@ -63,11 +63,11 @@ No user reasoning is stored — only what the system captures: content, hypothes
 
 ---
 
-## Oracle: Evidence Synthesis (LLM)
+## Oracle: Emergent Axes (LLM)
 
-The oracle is NOT pure code. It has a critical LLM role: **evidence synthesis** every 4 swipes.
+The oracle is NOT pure code. It has a critical LLM role: **discovering emergent taste axes** from the evidence every 4 swipes.
 
-Scouts are individual Akinator instances — each sees evidence and generates one probe. The oracle watches the whole game. Without it, scouts duplicate work and miss strategic patterns.
+Axes are not seeded upfront. They are the oracle's INTERPRETATION of the evidence — a structured, actionable summary that scouts, builder, and the Anima panel all consume. The evidence is the source of truth; axes are a derived lens.
 
 ### Oracle Synthesis Prompt (validated)
 
@@ -80,82 +80,125 @@ FULL EVIDENCE (accept/reject + latency only — no user reasoning):
 
 {EVIDENCE}
 
-Produce a strategic synthesis:
-1. KNOWN — consistent patterns in accepts and rejects
-2. UNKNOWN — gaps where we have no evidence or mixed signals
-3. CONTRADICTIONS — hesitant swipes or mixed signals
-4. SCOUT GUIDANCE — what should scouts probe NEXT? Be specific.
-5. PERSONA-ANIMA DIVERGENCE — does revealed taste diverge from stated intent?
+Analyze the evidence and produce EMERGENT TASTE AXES — dimensions that
+have revealed themselves through the user's choices. These are NOT
+pre-seeded. They are DISCOVERED from patterns in the evidence.
+
+For each axis:
+- label: short name for the taste dimension
+- poleA / poleB: the two ends discovered from evidence
+- confidence: unprobed | exploring | leaning | resolved
+- leaning_toward: which pole (null if exploring/unprobed)
+- evidence_basis: which accepts/rejects support this
+
+Also produce:
+- edge_case_flags: patterns needing special handling
+- scout_assignments: for 3 scouts, assign each a DIFFERENT axis
+- persona_anima_divergence: where revealed taste diverges from intent
 ```
 
 ### Oracle Synthesis Output
 
 ```typescript
+interface EmergentAxis {
+  label: string;
+  poleA: string;
+  poleB: string;
+  confidence: 'unprobed' | 'exploring' | 'leaning' | 'resolved';
+  leaning_toward: string | null;
+  evidence_basis: string;
+}
+
 interface TasteSynthesis {
-  known: string[];
-  unknown: string[];
-  contradictions: string[];
-  scout_guidance: string;
+  axes: EmergentAxis[];
+  edge_case_flags: string[];      // "user accepts everything", "axis X contradictory"
+  scout_assignments: Array<{
+    scout: string;                 // "Alpha" | "Beta" | "Gamma"
+    probe_axis: string;            // which emergent axis to probe
+    reason: string;
+  }>;
   persona_anima_divergence: string | null;
 }
 ```
 
 ### What the synthesis enables
 
-1. **Injected into scout prompts** — scouts coordinate without talking to each other
-2. **Shown in Anima panel** — this IS the visible taste model forming
-3. **Fed to builder** — knows what's settled enough to build from
-4. **Divergence detection** — the oracle found persona-anima gaps unprompted:
-   > *"The user claims to want a 'personal finance app' (a utility), but their choices reveal a desire for a 'digital talisman' — an emotionally-charged physical artifact."*
+1. **Scout coordination** — each scout is assigned a different emergent axis. No duplication. Validated: 3/3 unique axes across all 3 edge case scenarios.
+2. **Edge case handling** — oracle flags "all responses hesitant", "axis X contradictory", "user not discriminating". Scouts adapt their strategy accordingly.
+3. **Anima panel** — emergent axes with confidence levels ARE the visible taste model.
+4. **Builder grounding** — knows which axes are resolved (build from), exploring (wait), or contradictory (needs probe).
+5. **Divergence detection** — persona-anima gaps detected unprompted:
+   > *"The user claims to want a 'personal finance app' but rejects the core utility of financial tools."*
+
+### How scouts use emergent axes
+
+Scouts are NOT assigned to fixed axes. They grab on the fly:
+
+1. Read evidence + oracle synthesis (which includes emergent axes + assignments)
+2. Read the current facade queue ("these probes are already pending")
+3. Follow their assignment OR pick the most uncertain axis not already being served
+4. Generate probe, push to queue, wait for swipe
+
+The oracle's assignments are a **menu**, not a leash. Between syntheses, scouts self-coordinate via queue visibility.
+
+### Edge case handling (validated)
+
+| User Pattern | Oracle Flags | Scout Behavior |
+|-------------|-------------|----------------|
+| Normal (clear preferences) | Flags density conflict | Scouts probe 3 different axes |
+| Contradictory (flip-flops) | "all hesitant" + "contradictory evidence" | Scouts probe the conflict directly |
+| Reject-everything | "all hesitant" + "contradictory" | Scouts pivot to radically different directions |
 
 ### Oracle cadence
 
 - Every 4 swipes (validated — enough evidence per round for meaningful synthesis)
 - Uses `gemini-3.1-flash-lite-preview` at temperature 0
-- ~2-4s latency — runs in background between swipes, doesn't block UI
+- ~3s latency — runs in background between swipes, doesn't block UI
 
 ---
 
 ## Scout Prompt (validated)
 
 ```
-You are a taste scout — your job is to generate the next visual probe
-that will be most informative about this user's preferences.
+You are {SCOUT_NAME} — a taste scout generating the next probe.
 
-The user said they want to build: "{INTENT}"
+The user wants to build: "{INTENT}"
 
-EVIDENCE HISTORY:
-
+EVIDENCE:
 {EVIDENCE}
 
-ORACLE SYNTHESIS (if available):
-Known: {known}
-Unknown: {unknown}
-Contradictions: {contradictions}
-Divergence: {divergence}
-Scout guidance: {guidance}
+EMERGENT TASTE AXES (discovered by Oracle):
+{axes_summary}
+{edge_case_flags}
+{persona_anima_divergence}
 
-DIVERSITY: Your last 3 probes tested: "{recent_hypotheses}".
-Do NOT probe the same territory again. Find a DIFFERENT gap.
+YOUR ASSIGNMENT: Probe "{assigned_axis}" — {assignment_reason}
 
-FORMAT: You have {N} swipes of evidence. {format_instruction}
+ALREADY IN QUEUE (do NOT duplicate):
+{queued_probes}
+
+{FORMAT_INSTRUCTION}
 
 RULES:
+- Do NOT duplicate what's already queued
+- Probe YOUR assigned axis or the most uncertain one
 - Do NOT repeat patterns the user already rejected
-- Do NOT re-confirm things we already know
-- Target the GAPS
-- A probe the user would HESITATE on is most informative
 - Think like Akinator — maximally partition the remaining space
 ```
 
 ### Required scout prompt injections
 
 1. **Evidence history** — raw evidence list
-2. **Oracle synthesis** — if available (after first 4 swipes)
-3. **Diversity constraint** — last 3 probe hypotheses, with instruction to avoid same territory
-4. **Format instruction** — concreteness floor from oracle
+2. **Emergent axes** — from oracle synthesis (after first 4 swipes)
+3. **Scout assignment** — which axis this scout should probe, from oracle
+4. **Queue contents** — facades already pending, to prevent duplication
+5. **Format instruction** — concreteness floor from oracle
 
-**Benchmark:** 6/6 on isolated tests. 4/5 in full flow (format gate + diversity both work).
+### Before first oracle synthesis (swipes 1-3)
+
+Scouts get just intent + evidence (no axes, no assignment). Each generates its "first Akinator question" independently. Cold start validated: 6/6 quality from intent alone.
+
+**Benchmark:** 3/3 scout diversity across all edge cases (normal, contradictory, reject-everything).
 
 ---
 
@@ -210,7 +253,7 @@ RULES:
 
 | V0 Concept | Status | Why |
 |-----------|--------|-----|
-| `TasteAxis` type | **Drop** | No explicit axes — evidence IS the model |
+| `TasteAxis` type | **Replace** with `EmergentAxis` | Axes are oracle output, not seeded input |
 | `confidence: number` | **Drop** | LLM infers confidence from evidence density |
 | `leaning?: string` | **Drop** | Embedded in accept/reject history |
 | `toAnimaYAML()` serializer | **Replace** with `toEvidencePrompt()` | Serialize evidence list, not axis distributions |
@@ -231,19 +274,20 @@ RULES:
 | **Event bus** | Keep | Swipe events, facade-ready, etc. |
 | **SSE to client** | Keep | Stream evidence + synthesis updates to client |
 | **Queue buffering (3-5)** | Keep | Facade queue still needed |
-| **Oracle (code + LLM)** | Keep | Code: queue health, floor, reveal. LLM: synthesis every 4 swipes. |
+| **Oracle (code + LLM)** | Keep | Code: queue health, floor, reveal. LLM: emergent axes every 4 swipes. |
+| **Emergent axes** | **New** | Oracle discovers axes from evidence. Scouts grab on the fly. Anima panel shows them. |
 | **Latency signal** | Keep | `slow` = hesitant = boundary = most informative |
 
 ---
 
 ## Anima Panel (UI)
 
-The Anima panel shows the **oracle's taste synthesis**, not confidence bars:
+The Anima panel shows **emergent axes**, not pre-seeded confidence bars:
 
-1. **Oracle synthesis text** — known, unknown, contradictions (regenerated every 4 swipes)
-2. **Persona-anima divergence** — highlighted when detected
+1. **Emergent axes** — label + poles + confidence level (unprobed/exploring/leaning/resolved). These appear and evolve as the oracle discovers them. Visually alive — axes emerge, shift, resolve.
+2. **Persona-anima divergence** — highlighted when detected ("You said finance app, but you keep choosing contemplative journal-like interfaces")
 3. **Accepted/rejected facade thumbnails** — visual history of what survived
-4. **Anti-patterns list** — what the system will never show again
+4. **Edge case flags** — surfaced when oracle detects contradictions or hesitation patterns
 
 ---
 
@@ -276,13 +320,13 @@ Validated: H1 Round 1, scouts produce 6/6 quality probes from intent alone with 
 
 ## Implementation Priority
 
-1. **Simplify `types.ts`** — replace `TasteAxis` with `SwipeEvidence`, add `TasteSynthesis`, drop `axisId` from `Facade`
-2. **Simplify `context.ts`** — evidence array, `toEvidencePrompt()`, simplified `addEvidence()`
-3. **Rewrite oracle** — drop axis seeding, add synthesis every 4 swipes (LLM), keep code guardrails
-4. **Rewrite scout prompt** — evidence + synthesis + diversity + format instruction
-5. **Rewrite builder prompt** — evidence + synthesis based
-6. **Update Anima panel** — show synthesis + evidence thumbnails
-7. **Add diversity check** — inject last 3 hypotheses into scout prompt
+1. **`types.ts`** — replace `TasteAxis` with `SwipeEvidence` + `EmergentAxis` + `TasteSynthesis`, drop `axisId` from `Facade`
+2. **`context.ts`** — evidence array, `toEvidencePrompt()`, store latest `TasteSynthesis`
+3. **Oracle** — drop axis seeding, add emergent axis synthesis every 4 swipes (LLM), scout assignments, edge case flags, keep code guardrails
+4. **Scout prompt** — evidence + emergent axes + assignment + queue visibility + format gate
+5. **Builder prompt** — evidence + emergent axes based
+6. **Anima panel** — show emergent axes with confidence + divergence
+7. **Queue visibility** — pass current facade queue contents to each scout prompt
 
 ---
 
@@ -290,6 +334,10 @@ Validated: H1 Round 1, scouts produce 6/6 quality probes from intent alone with 
 
 - **Isolated tests:** `scripts/bench-akinator.mjs` → `scripts/findings/akinator-validation.md` (H1-H3, all pass)
 - **Full flow:** `scripts/bench-akinator-flow.mjs` → `scripts/findings/akinator-flow-v2.md` (12-swipe sim, 4/5)
-- **Key finding:** Oracle synthesis produces persona-anima divergence detection unprompted
-- **Key finding:** Scout needs diversity constraint to avoid hypothesis ruts
+- **Emergent axes:** `scripts/bench-emergent-axes.mjs` → `scripts/findings/emergent-axes.md` (3/3 diversity, all edge cases handled)
+- **Edge cases:** `scripts/bench-edge-cases.mjs` → `scripts/findings/research-bench.md` (builder HTML 6/6)
+- **Key finding:** Oracle discovers 3-5 emergent axes from evidence and assigns scouts to different ones
+- **Key finding:** Edge case flags (contradictory, reject-all, all-hesitant) surface automatically
+- **Key finding:** Persona-anima divergence detection works unprompted
+- **Key finding:** Scout diversity: 3/3 unique axes when using assignments + queue visibility
 - **Key finding:** Images stage is optional — word → mockup is the natural progression
