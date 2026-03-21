@@ -10,6 +10,11 @@
 
 	let isReveal = $derived(mode === 'reveal');
 	let hasPatterns = $derived(draft.acceptedPatterns.length > 0 || draft.rejectedPatterns.length > 0);
+
+	// Force width constraint on LLM-generated HTML — the model ignores prompt rules
+	const IFRAME_WRAPPER = '<style>*,*::before,*::after{box-sizing:border-box}html,body{margin:0;padding:0;width:375px;max-width:375px;overflow-x:hidden}</style>';
+	let wrappedHtml = $derived(draft.html ? IFRAME_WRAPPER + draft.html : '');
+
 	let draftState = $derived(
 		draft.title || draft.summary || draft.html ? `${draft.acceptedPatterns.length} accepted / ${draft.rejectedPatterns.length} rejected` : 'Priming...'
 	);
@@ -90,7 +95,7 @@
 			class="overflow-hidden"
 			style="border-radius: {isReveal ? '16px' : '24px'};"
 		>
-		{#if draft.html}
+		{#if wrappedHtml}
 				<div
 					style="
 						width: {isReveal ? '100%' : '320px'};
@@ -100,7 +105,7 @@
 					"
 				>
 					<iframe
-						srcdoc={draft.html}
+						srcdoc={wrappedHtml}
 						sandbox=""
 						title={draft.title || 'Prototype draft'}
 					style="

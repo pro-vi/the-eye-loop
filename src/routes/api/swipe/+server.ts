@@ -4,11 +4,19 @@ import type { SwipeRecord } from '$lib/context/types';
 
 export const config = { runtime: 'nodejs22.x', maxDuration: 300 };
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === 'object' && value !== null;
+}
+
 export async function POST({ request }: { request: Request }) {
-	const body = await request.json();
+	const body: unknown = await request.json();
+	if (!isRecord(body)) {
+		return json({ error: 'Missing facadeId, decision, or latencyMs' }, { status: 400 });
+	}
+
 	const { facadeId, decision, latencyMs } = body;
 
-	if (!facadeId || !decision || typeof latencyMs !== 'number') {
+	if (typeof facadeId !== 'string' || !decision || typeof latencyMs !== 'number') {
 		return json({ error: 'Missing facadeId, decision, or latencyMs' }, { status: 400 });
 	}
 
