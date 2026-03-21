@@ -33,7 +33,10 @@
 	const SCOUT_NAMES: Record<string, string> = {
 		'scout-01': 'Iris',
 		'scout-02': 'Prism',
-		'scout-03': 'Lumen'
+		'scout-03': 'Lumen',
+		'scout-04': 'Aura',
+		'scout-05': 'Facet',
+		'scout-06': 'Echo'
 	};
 
 	// Reset card timer when top card changes
