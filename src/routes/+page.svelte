@@ -305,18 +305,6 @@
 			<p class="text-sm" style="color: var(--color-reject);">{error}</p>
 		{/if}
 
-		<!-- Example prompts -->
-		<div class="relative flex gap-3 mt-2">
-			{#each ['travel journal for solo backpackers', 'music app for bedroom producers', 'coffee shop loyalty app'] as example}
-				<button
-					onclick={() => { intentText = example; }}
-					class="text-[10px] uppercase tracking-wider px-3 py-1.5 rounded-full transition-colors hover:opacity-80"
-					style="background: var(--color-surface-container); color: var(--color-outline); font-family: var(--font-family-body);"
-				>
-					{example}
-				</button>
-			{/each}
-		</div>
 	</div>
 
 <!-- ── Swiping mode ──────────────────────────────────────────────── -->
