@@ -13,10 +13,9 @@ import { HTML_QUALITY_RULES } from '$lib/server/prompts';
 const google = createGoogleGenerativeAI({ apiKey: GEMINI_API_KEY });
 const MODEL = google('gemini-3.1-flash-lite-preview');
 const IMAGE_MODEL = google('gemini-3.1-flash-image-preview');
-// 5min — effectively no timeout. Real cleanup via facade-stale (reveal),
-// aborted (scout stop), or session reset. The 30s default caused 45% timeout
-// rate because timer started at queue push, not when user saw the card.
-const SWIPE_TIMEOUT_MS = 300_000;
+// 30s from when user SEES the card (top of stack), not from queue push.
+// Visibility signal sent by client via POST /api/facade-visible.
+const SWIPE_TIMEOUT_MS = 30_000;
 const MAX_HISTORY = 8;
 // ── Scout roster ────────────────────────────────────────────────────
 

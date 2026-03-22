@@ -86,6 +86,12 @@ export const onSynthesisUpdated = (cb: (p: SSEEventMap['synthesis-updated']) => 
 export const onSessionReady = (cb: (p: SSEEventMap['session-ready']) => void) =>
 	on('session-ready', cb);
 
+// ── Facade visibility (client → server signal) ──────────────────────
+
+export function emitFacadeVisible(facadeId: string) {
+	emitter.emit(`visible:${facadeId}`);
+}
+
 // ── Scout blocking pattern ────────────────────────────────────────────
 
 export function onceFacadeSwipe(facadeId: string): Promise<SwipeRecord> {
@@ -103,11 +109,14 @@ export function awaitFacadeSwipe(
 ): Promise<SwipeRecord | 'timeout' | 'aborted' | 'stale'> {
 	return new Promise((resolve) => {
 		let settled = false;
+		let timer: ReturnType<typeof setTimeout> | null = null;
+
 		const settle = (v: SwipeRecord | 'timeout' | 'aborted' | 'stale') => {
 			if (settled) return;
 			settled = true;
-			clearTimeout(timer);
+			if (timer) clearTimeout(timer);
 			emitter.off(`swipe:${facadeId}`, onSwipe);
+			emitter.off(`visible:${facadeId}`, onVisible);
 			emitter.off('facade-stale', onStale);
 			signal?.removeEventListener('abort', onAbort);
 			resolve(v);
@@ -117,9 +126,14 @@ export function awaitFacadeSwipe(
 			if (e.facadeId === facadeId) settle('stale');
 		};
 		const onAbort = () => settle('aborted');
-		const timer = setTimeout(() => settle('timeout'), timeoutMs);
+
+		// Timeout starts only when the facade becomes visible (top card)
+		const onVisible = () => {
+			if (!settled) timer = setTimeout(() => settle('timeout'), timeoutMs);
+		};
 
 		emitter.once(`swipe:${facadeId}`, onSwipe);
+		emitter.once(`visible:${facadeId}`, onVisible);
 		emitter.on('facade-stale', onStale);
 		if (signal) {
 			if (signal.aborted) { settle('aborted'); return; }

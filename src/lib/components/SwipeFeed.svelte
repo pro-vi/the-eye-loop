@@ -13,9 +13,10 @@
 		onswipe: (event: { facadeId: string; decision: 'accept' | 'reject'; latencyMs: number }) => void;
 		onremove: (facadeId: string) => void;
 		onvibetoken?: (token: VibeToken) => void;
+		onvisible?: (facadeId: string) => void;
 	}
 
-	let { facades, debug = false, onswipe, onremove, onvibetoken }: Props = $props();
+	let { facades, debug = false, onswipe, onremove, onvibetoken, onvisible }: Props = $props();
 
 	// ── Gesture state ────────────────────────────────────────────────
 	let deltaX = $state(0);
@@ -39,9 +40,12 @@
 		'scout-06': 'Echo'
 	};
 
-	// Reset card timer when top card changes
+	// Reset card timer + notify server when top card changes
 	$effect(() => {
-		if (topFacade) cardShownAt = performance.now();
+		if (topFacade) {
+			cardShownAt = performance.now();
+			onvisible?.(topFacade.id);
+		}
 	});
 
 	// ── Card dimensions ──────────────────────────────────────────────

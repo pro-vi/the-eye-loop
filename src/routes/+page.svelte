@@ -173,6 +173,15 @@
 		return () => es.close();
 	});
 
+	// ── Visibility signal (starts swipe timeout on server) ──────────
+	function handleVisible(facadeId: string) {
+		fetch('/api/facade-visible', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ facadeId })
+		}).catch(() => {});
+	}
+
 	// ── Swipe handlers ───────────────────────────────────────────────
 	function handleSwipe(event: { facadeId: string; decision: 'accept' | 'reject'; latencyMs: number }) {
 		fetch('/api/swipe', {
@@ -360,7 +369,7 @@
 
 			<!-- Center: Swipe feed -->
 			<div class="flex items-center justify-center">
-				<SwipeFeed {facades} {debug} onswipe={handleSwipe} onremove={handleRemove} onvibetoken={handleVibeToken} />
+				<SwipeFeed {facades} {debug} onswipe={handleSwipe} onremove={handleRemove} onvibetoken={handleVibeToken} onvisible={handleVisible} />
 			</div>
 
 			<!-- Right: Draft -->
