@@ -13,7 +13,27 @@
 
 	// Force width constraint on LLM-generated HTML — the model ignores prompt rules
 	const IFRAME_WRAPPER = '<style>*,*::before,*::after{box-sizing:border-box}html,body{margin:0;padding:0;width:100%;overflow-x:hidden}</style>';
-	let wrappedHtml = $derived(draft.html ? IFRAME_WRAPPER + draft.html : '');
+
+	// Throttle iframe updates — don't re-render mid-swipe, it distracts and biases
+	let renderedHtml = $state('');
+	let pendingHtml = $state('');
+	let fadeOut = $state(false);
+
+	$effect(() => {
+		const next = draft.html ? IFRAME_WRAPPER + draft.html : '';
+		if (next === renderedHtml) return;
+		pendingHtml = next;
+
+		// Fade out, swap, fade in — 300ms total, feels intentional not broken
+		fadeOut = true;
+		const timer = setTimeout(() => {
+			renderedHtml = pendingHtml;
+			fadeOut = false;
+		}, 300);
+		return () => clearTimeout(timer);
+	});
+
+	let wrappedHtml = $derived(renderedHtml);
 
 	let draftState = $derived(
 		draft.title || draft.summary || draft.html ? `${draft.acceptedPatterns.length} accepted / ${draft.rejectedPatterns.length} rejected` : 'Priming...'
@@ -100,6 +120,8 @@
 					style="
 						width: 100%;
 						height: {isReveal ? '80vh' : '560px'};
+						opacity: {fadeOut ? 0.3 : 1};
+						transition: opacity 0.3s ease;
 						overflow: hidden;
 						transition: width 0.5s ease-out, height 0.5s ease-out;
 					"
