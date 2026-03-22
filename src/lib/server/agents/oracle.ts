@@ -120,6 +120,7 @@ let cleanup: Array<() => void> = [];
 let synthesisRunId = 0;
 let busy = false;
 let pendingSynthesis = false;
+let revealFired = false;
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
@@ -216,6 +217,7 @@ export async function seedSession(intent: string): Promise<{ sessionId: string }
 	context.sessionId = crypto.randomUUID();
 	lastFloor = 'word';
 	lastSynthesizedAt = -1;
+	revealFired = false;
 	synthesisRunId++;
 	busy = false;
 	pendingSynthesis = false;
@@ -299,8 +301,9 @@ export function startOracle(): void {
 			// 1. Concreteness floor (synchronous)
 			checkFloor();
 
-			// 2. Reveal trigger (synchronous)
-			if (context.stage !== 'reveal' && context.evidence.length >= REVEAL_THRESHOLD) {
+			// 2. Reveal trigger (synchronous, deduped against HMR)
+			if (!revealFired && context.stage !== 'reveal' && context.evidence.length >= REVEAL_THRESHOLD) {
+				revealFired = true;
 				context.stage = 'reveal';
 				emitStageChanged({ stage: 'reveal', swipeCount: context.swipeCount });
 
