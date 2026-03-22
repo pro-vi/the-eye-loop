@@ -9,6 +9,7 @@ import {
 	onSwipeResult
 } from '$lib/server/bus';
 import { stopAllScouts } from './scout';
+import { buildRevealDraft } from './builder';
 import { generateText, Output } from 'ai';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { z } from 'zod';
@@ -301,11 +302,10 @@ export function startOracle(): void {
 			// 1. Concreteness floor (synchronous)
 			checkFloor();
 
-			// 2. Reveal trigger (synchronous, deduped against HMR)
+			// 2. Reveal trigger (async — builder must finish before client sees reveal)
 			if (!revealFired && context.stage !== 'reveal' && context.evidence.length >= REVEAL_THRESHOLD) {
 				revealFired = true;
 				context.stage = 'reveal';
-				emitStageChanged({ stage: 'reveal', swipeCount: context.swipeCount });
 
 				// Stale all queued facades so no more swipes are accepted
 				for (const facade of [...context.facades]) {
@@ -316,8 +316,16 @@ export function startOracle(): void {
 				// Stop all scouts — they'll see stage=reveal via alive() check
 				stopAllScouts();
 
-				setOracleStatus('thinking', 'reveal triggered');
-				console.log(`[oracle] reveal at ${context.evidence.length} evidence`);
+				setOracleStatus('thinking', 'building final prototype');
+				console.log(`[oracle] reveal at ${context.evidence.length} evidence — awaiting builder`);
+
+				// Builder does final synthesis FIRST, then we tell the client
+				buildRevealDraft().finally(() => {
+					emitStageChanged({ stage: 'reveal', swipeCount: context.swipeCount });
+					setOracleStatus('idle', 'reveal complete');
+					console.log('[oracle] reveal ready — client notified');
+				});
+
 				return;
 			}
 

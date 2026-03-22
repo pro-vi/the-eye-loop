@@ -409,30 +409,34 @@ export function startBuilder(): void {
 		})
 	);
 
-	// Stage-changed: final comprehensive build at reveal
-	cleanup.push(
-		onStageChanged(async ({ stage }) => {
-			if (stage !== 'reveal') return;
+	// NOTE: reveal build is triggered by oracle via buildRevealDraft(), not by stage-changed event.
+	// This ensures the final draft is ready BEFORE the client sees the reveal page.
 
-			const capturedId = context.sessionId;
-			setStatus('thinking', 'final prototype synthesis');
+	console.log('[builder] started');
+}
 
-			try {
-				const antiStr = context.antiPatterns.length
-					? context.antiPatterns.map((p) => `  - ${p}`).join('\n')
-					: '  (none)';
+// ── Reveal build (called by oracle BEFORE emitting stage-changed) ────
 
-				const synthStr = context.synthesis
-					? context.synthesis.axes
-							.map((a) => `  ${a.label}: ${a.poleA} ↔ ${a.poleB} [${a.confidence}${a.leaning_toward ? ` → ${a.leaning_toward}` : ''}]`)
-							.join('\n')
-					: 'Not available.';
+export async function buildRevealDraft(): Promise<void> {
+	const capturedId = context.sessionId;
+	setStatus('thinking', 'final prototype synthesis');
 
-				const notesStr = builderNotes.length
-					? builderNotes.map((n, i) => `${i + 1}. Swipe ${n.swipe} (${n.decision} "${n.label}"): ${n.change}`).join('\n')
-					: '(none)';
+	try {
+		const antiStr = context.antiPatterns.length
+			? context.antiPatterns.map((p) => `  - ${p}`).join('\n')
+			: '  (none)';
 
-				const finalPrompt = `You are the builder agent. The session is COMPLETE. Generate the FINAL prototype.
+		const synthStr = context.synthesis
+			? context.synthesis.axes
+					.map((a) => `  ${a.label}: ${a.poleA} ↔ ${a.poleB} [${a.confidence}${a.leaning_toward ? ` → ${a.leaning_toward}` : ''}]`)
+					.join('\n')
+			: 'Not available.';
+
+		const notesStr = builderNotes.length
+			? builderNotes.map((n, i) => `${i + 1}. Swipe ${n.swipe} (${n.decision} "${n.label}"): ${n.change}`).join('\n')
+			: '(none)';
+
+		const finalPrompt = `You are the builder agent. The session is COMPLETE. Generate the FINAL prototype.
 
 The user wanted to build: "${context.intent}"
 
@@ -463,35 +467,31 @@ ${HTML_QUALITY_RULES}
 
 OUTPUT: final title, summary, html, patterns, no probe briefs needed, nextHint = null`;
 
-				const result = await generateText({
-					model: MODEL,
-					output: Output.object({ schema: DraftUpdateSchema }),
-					temperature: 0,
-					system: finalPrompt,
-					prompt: 'Generate the final reveal prototype. Make it beautiful.'
-				});
+		const result = await generateText({
+			model: MODEL,
+			output: Output.object({ schema: DraftUpdateSchema }),
+			temperature: 0,
+			system: finalPrompt,
+			prompt: 'Generate the final reveal prototype. Make it beautiful.'
+		});
 
-				if (context.sessionId !== capturedId || !result.output) return;
+		if (context.sessionId !== capturedId || !result.output) return;
 
-				context.draft.title = result.output.title;
-				context.draft.summary = result.output.summary;
-				context.draft.html = result.output.html;
-				context.draft.nextHint = undefined;
-				emitDraftUpdated({ draft: context.draft });
+		context.draft.title = result.output.title;
+		context.draft.summary = result.output.summary;
+		context.draft.html = result.output.html;
+		context.draft.nextHint = undefined;
+		emitDraftUpdated({ draft: context.draft });
 
-				debugLog('Builder', 'reveal-build', {
-					title: result.output.title,
-					htmlLength: result.output.html.length
-				});
+		debugLog('Builder', 'reveal-build', {
+			title: result.output.title,
+			htmlLength: result.output.html.length
+		});
 
-				console.log(`[builder] final reveal build: "${result.output.title}" (${result.output.html.length} chars)`);
-			} catch (err) {
-				console.error('[builder] final reveal build failed:', err);
-			} finally {
-				setStatus('idle', 'reveal complete');
-			}
-		})
-	);
-
-	console.log('[builder] started');
+		console.log(`[builder] final reveal: "${result.output.title}" (${result.output.html.length} chars)`);
+	} catch (err) {
+		console.error('[builder] final reveal build failed:', err);
+	} finally {
+		setStatus('idle', 'reveal complete');
+	}
 }
