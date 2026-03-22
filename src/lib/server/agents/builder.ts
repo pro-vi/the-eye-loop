@@ -99,13 +99,21 @@ RULES:
 - Ground everything in the evidence
 - Anti-patterns (rejected things) are HARD CONSTRAINTS
 - Reference specific accepted/rejected items as justification
-- Probe briefs must be about SPECIFIC UI COMPONENTS, not abstract dimensions
-- acceptedPatterns and rejectedPatterns are DELTAS — only new patterns from THIS swipe
-- html: START FROM THE CURRENT DRAFT HTML above and MODIFY it. Do NOT rewrite from scratch.
-  Apply ONLY the change implied by the last swipe. Keep everything else EXACTLY as-is.
-  If accept: integrate the accepted style/pattern into the existing draft.
-  If reject: remove or replace ONLY the rejected element. Leave the rest untouched.
-  The output must be the full HTML (we can't do diffs), but it should be 90%+ identical to the input.
+
+HTML UPDATE RULES (CRITICAL — read carefully):
+- You MUST start from the CURRENT DRAFT HTML above
+- Make the SMALLEST possible change that reflects the last swipe
+- If accept: integrate ONE new element or style change from the accepted facade
+- If reject: adjust or remove ONE element that matches the rejected pattern
+- PRESERVE everything else: colors, layout, typography, sections, content
+- The output html must be 90%+ identical to the input. This is a PATCH, not a rewrite.
+- If the current draft is empty, generate a fresh scaffold from evidence.
+
+PROBE BRIEFS:
+- Only output a probe brief if you are GENUINELY STUCK on a specific component
+- "What color should the header be?" is NOT stuck — extrapolate from evidence
+- "Need to know: sidebar nav vs bottom tabs — both could work given the evidence" IS stuck
+- If you can build without asking, output an EMPTY probeBriefs array
 
 ${HTML_QUALITY_RULES}
 
@@ -115,8 +123,9 @@ OUTPUT: updated title, summary, html, pattern deltas, probe briefs, nextHint`;
 
 function summarizeFacade(facade: Facade): string {
 	if (facade.format === 'word') return facade.label;
-	if (facade.format === 'image') return facade.content.slice(0, 200);
-	return `[HTML mockup, ${facade.content.length} chars]`;
+	if (facade.format === 'image') return facade.content.slice(0, 300);
+	// For mockups, include the actual HTML so the builder can see what was accepted/rejected
+	return facade.content.slice(0, 1500);
 }
 
 function setStatus(status: AgentState['status'], focus: string) {
@@ -246,18 +255,24 @@ async function rebuild(facade: Facade, record: SwipeRecord) {
 			}
 		}
 
-		// Probe briefs
-		if (output.probeBriefs.length) {
-			context.probes.push(...output.probeBriefs);
+		// Probe briefs — only emit if genuinely blocked AND queue isn't already full of briefs
+		const realBriefs = output.probeBriefs.filter((p) => p.brief.length > 20);
+		if (realBriefs.length > 0 && context.probes.length < 3) {
+			// Max 1 brief per rebuild to avoid flooding
+			const brief = realBriefs[0];
+			context.probes.push(brief);
 			debugLog('Builder', 'probes', {
-				count: output.probeBriefs.length,
-				briefs: output.probeBriefs.map((p) => p.brief)
+				count: 1,
+				briefs: [brief.brief]
 			});
 		}
 
 		debugLog('Builder', 'rebuild', {
 			swipe: context.swipeCount,
+			decision: record.decision,
+			label: facade.label,
 			title: output.title,
+			htmlLength: output.html.length,
 			accepted: output.acceptedPatterns,
 			rejected: output.rejectedPatterns,
 			hint: output.nextHint
