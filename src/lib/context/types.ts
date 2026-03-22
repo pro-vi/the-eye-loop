@@ -10,7 +10,8 @@ export interface SwipeEvidence {
 	hypothesis: string;
 	decision: 'accept' | 'reject';
 	latencySignal: 'fast' | 'slow';
-	format: 'word' | 'image' | 'mockup';  // what the user actually saw — same hypothesis at different concreteness
+	format: 'word' | 'image' | 'mockup';
+	implication: string;  // what accept/reject MEANS for design — the design token signal
 }
 
 export interface Facade {
@@ -22,6 +23,8 @@ export interface Facade {
 	content: string;
 	format: 'word' | 'image' | 'mockup';
 	imageDataUrl?: string;
+	acceptImplies?: string;   // design implications if user accepts
+	rejectImplies?: string;   // design implications if user rejects
 }
 
 export interface SwipeRecord {

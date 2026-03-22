@@ -326,7 +326,9 @@ export function startScout(agentId: string, name: string): () => void {
 						axisTargeted: output.axis_targeted,
 						label: output.label,
 						content: format === 'word' ? output.label : output.content,
-						format
+						format,
+						acceptImplies: output.accept_implies,
+						rejectImplies: output.reject_implies
 					};
 
 					// ── Rendering pipeline ──────────────────────────────

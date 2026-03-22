@@ -73,13 +73,18 @@ class EyeLoopContext {
 		const facade = this.facades.find((f) => f.id === record.facadeId)
 			?? this.consumedFacades.find((f) => f.id === record.facadeId);
 
+		const implication = record.decision === 'accept'
+			? facade?.acceptImplies
+			: facade?.rejectImplies;
+
 		const entry: SwipeEvidence = {
 			facadeId: record.facadeId,
 			content: facade?.label ?? facade?.content ?? record.facadeId,
 			hypothesis: facade?.hypothesis ?? '',
 			decision: record.decision,
 			latencySignal: record.latencyBucket,
-			format: facade?.format ?? 'word'
+			format: facade?.format ?? 'word',
+			implication: implication ?? ''
 		};
 		this.evidence.push(entry);
 
@@ -149,9 +154,10 @@ class EyeLoopContext {
 			.map((e, i) => {
 				const tag = e.decision === 'accept' ? 'ACCEPT' : 'REJECT';
 				const hesitant = e.latencySignal === 'slow' ? ' (hesitant)' : '';
+				const impl = e.implication ? `\n   Design signal: ${e.implication}` : '';
 				return (
 					`${i + 1}. [${tag}${hesitant}] (${e.format}) "${e.content}"\n` +
-					`   Hypothesis: ${e.hypothesis}`
+					`   Hypothesis: ${e.hypothesis}${impl}`
 				);
 			})
 			.join('\n\n');
