@@ -378,9 +378,19 @@
 
 <!-- ── Reveal mode ───────────────────────────────────────────────── -->
 {:else if mode === 'reveal'}
-	<div class="min-h-screen flex flex-col" style="background: var(--color-surface-lowest);">
+	<div class="min-h-screen flex flex-col animate-reveal" style="background: var(--color-surface-lowest);">
+		<style>
+			@keyframes reveal-up {
+				from { opacity: 0; transform: translateY(40px); }
+				to { opacity: 1; transform: translateY(0); }
+			}
+			.animate-reveal { animation: reveal-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) both; }
+			.animate-reveal-delay-1 { animation: reveal-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both; }
+			.animate-reveal-delay-2 { animation: reveal-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.5s both; }
+			.animate-reveal-delay-3 { animation: reveal-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.8s both; }
+		</style>
 		<!-- Top bar -->
-		<header class="flex items-center justify-between px-8 py-4 shrink-0">
+		<header class="flex items-center justify-between px-8 py-4 shrink-0 animate-reveal-delay-1">
 			<h1
 				class="text-sm font-bold uppercase tracking-[0.2em]"
 				style="font-family: var(--font-family-display); color: var(--color-on-surface);"
@@ -404,7 +414,7 @@
 		<div class="flex-1 flex flex-col items-center px-6 py-8 md:py-16">
 			<div class="w-full max-w-3xl flex flex-col items-center gap-10">
 				<!-- Label + Title + Summary -->
-				<div class="text-center">
+				<div class="text-center animate-reveal-delay-1">
 					<p
 						class="text-[10px] uppercase tracking-[0.3em] mb-4"
 						style="color: var(--color-outline); font-family: var(--font-family-display);"
@@ -430,12 +440,14 @@
 				</div>
 
 				<!-- Phone frame -->
-				<PrototypeDraftPanel {draft} mode="reveal" />
+				<div class="animate-reveal-delay-2">
+					<PrototypeDraftPanel {draft} mode="reveal" />
+				</div>
 
 				<!-- Divergence insight -->
 				{#if synthesis?.persona_anima_divergence}
 					<div
-						class="w-full max-w-lg rounded-2xl p-5"
+						class="w-full max-w-lg rounded-2xl p-5 animate-reveal-delay-3"
 						style="background: rgba(245, 158, 11, 0.06); border: 1px solid rgba(245, 158, 11, 0.12);"
 					>
 						<p class="text-[10px] font-semibold uppercase tracking-wider mb-2" style="color: #f59e0b;">
