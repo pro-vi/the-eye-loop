@@ -28,6 +28,7 @@ const DraftUpdateSchema = z.object({
 	title: z.string(),
 	summary: z.string(),
 	html: z.string(),
+	changeNote: z.string(),  // 1-line: what you changed and why (for your own memory next rebuild)
 	acceptedPatterns: z.array(z.string()),
 	rejectedPatterns: z.array(z.string()),
 	probeBriefs: z.array(
@@ -41,6 +42,18 @@ const DraftUpdateSchema = z.object({
 	),
 	nextHint: z.string().nullable()
 });
+
+// ── Builder memory ──────────────────────────────────────────────────
+
+interface BuilderNote {
+	swipe: number;
+	decision: 'accept' | 'reject';
+	label: string;
+	change: string;
+}
+
+const MAX_NOTES = 8;
+let builderNotes: BuilderNote[] = [];
 
 // ── Prompts ──────────────────────────────────────────────────────────
 
@@ -94,6 +107,9 @@ LAST SWIPE:
   decision: {decision}
   hypothesis: "{hypothesis}"
   content: "{content_summary}"
+
+YOUR RECENT CHANGES (preserve these — don't undo your own work):
+{builder_notes}
 
 RULES:
 - Ground everything in the evidence
@@ -191,6 +207,10 @@ async function rebuild(facade: Facade, record: SwipeRecord) {
 					: '')
 			: 'Not yet available.';
 
+		const notesStr = builderNotes.length
+			? builderNotes.map((n, i) => `${i + 1}. Swipe ${n.swipe} (${n.decision} "${n.label}"): ${n.change}`).join('\n')
+			: '(first rebuild — no prior changes)';
+
 		const system = SWIPE_PROMPT
 			.replace('{intent}', context.intent)
 			.replace('{evidence}', context.toEvidencePrompt())
@@ -201,6 +221,7 @@ async function rebuild(facade: Facade, record: SwipeRecord) {
 			.replace('{accepted_patterns}', JSON.stringify(context.draft.acceptedPatterns))
 			.replace('{rejected_patterns}', JSON.stringify(context.draft.rejectedPatterns))
 			.replace('{anti_patterns}', antiStr)
+			.replace('{builder_notes}', notesStr)
 			.replace('{facade_id}', facade.id)
 			.replace('{decision}', record.decision)
 			.replace('{hypothesis}', facade.hypothesis)
@@ -230,6 +251,15 @@ async function rebuild(facade: Facade, record: SwipeRecord) {
 			console.error('[builder] no output from generateText');
 			return;
 		}
+
+		// Record builder note (before merge — capture what changed)
+		builderNotes.unshift({
+			swipe: context.swipeCount,
+			decision: record.decision,
+			label: facade.label,
+			change: output.changeNote || `${record.decision}ed "${facade.label}"`
+		});
+		if (builderNotes.length > MAX_NOTES) builderNotes.pop();
 
 		// Merge
 		context.draft.title = output.title;
@@ -314,6 +344,7 @@ export function startBuilder(): void {
 	cleanup.push(
 		onSessionReady(async ({ intent }) => {
 			lastRebuiltSwipe = -1;
+			builderNotes = [];
 			if (busy) pendingSwipe = null; // new session invalidates old pending
 			busy = true;
 			const capturedId = context.sessionId;
