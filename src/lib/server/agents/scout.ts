@@ -70,6 +70,14 @@ function getFormatInstruction(scoutName: string): { floor: Facade['format']; ins
 		};
 	}
 
+	// Facet pre-buffers mockups during image stage so they're ready when floor advances.
+	if (scoutName === 'Facet' && floor === 'image' && context.evidence.length >= 5) {
+		return {
+			floor: 'mockup',
+			instruction: FORMAT_INSTRUCTIONS.mockup + '\nYou are PRE-BUFFERING. The user is still swiping images — your mockup will be ready when the stage advances. Ground it in the builder draft if available.'
+		};
+	}
+
 	// Mixed queue rule: if queue already has 2+ slow facades (images), non-image scouts
 	// generate fast formats (word/mockup) to keep the user swiping.
 	if (!isImageScout && floor === 'image') {

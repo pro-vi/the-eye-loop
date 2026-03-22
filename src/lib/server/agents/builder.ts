@@ -6,6 +6,7 @@ import { context } from '$lib/server/context';
 import {
 	onSessionReady,
 	onSwipeResult,
+	onStageChanged,
 	emitDraftUpdated,
 	emitBuilderHint,
 	emitEvidenceUpdated,
@@ -405,6 +406,90 @@ export function startBuilder(): void {
 			}
 
 			rebuild(facade, record);
+		})
+	);
+
+	// Stage-changed: final comprehensive build at reveal
+	cleanup.push(
+		onStageChanged(async ({ stage }) => {
+			if (stage !== 'reveal') return;
+
+			const capturedId = context.sessionId;
+			setStatus('thinking', 'final prototype synthesis');
+
+			try {
+				const antiStr = context.antiPatterns.length
+					? context.antiPatterns.map((p) => `  - ${p}`).join('\n')
+					: '  (none)';
+
+				const synthStr = context.synthesis
+					? context.synthesis.axes
+							.map((a) => `  ${a.label}: ${a.poleA} ↔ ${a.poleB} [${a.confidence}${a.leaning_toward ? ` → ${a.leaning_toward}` : ''}]`)
+							.join('\n')
+					: 'Not available.';
+
+				const notesStr = builderNotes.length
+					? builderNotes.map((n, i) => `${i + 1}. Swipe ${n.swipe} (${n.decision} "${n.label}"): ${n.change}`).join('\n')
+					: '(none)';
+
+				const finalPrompt = `You are the builder agent. The session is COMPLETE. Generate the FINAL prototype.
+
+The user wanted to build: "${context.intent}"
+
+FULL EVIDENCE:
+${context.toEvidencePrompt()}
+
+EMERGENT AXES:
+${synthStr}
+
+ANTI-PATTERNS (NEVER violate):
+${antiStr}
+
+YOUR BUILD HISTORY:
+${notesStr}
+
+CURRENT DRAFT HTML (your incremental work so far):
+${context.draft.html}
+
+TASK: This is the REVEAL — the moment the user sees what grew from their choices.
+Take EVERYTHING you've learned and produce a POLISHED, COMPLETE prototype.
+- This is NOT an incremental patch — it's a full synthesis of all evidence
+- Keep the design decisions from your build history — don't throw away good work
+- But clean up, polish, and fill in any gaps you couldn't fill incrementally
+- Make it look INTENTIONAL, not like a series of patches
+- Include real content (numbers, text, labels) — no placeholders
+
+${HTML_QUALITY_RULES}
+
+OUTPUT: final title, summary, html, patterns, no probe briefs needed, nextHint = null`;
+
+				const result = await generateText({
+					model: MODEL,
+					output: Output.object({ schema: DraftUpdateSchema }),
+					temperature: 0,
+					system: finalPrompt,
+					prompt: 'Generate the final reveal prototype. Make it beautiful.'
+				});
+
+				if (context.sessionId !== capturedId || !result.output) return;
+
+				context.draft.title = result.output.title;
+				context.draft.summary = result.output.summary;
+				context.draft.html = result.output.html;
+				context.draft.nextHint = undefined;
+				emitDraftUpdated({ draft: context.draft });
+
+				debugLog('Builder', 'reveal-build', {
+					title: result.output.title,
+					htmlLength: result.output.html.length
+				});
+
+				console.log(`[builder] final reveal build: "${result.output.title}" (${result.output.html.length} chars)`);
+			} catch (err) {
+				console.error('[builder] final reveal build failed:', err);
+			} finally {
+				setStatus('idle', 'reveal complete');
+			}
 		})
 	);
 
