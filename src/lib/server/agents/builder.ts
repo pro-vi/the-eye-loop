@@ -20,6 +20,7 @@ import { HTML_QUALITY_RULES } from '$lib/server/prompts';
 
 const google = createGoogleGenerativeAI({ apiKey: GEMINI_API_KEY });
 const MODEL = google('gemini-3.1-flash-lite-preview');
+const REVEAL_MODEL = google('gemini-3.1-pro-preview');
 const BUILDER_ID = 'builder-01';
 const BUILDER_NAME = 'Meridian';
 
@@ -436,6 +437,18 @@ export async function buildRevealDraft(): Promise<void> {
 			? builderNotes.map((n, i) => `${i + 1}. Swipe ${n.swipe} (${n.decision} "${n.label}"): ${n.change}`).join('\n')
 			: '(none)';
 
+		// Collect accepted mockup HTML as reference material
+		const acceptedMockups = context.consumedFacades
+			.filter((f) => f.format === 'mockup')
+			.filter((f) => context.evidence.some((e) => e.facadeId === f.id && e.decision === 'accept'))
+			.map((f) => f.content)
+			.slice(-3); // last 3 accepted mockups
+
+		const mockupRefStr = acceptedMockups.length
+			? 'ACCEPTED MOCKUP REFERENCES (the user liked these — incorporate their patterns):\n\n' +
+				acceptedMockups.map((html, i) => `--- Accepted Mockup ${i + 1} ---\n${html.slice(0, 1500)}`).join('\n\n')
+			: '';
+
 		const finalPrompt = `You are the builder agent. The session is COMPLETE. Generate the FINAL prototype.
 
 The user wanted to build: "${context.intent}"
@@ -455,24 +468,35 @@ ${notesStr}
 CURRENT DRAFT HTML (your incremental work so far):
 ${context.draft.html}
 
+${mockupRefStr}
+
 TASK: This is the REVEAL — the moment the user sees what grew from their choices.
 Take EVERYTHING you've learned and produce a POLISHED, COMPLETE prototype.
-- This is NOT an incremental patch — it's a full synthesis of all evidence
-- Keep the design decisions from your build history — don't throw away good work
-- But clean up, polish, and fill in any gaps you couldn't fill incrementally
-- Make it look INTENTIONAL, not like a series of patches
-- Include real content (numbers, text, labels) — no placeholders
+
+QUALITY BAR:
+- This is the ONE artifact the user takes away. Make it beautiful.
+- Derive a consistent design system: pick a seed color from evidence, generate
+  a full palette (bg, card, accent, text, muted), consistent typography scale,
+  consistent spacing and border-radius. Apply systematically.
+- If accepted mockups are provided above, incorporate their specific UI patterns
+  (card layouts, component styles, navigation patterns) into the final design.
+- This is NOT an incremental patch — it's a full synthesis
+- Keep design decisions from your build history — don't undo good work
+- Include real content: real numbers ($2,450.80), real labels, real text
+- Make every section feel intentional — no generic placeholder sections
+- The HTML should be rich enough to fill a full mobile screen (aim for 4000+ chars)
 
 ${HTML_QUALITY_RULES}
 
-OUTPUT: final title, summary, html, patterns, no probe briefs needed, nextHint = null`;
+OUTPUT: final title, summary, html (complete, polished, rich), changeNote, patterns, probeBriefs = [], nextHint = null`;
 
 		const result = await generateText({
-			model: MODEL,
+			model: REVEAL_MODEL,
 			output: Output.object({ schema: DraftUpdateSchema }),
 			temperature: 0,
 			system: finalPrompt,
-			prompt: 'Generate the final reveal prototype. Make it beautiful.'
+			prompt: 'Generate the final reveal prototype. Make it beautiful.',
+			maxOutputTokens: 16000
 		});
 
 		if (context.sessionId !== capturedId || !result.output) return;
