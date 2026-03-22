@@ -138,6 +138,10 @@ let pendingSwipe: { facade: Facade; record: SwipeRecord; sessionId: string } | n
 let cleanup: Array<() => void> = [];
 
 function drainPending() {
+	if (context.stage === 'reveal') {
+		pendingSwipe = null;
+		return;
+	}
 	if (pendingSwipe && pendingSwipe.sessionId === context.sessionId) {
 		const p = pendingSwipe;
 		pendingSwipe = null;
@@ -203,6 +207,12 @@ async function rebuild(facade: Facade, record: SwipeRecord) {
 
 		if (context.sessionId !== capturedId) {
 			console.log('[builder] session changed during rebuild, discarding');
+			return;
+		}
+
+		// Don't overwrite draft after reveal — keep the last good version
+		if (context.stage === 'reveal') {
+			console.log('[builder] reveal active, preserving draft');
 			return;
 		}
 
@@ -323,6 +333,12 @@ export function startBuilder(): void {
 	// Swipe-result: update draft
 	cleanup.push(
 		onSwipeResult(({ record }) => {
+			// Freeze draft at reveal — don't overwrite the good one
+			if (context.stage === 'reveal') {
+				pendingSwipe = null;
+				return;
+			}
+
 			const facade =
 				context.facades.find((f) => f.id === record.facadeId) ??
 				context.consumedFacades.find((f) => f.id === record.facadeId);

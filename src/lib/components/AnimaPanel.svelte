@@ -63,8 +63,8 @@
 
 	<!-- Oracle synthesis -->
 	{#if synthesis}
-		<!-- Emergent axes -->
-		{#if synthesis.axes.length > 0}
+		<!-- Emergent axes (hidden — too noisy for demo) -->
+		{#if false && synthesis?.axes?.length}
 			<div class="flex flex-col gap-2.5">
 				<p
 					class="text-xs font-semibold uppercase tracking-wide"
@@ -72,7 +72,7 @@
 				>
 					Taste Axes
 				</p>
-				{#each synthesis.axes as axis (axis.label)}
+				{#each synthesis?.axes ?? [] as axis (axis.label)}
 					{@const confColor = confidenceColors[axis.confidence]}
 					{@const leaningA = axis.leaning_toward === axis.poleA}
 					{@const leaningB = axis.leaning_toward === axis.poleB}
