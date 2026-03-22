@@ -156,11 +156,17 @@ function setStatus(status: AgentState['status'], focus: string) {
 	emitAgentStatus({ agent });
 }
 
-// ── Serialization gate ───────────────────────────────────────────────
+// ── Serialization gate (HMR-safe via globalThis) ────────────────────
 
+const G = globalThis as Record<string, unknown>;
 let busy = false;
 let pendingSwipe: { facade: Facade; record: SwipeRecord; sessionId: string } | null = null;
-let cleanup: Array<() => void> = [];
+let cleanup: Array<() => void> = (G.__builderCleanup as Array<() => void>) ?? [];
+G.__builderCleanup = cleanup;
+
+// Tracks which swipes we've already rebuilt — survives HMR
+const rebuiltSwipes = (G.__builderRebuiltSwipes as Set<string>) ?? new Set<string>();
+G.__builderRebuiltSwipes = rebuiltSwipes;
 
 function drainPending() {
 	if (context.stage === 'reveal') {
@@ -178,12 +184,11 @@ function drainPending() {
 
 // ── Rebuild (one LLM call per invocation) ────────────────────────────
 
-let lastRebuiltSwipe = -1;
-
 async function rebuild(facade: Facade, record: SwipeRecord) {
-	// Dedup: HMR can register multiple listeners — only rebuild once per swipe
-	if (context.swipeCount === lastRebuiltSwipe) return;
-	lastRebuiltSwipe = context.swipeCount;
+	// Dedup: HMR registers duplicate listeners — use facadeId as unique key
+	const dedup = `${context.sessionId}:${record.facadeId}`;
+	if (rebuiltSwipes.has(dedup)) return;
+	rebuiltSwipes.add(dedup);
 
 	busy = true;
 	pendingSwipe = null;
@@ -343,7 +348,7 @@ export function startBuilder(): void {
 	// Session-ready: generate initial scaffold
 	cleanup.push(
 		onSessionReady(async ({ intent }) => {
-			lastRebuiltSwipe = -1;
+			rebuiltSwipes.clear();
 			builderNotes = [];
 			if (busy) pendingSwipe = null; // new session invalidates old pending
 			busy = true;
