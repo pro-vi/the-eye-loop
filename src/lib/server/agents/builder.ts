@@ -437,18 +437,6 @@ export async function buildRevealDraft(): Promise<void> {
 			? builderNotes.map((n, i) => `${i + 1}. Swipe ${n.swipe} (${n.decision} "${n.label}"): ${n.change}`).join('\n')
 			: '(none)';
 
-		// Collect accepted mockup HTML as reference material
-		const acceptedMockups = context.consumedFacades
-			.filter((f) => f.format === 'mockup')
-			.filter((f) => context.evidence.some((e) => e.facadeId === f.id && e.decision === 'accept'))
-			.map((f) => f.content)
-			.slice(-3); // last 3 accepted mockups
-
-		const mockupRefStr = acceptedMockups.length
-			? 'ACCEPTED MOCKUP REFERENCES (the user liked these — incorporate their patterns):\n\n' +
-				acceptedMockups.map((html, i) => `--- Accepted Mockup ${i + 1} ---\n${html.slice(0, 1500)}`).join('\n\n')
-			: '';
-
 		const finalPrompt = `You are the builder agent. The session is COMPLETE. Generate the FINAL prototype.
 
 The user wanted to build: "${context.intent}"
@@ -467,8 +455,6 @@ ${notesStr}
 
 CURRENT DRAFT HTML (your incremental work so far):
 ${context.draft.html}
-
-${mockupRefStr}
 
 TASK: This is the REVEAL — the moment the user sees what grew from their choices.
 Take EVERYTHING you've learned and produce a POLISHED, COMPLETE prototype.
