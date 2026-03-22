@@ -423,7 +423,7 @@ Mobile viewport 375x667. No scripts. No external resources.`;
 							const htmlResult = await generateText({
 								model: MODEL,
 								prompt: mockupPrompt,
-								maxOutputTokens: 2000,
+								maxOutputTokens: 4000,
 								abortSignal: signal
 							});
 
