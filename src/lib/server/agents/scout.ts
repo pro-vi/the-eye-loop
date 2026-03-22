@@ -328,7 +328,7 @@ export function startScout(agentId: string, name: string): () => void {
 
 					if (format === 'image') {
 						setStatus(agent, 'thinking', `rendering image: "${facade.label}"`);
-						const imagePrompt = `Generate a UI MOODBOARD or STYLE CONCEPT image — NOT a literal app screenshot. This should feel like a designer's inspiration board or color/texture study that captures a specific aesthetic direction.\n\nStyle direction: ${output.content}\n\nRules:\n- Abstract or atmospheric — NOT a phone mockup or wireframe\n- Show colors, textures, typography samples, material references\n- Think Dribbble moodboard or Pinterest inspiration board\n- Fill the entire frame — no device bezels, no hands holding phones`;
+						const imagePrompt = `Generate a UI MOODBOARD or STYLE CONCEPT image — NOT a literal app screenshot. This should feel like a designer's inspiration board or color/texture study that captures a specific aesthetic direction.\n\nStyle direction: ${output.content}\n\nRules:\n- PORTRAIT orientation (3:4 ratio) — this displays on a tall card, not a landscape monitor\n- Abstract or atmospheric — NOT a phone mockup or wireframe\n- Show colors, textures, typography samples, material references\n- Think Dribbble moodboard or Pinterest inspiration board\n- Fill the entire frame — no device bezels, no hands holding phones\n- Center the most important visual content — edges may be cropped`;
 
 						let imageRendered = false;
 						for (let attempt = 0; attempt < 2; attempt++) {
@@ -338,7 +338,7 @@ export function startScout(agentId: string, name: string): () => void {
 									providerOptions: {
 										google: {
 											responseModalities: ['TEXT', 'IMAGE'],
-											imageConfig: { aspectRatio: '3:2', imageSize: '1K' }
+											imageConfig: { aspectRatio: '3:4', imageSize: '1K' }
 										}
 									},
 									prompt: imagePrompt,
