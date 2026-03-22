@@ -15,9 +15,9 @@ The Eye Loop is a multi-agent taste discovery system. You type an intent ("finan
 
 Three agent types run concurrently on the server:
 
-- **Scouts** (Iris, Prism, Lumen) — generate taste probes using the Akinator pattern. Each has a sensory lens (visual, structural, narrative) and receives axis assignments from the oracle for coordination.
-- **Builder** (Meridian) — assembles an evolving HTML prototype from accepted/rejected evidence. Emits construction-grounded probe briefs to guide scouts.
-- **Oracle** — discovers emergent taste axes from evidence every 4 swipes. Assigns scouts to different axes. Detects persona-anima divergence (when your choices contradict your stated intent).
+- **Scouts** (Iris, Prism, Lumen, Aura, Facet, Echo) — 6 taste probes running concurrently using the Akinator pattern. Each has a sensory lens (visual, layout, narrative, mood, info design, motion). Iris and Aura pre-buffer images during the word stage so moodboards are ready when you need them.
+- **Builder** (Meridian) — assembles an evolving HTML prototype from accepted/rejected evidence. Freezes the draft at reveal. Emits construction-grounded probe briefs to guide scouts.
+- **Oracle** — runs a cold-start intent analysis on session init, then discovers emergent taste axes from evidence every 4 swipes. Assigns each scout to a different axis. Detects persona-anima divergence (when your choices contradict your stated intent).
 
 Evidence flows through an `EventEmitter` bus. SSE streams updates to the client in real time. No database, no auth — single-session hackathon demo.
 
@@ -25,7 +25,7 @@ Evidence flows through an `EventEmitter` bus. SSE streams updates to the client 
 
 - **SvelteKit** + Svelte 5 runes
 - **Vercel AI SDK 6** — `generateText` + `Output.object` for structured LLM output
-- **Gemini** — Flash Lite (probes, builder), Flash Image (NB2 moodboards), Flash (synthesis)
+- **Gemini** — 3.1 Flash Lite (probes, builder), 3.1 Flash Image / NB2 (moodboards), 3.1 Pro (oracle synthesis)
 - **Tailwind CSS 4** — CSS-first config with custom design tokens
 - **Vercel** — Fluid Compute, adapter-vercel
 
