@@ -91,6 +91,9 @@ EMERGENT AXES (oracle-discovered taste dimensions):
 {oracle_synthesis}
 Use RESOLVED axes as constraints. EXPLORING axes = don't commit yet. LEANING = likely direction.
 
+DESIGN PALETTE (derived from evidence by Oracle — USE THESE EXACT VALUES):
+{palette}
+
 CURRENT DRAFT:
   title: {draft_title}
   summary: {draft_summary}
@@ -218,10 +221,13 @@ async function rebuild(facade: Facade, record: SwipeRecord) {
 			? builderNotes.map((n, i) => `${i + 1}. Swipe ${n.swipe} (${n.decision} "${n.label}"): ${n.change}`).join('\n')
 			: '(first rebuild — no prior changes)';
 
+		const paletteStr = context.palette || 'Not yet derived — use warm defaults: --bg: #FFF8F0; --card: #FFF; --accent: #FF8C69; --text: #4A3E38; --muted: #A1887F; --radius: 16px;';
+
 		const system = SWIPE_PROMPT
 			.replace('{intent}', context.intent)
 			.replace('{evidence}', context.toEvidencePrompt())
 			.replace('{oracle_synthesis}', synthStr)
+			.replace('{palette}', paletteStr)
 			.replace('{draft_title}', context.draft.title || '(empty)')
 			.replace('{draft_summary}', context.draft.summary || '(empty)')
 			.replace('{current_draft_html}', context.draft.html || '(empty)')
@@ -447,6 +453,9 @@ ${context.toEvidencePrompt()}
 EMERGENT AXES:
 ${synthStr}
 
+DESIGN PALETTE (derived from evidence — USE THESE EXACT CSS VARIABLES):
+${context.palette || ':root { --bg: #FFF8F0; --card: #FFF; --accent: #FF8C69; --text: #4A3E38; --muted: #A1887F; --radius: 16px; }'}
+
 ANTI-PATTERNS (NEVER violate):
 ${antiStr}
 
@@ -461,11 +470,9 @@ Take EVERYTHING you've learned and produce a POLISHED, COMPLETE prototype.
 
 QUALITY BAR:
 - This is the ONE artifact the user takes away. Make it beautiful.
-- Derive a consistent design system: pick a seed color from evidence, generate
-  a full palette (bg, card, accent, text, muted), consistent typography scale,
-  consistent spacing and border-radius. Apply systematically.
-- If accepted mockups are provided above, incorporate their specific UI patterns
-  (card layouts, component styles, navigation patterns) into the final design.
+- USE THE DESIGN PALETTE ABOVE — start your HTML with a <style> block containing
+  those exact CSS variables, then reference var(--bg), var(--accent) etc throughout.
+- Consistent typography scale, spacing, and border-radius from the palette.
 - This is NOT an incremental patch — it's a full synthesis
 - Keep design decisions from your build history — don't undo good work
 - Include real content: real numbers ($2,450.80), real labels, real text

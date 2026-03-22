@@ -37,6 +37,7 @@ class EyeLoopContext {
 	};
 	antiPatterns: string[] = [];
 	swipeLatencies: number[] = [];
+	palette: string = '';  // CSS variable block derived from evidence by oracle
 
 	// ── Getters ─────────────────────────────────────────────────────
 

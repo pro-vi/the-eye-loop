@@ -467,6 +467,24 @@
 						</p>
 					</div>
 				{/if}
+
+				<!-- Export button -->
+				{#if draft.html}
+					<button
+						class="animate-reveal-delay-3 px-6 py-3 rounded-full text-sm font-medium transition-all hover:scale-105 active:scale-95"
+						style="background: var(--color-surface-container); color: var(--color-on-surface); border: 1px solid rgba(255,255,255,0.08);"
+						onclick={() => {
+							navigator.clipboard.writeText(draft.html);
+							const el = document.activeElement;
+							if (el instanceof HTMLButtonElement) {
+								el.textContent = 'Copied!';
+								setTimeout(() => { el.textContent = 'Copy HTML'; }, 2000);
+							}
+						}}
+					>
+						Copy HTML
+					</button>
+				{/if}
 			</div>
 		</div>
 	</div>

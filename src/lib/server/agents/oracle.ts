@@ -37,9 +37,19 @@ const emergentAxisSchema = z.object({
 	evidence_basis: z.string()
 });
 
+const paletteSchema = z.object({
+	bg: z.string(),       // background — e.g. "#FFF8F0"
+	card: z.string(),     // card/surface — e.g. "#FFFFFF"
+	accent: z.string(),   // primary accent — e.g. "#FF8C69"
+	text: z.string(),     // main text — e.g. "#4A3E38"
+	muted: z.string(),    // secondary text — e.g. "#A1887F"
+	radius: z.string(),   // border-radius — e.g. "16px"
+});
+
 const synthesisSchema = z.object({
 	axes: z.array(emergentAxisSchema),
 	edge_case_flags: z.array(z.string()),
+	palette: paletteSchema,  // derived from accepted evidence — consistent across all agent output
 	scout_assignments: z.array(
 		z.object({
 			scout: z.string(),
@@ -71,6 +81,15 @@ For each axis:
 
 Also produce:
 - edge_case_flags: patterns needing special handling ("user accepts everything", "axis X contradictory", "all hesitant")
+- palette: derive a 6-value design system from the evidence:
+  - bg: background color (from accepted warmth/coolness evidence)
+  - card: card/surface color
+  - accent: primary accent color (from accepted visual direction)
+  - text: main text color (ensure contrast against bg)
+  - muted: secondary text color
+  - radius: border-radius value (from accepted shape evidence — "16px" if rounded, "4px" if sharp)
+  NEVER use blue (#0066CC, #2196F3, indigo) or purple unless evidence demands it.
+  Ground every color choice in specific accepted/rejected evidence.
 - scout_assignments: for 6 scouts (Iris, Prism, Lumen, Aura, Facet, Echo), assign each a DIFFERENT axis to probe next
 - persona_anima_divergence: where revealed taste diverges from stated intent (null if none detected)`;
 
@@ -183,6 +202,13 @@ async function runSynthesis() {
 
 		if (result.output) {
 			context.synthesis = result.output;
+
+			// Derive CSS variable block from palette
+			if (result.output.palette) {
+				const p = result.output.palette;
+				context.palette = `:root { --bg: ${p.bg}; --card: ${p.card}; --accent: ${p.accent}; --text: ${p.text}; --muted: ${p.muted}; --radius: ${p.radius}; }`;
+			}
+
 			emitSynthesisUpdated({ synthesis: result.output });
 			debugLog('Oracle', 'synthesis', {
 				evidence: context.evidence.length,
