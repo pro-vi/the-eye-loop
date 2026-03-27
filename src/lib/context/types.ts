@@ -2,7 +2,7 @@
 // Evidence-based taste discovery. No explicit axes.
 // No runtime imports. No Zod. No classes. No z.union().
 
-export type Stage = 'words' | 'images' | 'mockups' | 'reveal';
+export type Stage = 'words' | 'mockups' | 'reveal';
 
 export interface SwipeEvidence {
 	facadeId: string;
@@ -10,7 +10,7 @@ export interface SwipeEvidence {
 	hypothesis: string;
 	decision: 'accept' | 'reject';
 	latencySignal: 'fast' | 'slow';
-	format: 'word' | 'image' | 'mockup';
+	format: 'word' | 'mockup';
 	implication: string;  // what accept/reject MEANS for design — the design token signal
 }
 
@@ -21,8 +21,7 @@ export interface Facade {
 	axisTargeted?: string;
 	label: string;
 	content: string;
-	format: 'word' | 'image' | 'mockup';
-	imageDataUrl?: string;
+	format: 'word' | 'mockup';
 	acceptImplies?: string;   // design implications if user accepts
 	rejectImplies?: string;   // design implications if user rejects
 }

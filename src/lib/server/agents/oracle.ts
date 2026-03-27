@@ -11,20 +11,15 @@ import {
 import { stopAllScouts } from './scout';
 import { buildRevealDraft } from './builder';
 import { generateText, Output } from 'ai';
-import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { z } from 'zod';
-import { GEMINI_API_KEY } from '$env/static/private';
 import { debugLog } from '$lib/server/debug-log';
+import { FAST_MODEL } from '$lib/server/ai';
 
 // ── Constants ────────────────────────────────────────────────────────
 
 const ORACLE_AGENT_ID = 'oracle';
 const REVEAL_THRESHOLD = 15;
 const SYNTHESIS_CADENCE = 4;
-
-const google = createGoogleGenerativeAI({ apiKey: GEMINI_API_KEY });
-// Flash Lite for synthesis speed (~1-2s). Structured output only — no creative gen.
-const MODEL = google('gemini-3.1-flash-lite-preview');
 
 // ── Synthesis schema (snake_case — matches spec + Zod output) ────────
 
@@ -152,14 +147,14 @@ function setOracleStatus(status: AgentState['status'], focus: string) {
 
 // ── Concreteness floor ───────────────────────────────────────────────
 
-let lastFloor: 'word' | 'image' | 'mockup' = 'word';
+let lastFloor: 'word' | 'mockup' = 'word';
 
 function checkFloor() {
 	const floor = context.concretenessFloor;
 	if (floor !== lastFloor) {
 		lastFloor = floor;
 		// Map floor to Stage for stage-changed event
-		const stageMap = { word: 'words', image: 'images', mockup: 'mockups' } as const;
+		const stageMap = { word: 'words', mockup: 'mockups' } as const;
 		context.stage = stageMap[floor];
 		emitStageChanged({ stage: context.stage, swipeCount: context.swipeCount });
 		console.log(`[oracle] concreteness floor → ${floor} (evidence: ${context.evidence.length})`);
@@ -188,7 +183,7 @@ async function runSynthesis() {
 			.replace('{evidence}', evidenceSnapshot);
 
 		const result = await generateText({
-			model: MODEL,
+			model: FAST_MODEL,
 			output: Output.object({ schema: synthesisSchema }),
 			temperature: 0,
 			prompt
@@ -263,7 +258,7 @@ async function runColdStart(intent: string, capturedSessionId: string) {
 	setOracleStatus('thinking', 'cold-start analysis');
 	try {
 		const result = await generateText({
-			model: MODEL,
+			model: FAST_MODEL,
 			output: Output.object({ schema: coldStartSchema }),
 			temperature: 0,
 			prompt: COLD_START_PROMPT.replace('{INTENT}', intent)

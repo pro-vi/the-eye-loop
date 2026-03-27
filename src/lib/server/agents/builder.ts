@@ -1,7 +1,5 @@
 import { generateText, Output } from 'ai';
-import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { z } from 'zod';
-import { GEMINI_API_KEY } from '$env/static/private';
 import { context } from '$lib/server/context';
 import {
 	onSessionReady,
@@ -15,12 +13,9 @@ import {
 import type { AgentState, Facade, SwipeRecord } from '$lib/context/types';
 import { debugLog } from '$lib/server/debug-log';
 import { HTML_QUALITY_RULES } from '$lib/server/prompts';
+import { FAST_MODEL, QUALITY_MODEL } from '$lib/server/ai';
 
 // ── Constants ────────────────────────────────────────────────────────
-
-const google = createGoogleGenerativeAI({ apiKey: GEMINI_API_KEY });
-const MODEL = google('gemini-3.1-flash-lite-preview');
-const REVEAL_MODEL = google('gemini-3.1-pro-preview');
 const BUILDER_ID = 'builder-01';
 const BUILDER_NAME = 'Meridian';
 
@@ -144,8 +139,6 @@ OUTPUT: updated title, summary, html, pattern deltas, probe briefs, nextHint`;
 
 function summarizeFacade(facade: Facade): string {
 	if (facade.format === 'word') return facade.label;
-	if (facade.format === 'image') return facade.content.slice(0, 300);
-	// For mockups, include the actual HTML so the builder can see what was accepted/rejected
 	return facade.content.slice(0, 1500);
 }
 
@@ -241,7 +234,7 @@ async function rebuild(facade: Facade, record: SwipeRecord) {
 			.replace('{content_summary}', summarizeFacade(facade));
 
 		const result = await generateText({
-			model: MODEL,
+			model: FAST_MODEL,
 			output: Output.object({ schema: DraftUpdateSchema }),
 			temperature: 0,
 			system,
@@ -365,7 +358,7 @@ export function startBuilder(): void {
 
 			try {
 				const result = await generateText({
-					model: MODEL,
+					model: FAST_MODEL,
 					output: Output.object({ schema: DraftUpdateSchema }),
 					temperature: 0,
 					system: SCAFFOLD_PROMPT.replace('{intent}', intent),
@@ -484,7 +477,7 @@ ${HTML_QUALITY_RULES}
 OUTPUT: final title, summary, html (complete, polished, rich), changeNote, patterns, probeBriefs = [], nextHint = null`;
 
 		const result = await generateText({
-			model: REVEAL_MODEL,
+			model: QUALITY_MODEL,
 			output: Output.object({ schema: DraftUpdateSchema }),
 			temperature: 0,
 			system: finalPrompt,

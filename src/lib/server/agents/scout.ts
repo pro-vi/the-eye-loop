@@ -1,18 +1,13 @@
 import { generateText, Output } from 'ai';
-import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { z } from 'zod';
-import { GEMINI_API_KEY } from '$env/static/private';
 import { context } from '$lib/server/context';
 import { awaitFacadeSwipe, emitFacadeStale, emitAgentStatus } from '$lib/server/bus';
 import type { Facade, AgentState } from '$lib/context/types';
 import { debugLog } from '$lib/server/debug-log';
 import { HTML_QUALITY_RULES } from '$lib/server/prompts';
+import { FAST_MODEL } from '$lib/server/ai';
 
 // ── Constants ────────────────────────────────────────────────────────
-
-const google = createGoogleGenerativeAI({ apiKey: GEMINI_API_KEY });
-const MODEL = google('gemini-3.1-flash-lite-preview');
-const IMAGE_MODEL = google('gemini-3.1-flash-image-preview');
 // 30s from when user SEES the card (top of stack), not from queue push.
 // Visibility signal sent by client via POST /api/facade-visible.
 const SWIPE_TIMEOUT_MS = 30_000;
@@ -37,13 +32,13 @@ const SCOUT_LENSES: Record<string, string> = {
 	Lumen: 'Your lens: VOICE AND PERSONALITY — friendly vs professional, playful vs serious, branded vs neutral.'
 };
 
-// ── Zod schema (flat — no z.union for Gemini compat) ─────────────────
+// ── Zod schema ──────────────────────────────────────────────────────
 
 const ScoutOutputSchema = z.object({
 	label: z.string(),
 	hypothesis: z.string(),
 	axis_targeted: z.string(),
-	format: z.enum(['word', 'image', 'mockup']),
+	format: z.enum(['word', 'mockup']),
 	content: z.string(),
 	accept_implies: z.string(),
 	reject_implies: z.string()
@@ -53,43 +48,11 @@ const ScoutOutputSchema = z.object({
 
 const FORMAT_INSTRUCTIONS: Record<Facade['format'], string> = {
 	word: 'FORMAT: word. Output a single evocative word or 2-3 word phrase. The label IS the content. Examples: "Warm glow", "Sharp edges", "Cozy nook", "Open sky". NOT: "Biophilic brutalism", "Synaptic Echo", "Tectonic Granularity".',
-	image: 'FORMAT: image. Describe a visual moodboard or UI screenshot for an image generator. Be CONCRETE and VISUAL — describe what someone would SEE, not abstract concepts. Good: "A warm finance app card with rounded corners showing $420 spent, peach background, friendly serif font". Bad: "Gravitational Topology of ephemeral data flows".',
 	mockup: 'FORMAT: mockup. Describe a specific UI screen with layout, components, colors, and typography. Be a DESIGNER, not a philosopher. Good: "Mobile screen with top balance card ($2,400), 3 spending category pills below, warm cream background, Georgia font". Bad: "The Monolithic Monolith vs. The Fractal Lattice".'
 };
 
-function getFormatInstruction(scoutName: string): { floor: Facade['format']; instruction: string } {
+function getFormatInstruction(): { floor: Facade['format']; instruction: string } {
 	const floor = context.concretenessFloor;
-
-	// Iris and Aura pre-buffer images during word stage so they're ready when floor advances.
-	// Other scouts stay on words — ensures the queue always has fast facades to swipe.
-	const isImageScout = scoutName === 'Iris' || scoutName === 'Aura';
-	if (isImageScout && floor === 'word' && context.evidence.length >= 1) {
-		return {
-			floor: 'image',
-			instruction: FORMAT_INSTRUCTIONS.image + '\nYou are PRE-BUFFERING. The user is still swiping words — your image will be ready when the stage advances. Make it count.'
-		};
-	}
-
-	// Facet pre-buffers mockups during image stage so they're ready when floor advances.
-	if (scoutName === 'Facet' && floor === 'image' && context.evidence.length >= 5) {
-		return {
-			floor: 'mockup',
-			instruction: FORMAT_INSTRUCTIONS.mockup + '\nYou are PRE-BUFFERING. The user is still swiping images — your mockup will be ready when the stage advances. Ground it in the builder draft if available.'
-		};
-	}
-
-	// Mixed queue rule: if queue already has 2+ slow facades (images), non-image scouts
-	// generate fast formats (word/mockup) to keep the user swiping.
-	if (!isImageScout && floor === 'image') {
-		const imageCount = context.facades.filter((f) => f.format === 'image').length;
-		if (imageCount >= 2) {
-			return {
-				floor: 'word',
-				instruction: FORMAT_INSTRUCTIONS.word + '\nQueue already has an image pending. Generate a fast word probe so the user has something to swipe while the image renders.'
-			};
-		}
-	}
-
 	return { floor, instruction: FORMAT_INSTRUCTIONS[floor] };
 }
 
@@ -273,7 +236,7 @@ export function startScout(agentId: string, name: string): () => void {
 						? context.antiPatterns.map((p) => `  - ${p}`).join('\n')
 						: '  (none yet)';
 
-					const { floor, instruction } = getFormatInstruction(name);
+					const { floor, instruction } = getFormatInstruction();
 
 					const system = SCOUT_PROMPT.replace('{SCOUT_NAME}', name)
 						.replace('{SCOUT_LENS}', SCOUT_LENSES[name] ?? '')
@@ -288,7 +251,7 @@ export function startScout(agentId: string, name: string): () => void {
 						.replace('{FORMAT_INSTRUCTION}', instruction);
 
 					const result = await generateText({
-						model: MODEL,
+						model: FAST_MODEL,
 						output: Output.object({ schema: ScoutOutputSchema }),
 						temperature: 1.0,
 						system,
@@ -304,7 +267,6 @@ export function startScout(agentId: string, name: string): () => void {
 					// Enforce concreteness floor — LLM may ignore format instruction
 					const ALLOWED: Record<Facade['format'], Facade['format'][]> = {
 						word: ['word'],
-						image: ['image', 'mockup'],
 						mockup: ['mockup']
 					};
 					const format = ALLOWED[floor].includes(output.format) ? output.format : floor;
@@ -331,74 +293,11 @@ export function startScout(agentId: string, name: string): () => void {
 						rejectImplies: output.reject_implies
 					};
 
-					// ── Rendering pipeline ──────────────────────────────
-					// Image/mockup facades must be fully rendered before
-					// reaching the queue. If rendering fails, skip this
-					// facade entirely — loop and regenerate.
+					// ── Mockup rendering ────────────────────────────────
+					// Ensure mockup content is renderable HTML. If the
+					// LLM returned a description, generate actual HTML.
 
-					if (format === 'image') {
-						setStatus(agent, 'thinking', `rendering image: "${facade.label}"`);
-						const paletteHint = context.palette
-							? `\n\nCOLOR PALETTE (derived from user's taste — incorporate these colors):\n${context.palette}`
-							: '';
-						const imagePrompt = `Generate a UI MOODBOARD or STYLE CONCEPT image — NOT a literal app screenshot. This should feel like a designer's inspiration board or color/texture study that captures a specific aesthetic direction.\n\nStyle direction: ${output.content}${paletteHint}\n\nRules:\n- PORTRAIT orientation (3:4 ratio) — this displays on a tall card, not a landscape monitor\n- Abstract or atmospheric — NOT a phone mockup or wireframe\n- Show colors, textures, typography samples, material references\n- Think Dribbble moodboard or Pinterest inspiration board\n- Fill the entire frame — no device bezels, no hands holding phones\n- Center the most important visual content — edges may be cropped`;
-
-						let imageRendered = false;
-						for (let attempt = 0; attempt < 2; attempt++) {
-							try {
-								const imgResult = await generateText({
-									model: IMAGE_MODEL,
-									providerOptions: {
-										google: {
-											responseModalities: ['TEXT', 'IMAGE'],
-											imageConfig: { aspectRatio: '3:4', imageSize: '1K' }
-										}
-									},
-									prompt: imagePrompt,
-									abortSignal: signal
-								});
-
-								if (!alive()) break;
-
-								if (imgResult.files?.length) {
-									const file = imgResult.files[0];
-									facade.imageDataUrl = `data:${file.mediaType};base64,${file.base64}`;
-									debugLog(name, 'image-rendered', {
-										label: facade.label,
-										mediaType: file.mediaType,
-										sizeKB: Math.round(file.base64.length * 0.75 / 1024),
-										attempt: attempt + 1
-									});
-									imageRendered = true;
-									break;
-								} else {
-									debugLog(name, 'image-no-files', {
-										label: facade.label,
-										attempt: attempt + 1
-									});
-									// Retry once
-								}
-							} catch (err) {
-								if (!alive()) break;
-								debugLog(name, 'image-fail', {
-									label: facade.label,
-									attempt: attempt + 1,
-									err: String(err)
-								});
-								// Retry once
-							}
-						}
-
-						if (!alive()) break;
-
-						if (!imageRendered) {
-							// Fall back to word format instead of dropping the facade
-							debugLog(name, 'image-fallback-word', { label: facade.label });
-							facade.format = 'word';
-							facade.content = facade.label;
-							delete facade.imageDataUrl;
-						}
-					} else if (format === 'mockup' && !/<div|<html|<section/i.test(output.content)) {
+					if (format === 'mockup' && !/<div|<html|<section/i.test(output.content)) {
 						setStatus(agent, 'thinking', `generating mockup HTML: "${facade.label}"`);
 						try {
 							const antiStr = context.antiPatterns.length
@@ -434,7 +333,7 @@ Output ONLY the HTML — no markdown fences, no explanation.
 Mobile viewport 375x667. No scripts. No external resources.`;
 
 							const htmlResult = await generateText({
-								model: MODEL,
+								model: FAST_MODEL,
 								prompt: mockupPrompt,
 								maxOutputTokens: 10000,
 								abortSignal: signal

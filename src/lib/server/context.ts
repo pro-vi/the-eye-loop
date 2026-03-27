@@ -54,9 +54,8 @@ class EyeLoopContext {
 		return 'healthy';
 	}
 
-	get concretenessFloor(): 'word' | 'image' | 'mockup' {
-		if (this.evidence.length < 3) return 'word';
-		if (this.evidence.length < 7) return 'image';
+	get concretenessFloor(): 'word' | 'mockup' {
+		if (this.evidence.length < 4) return 'word';
 		return 'mockup';
 	}
 

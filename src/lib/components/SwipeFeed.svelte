@@ -232,31 +232,6 @@
 						>
 							{facade.hypothesis}
 						</p>
-					{:else if facade.format === 'image' && facade.imageDataUrl}
-						<img
-							src={facade.imageDataUrl}
-							alt={facade.hypothesis}
-							class="w-full h-full object-cover"
-							style="border-radius: {Math.round(CARD_WIDTH * 0.04)}px;"
-						/>
-					{:else if facade.format === 'image'}
-						<div class="text-center px-6">
-							<p
-								class="text-2xl font-bold leading-tight mb-3"
-								style="font-family: var(--font-family-display); color: var(--color-on-surface);"
-							>
-								{facade.label}
-							</p>
-							{#if debug}
-								<p class="text-xs leading-relaxed" style="color: var(--color-on-surface-variant);">
-									{facade.content.slice(0, 150)}
-								</p>
-							{:else}
-								<p class="text-xs leading-relaxed" style="color: var(--color-outline);">
-									Image suggestion is warming up...
-								</p>
-							{/if}
-						</div>
 					{:else if facade.format === 'mockup'}
 						<div class="w-full h-full overflow-hidden">
 							<iframe

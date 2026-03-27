@@ -39,15 +39,13 @@
 
 	const stageLabels: Record<Stage, string> = {
 		words: 'Concepts',
-		images: 'Visuals',
 		mockups: 'Mockups',
 		reveal: 'Reveal'
 	};
 
 	const STAGE_WINDOWS: Record<Exclude<Stage, 'reveal'>, { start: number; span: number }> = {
 		words: { start: 0, span: 4 },
-		images: { start: 4, span: 4 },
-		mockups: { start: 8, span: 7 }
+		mockups: { start: 4, span: 11 }
 	};
 
 	const stageWindow = $derived(
