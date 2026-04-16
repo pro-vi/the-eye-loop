@@ -56,32 +56,11 @@ export const emitSessionReady: (p: SSEEventMap['session-ready']) => void =
 
 // ── Listen helpers ────────────────────────────────────────────────────
 
-export const onFacadeReady = (cb: (p: SSEEventMap['facade-ready']) => void) =>
-	on('facade-ready', cb);
-
-export const onFacadeStale = (cb: (p: SSEEventMap['facade-stale']) => void) =>
-	on('facade-stale', cb);
-
 export const onSwipeResult = (cb: (p: SSEEventMap['swipe-result']) => void) =>
 	on('swipe-result', cb);
 
-export const onEvidenceUpdated = (cb: (p: SSEEventMap['evidence-updated']) => void) =>
-	on('evidence-updated', cb);
-
-export const onAgentStatus = (cb: (p: SSEEventMap['agent-status']) => void) =>
-	on('agent-status', cb);
-
-export const onBuilderHint = (cb: (p: SSEEventMap['builder-hint']) => void) =>
-	on('builder-hint', cb);
-
 export const onStageChanged = (cb: (p: SSEEventMap['stage-changed']) => void) =>
 	on('stage-changed', cb);
-
-export const onDraftUpdated = (cb: (p: SSEEventMap['draft-updated']) => void) =>
-	on('draft-updated', cb);
-
-export const onSynthesisUpdated = (cb: (p: SSEEventMap['synthesis-updated']) => void) =>
-	on('synthesis-updated', cb);
 
 export const onSessionReady = (cb: (p: SSEEventMap['session-ready']) => void) =>
 	on('session-ready', cb);
@@ -93,14 +72,6 @@ export function emitFacadeVisible(facadeId: string) {
 }
 
 // ── Scout blocking pattern ────────────────────────────────────────────
-
-export function onceFacadeSwipe(facadeId: string): Promise<SwipeRecord> {
-	return new Promise((resolve) => {
-		emitter.once(`swipe:${facadeId}`, (e: { record: SwipeRecord }) => {
-			resolve(e.record);
-		});
-	});
-}
 
 export function awaitFacadeSwipe(
 	facadeId: string,

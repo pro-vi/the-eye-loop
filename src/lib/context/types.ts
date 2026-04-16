@@ -91,7 +91,6 @@ export type SSEEvent =
 
 // Derive event map from SSEEvent — bus helpers and SSE forwarding use this
 // to stay aligned with the union above at compile time.
-type SSEEventByType<T extends SSEEvent['type']> = Extract<SSEEvent, { type: T }>;
 export type SSEEventMap = {
 	[E in SSEEvent as E['type']]: Omit<E, 'type'>;
 };

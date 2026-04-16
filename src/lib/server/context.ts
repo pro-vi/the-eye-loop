@@ -112,17 +112,6 @@ class EyeLoopContext {
 		return this.probes.shift();
 	}
 
-	peekNextProbe(): ProbeBrief | undefined {
-		const highIdx = this.probes.findIndex((p) => p.priority === 'high');
-		if (highIdx !== -1) return this.probes[highIdx];
-		return this.probes[0];
-	}
-
-	consumeProbe(probe: ProbeBrief): void {
-		const idx = this.probes.indexOf(probe);
-		if (idx !== -1) this.probes.splice(idx, 1);
-	}
-
 	reset() {
 		this.intent = '';
 		this.sessionId = '';

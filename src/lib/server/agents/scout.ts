@@ -178,7 +178,7 @@ const activeRuns = new Map<string, () => void>();
 
 // ── Public API ───────────────────────────────────────────────────────
 
-export function startScout(agentId: string, name: string): () => void {
+function startScout(agentId: string, name: string): () => void {
 	activeRuns.get(agentId)?.();
 
 	const controller = new AbortController();
@@ -441,10 +441,6 @@ export function startAllScouts(): void {
 			pendingTimers.push(setTimeout(() => startScout(id, name), i * 500));
 		}
 	});
-}
-
-export function stopScout(agentId: string) {
-	activeRuns.get(agentId)?.();
 }
 
 export function stopAllScouts() {
