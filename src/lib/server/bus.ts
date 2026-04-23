@@ -56,6 +56,9 @@ export const emitSessionReady: (p: SSEEventMap['session-ready']) => void =
 
 // Suppress repeat error spam: same (source, code, agentId) within the window
 // is dropped. 401 loops across 6 scouts would otherwise dominate the bus.
+// The map is cleared on every session-ready so a fresh session always emits
+// its own errors even when they are identical to the previous session's —
+// parallel class to context.ts:reset() clearing palette in iter-19.
 const ERROR_EMIT_DEDUP_MS = 5_000;
 const lastErrorEmit = new Map<string, number>();
 
@@ -67,6 +70,13 @@ export const emitError: (p: SSEEventMap['error']) => void = (p) => {
 	lastErrorEmit.set(key, now);
 	emit('error', p);
 };
+
+// Session-scoped dedup reset: session N+1 starts with a fresh map so
+// identical (source, code, agentId) failures surface even within the
+// ERROR_EMIT_DEDUP_MS window. Registered at module load so it runs before
+// any agent's session-ready subscriber — bus clears, then agents' async
+// generateText fires, then 401 emits land on an empty map.
+emitter.on('session-ready', () => lastErrorEmit.clear());
 
 export function classifyErrorCode(err: unknown): SSEEventMap['error']['code'] {
 	const s = err instanceof Error ? `${err.message}` : String(err);

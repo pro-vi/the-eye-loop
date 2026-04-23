@@ -14,14 +14,15 @@
 //   VALIDATE_BOOT_MS         dev server boot deadline (default 30000)
 //   VALIDATE_INTENT          demo intent used in POST /api/session
 //   VALIDATE_SECOND_INTENT   if set, POST a SECOND /api/session with this intent
-//                            after the 5s bus dedup window expires — turns the
-//                            validator into a multi-session probe that
-//                            exercises cross-session state isolation (e.g. the
-//                            iter-19 palette reset fix). Artifact adds
-//                            session_2 block + error_event_count_after_session_2
-//                            metric; under broken auth the new discriminative
-//                            invariant is error_event_count ≈ 2 * distinct
-//                            agents if session 2 fires fresh agent runs.
+//                            1.5s after session 1 (deliberately inside the 5s
+//                            bus dedup window) — turns the validator into a
+//                            multi-session probe that exercises cross-session
+//                            state isolation (iter-19 palette reset + iter-21
+//                            error-dedup reset). Artifact adds session_2 block
+//                            + error_event_count_after_session_2 metric; under
+//                            broken auth the discriminative invariant is
+//                            error_event_count ≈ 2 * distinct agents if session
+//                            2 fires fresh agent runs past the dedup clear.
 
 import { spawn } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -38,16 +39,18 @@ const DEMO_INTENT =
 	process.env.VALIDATE_INTENT ??
 	'a personal dashboard for tracking long-term health experiments';
 // Multi-session mode: if set, validator POSTs a second /api/session with this
-// intent after the 5s bus dedup window (+ slop) has elapsed since session 1's
-// errors fired. This verifies that a subsequent session triggers FRESH agent
-// runs (all 6 scouts + oracle + builder re-fire against new sessionId),
-// closing the iter-19 single-session-blind-spot for cross-session state leaks.
+// intent after session 1's errors have fired. This verifies that a subsequent
+// session triggers FRESH agent runs (all 6 scouts + oracle + builder re-fire
+// against new sessionId), closing the iter-19 single-session-blind-spot for
+// cross-session state leaks.
 const DEMO_SECOND_INTENT = process.env.VALIDATE_SECOND_INTENT ?? null;
-// bus.ts ERROR_EMIT_DEDUP_MS is 5000; wait a little longer to guarantee
-// session 1's (source, code, agentId) tuples have expired before session 2
-// fires, otherwise session 2's identical 401s would be suppressed and the
-// discriminative signal would collapse.
-const SECOND_SESSION_POST_DELAY_MS = 6500;
+// Deliberately SHORTER than bus.ts ERROR_EMIT_DEDUP_MS (5000) — the iter-21 bus
+// fix clears lastErrorEmit on session-ready, so session 2's identical 401s
+// must emit even when session 1's tuples are still young. If a future
+// iteration reverts the clear, session 2 errors would be suppressed at this
+// 1500ms delay and error_event_count_after_session_2 would drop from 8 to 0,
+// making this probe a discriminative regression guard for the fix.
+const SECOND_SESSION_POST_DELAY_MS = 1500;
 
 const MAX_STORED_EVENTS = 200;
 const ERROR_SIGNAL_RE = /401|Invalid bearer|authentication_error|AI_APICall|x-api-key/i;
