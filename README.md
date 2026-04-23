@@ -25,7 +25,7 @@ Evidence flows through an `EventEmitter` bus. SSE streams updates to the client 
 
 - **SvelteKit** + Svelte 5 runes
 - **Vercel AI SDK 6** — `generateText` + `Output.object` for structured LLM output
-- **Gemini** — 3.1 Flash Lite (probes, builder), 3.1 Flash Image / NB2 (moodboards), 3.1 Pro (oracle synthesis)
+- **Anthropic Claude** — Haiku 4.5 (fast tier: scouts, builder scaffold/rebuild, oracle), Sonnet 4.6 (quality tier: builder reveal). Reached via the Claude Code OAuth header path — see `src/lib/server/ai.ts`.
 - **Tailwind CSS 4** — CSS-first config with custom design tokens
 - **Vercel** — Fluid Compute, adapter-vercel
 
@@ -33,7 +33,8 @@ Evidence flows through an `EventEmitter` bus. SSE streams updates to the client 
 
 ```bash
 cp .env.example .env
-# Add your GEMINI_API_KEY to .env
+# Add your CLAUDE_CODE_OAUTH_TOKEN to .env
+# (the provider call fails with `401 Invalid bearer token` until this is set)
 
 pnpm install
 pnpm dev
