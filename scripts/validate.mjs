@@ -698,6 +698,38 @@ async function main() {
 
 	const agentErrorLines = stderrLines.filter((l) => ERROR_SIGNAL_RE.test(l.text));
 
+	// iter-64 draft refinement discriminator — iter-63's placeholder emission
+	// makes draft_updated_count >= 1 achievable on any session-ready (pre-try
+	// placeholder in builder.ts:428-436), so the existing pass predicate
+	// `sessionOk && facadeReadyCount > 0 && draftUpdatedCount > 0` accepts
+	// placeholder-only runs as PASS. That correctly reflects the V0 "pane never
+	// empty" row but does NOT verify that the LLM scaffold or rebuild ever
+	// replaced the placeholder with generated content. These two probes split
+	// draft-updated emissions into placeholder (html contains the literal
+	// 'Building your first draft…' signature from builder.ts:434) vs refined
+	// (html does not), yielding identity invariant:
+	//   draft_placeholder_count + draft_refined_count === draft_updated_count
+	// Under the current healthy-auth baseline (iter-63 landed, 10s window)
+	// expected values are placeholder=1, refined=0, draft_updated=1 — scaffold
+	// fires at ~session-ready, Haiku scaffold+rebuild rarely complete within
+	// the window. Post-latency-optimization regimes would flip refined >= 1
+	// (scaffold Haiku ~10s completes OR swipe triggers rebuild that completes);
+	// post-regression regimes where the placeholder is removed (iter-63 revert)
+	// flip placeholder to 0 while refined stays 0 — silently regressing the V0
+	// pane-never-empty contract. This is the ramp stage 4 discriminative
+	// signal named in iter-63's learning: PASS is no longer binary; the two
+	// sub-counts discriminate placeholder-only, refined, and empty states.
+	const DRAFT_PLACEHOLDER_SIGNATURE = 'Building your first draft…';
+	const draftUpdatedEvents = events.filter((e) => e.type === 'draft-updated');
+	const draftPlaceholderCount = draftUpdatedEvents.filter((e) => {
+		const html = e.data?.draft?.html;
+		return typeof html === 'string' && html.includes(DRAFT_PLACEHOLDER_SIGNATURE);
+	}).length;
+	const draftRefinedCount = draftUpdatedEvents.filter((e) => {
+		const html = e.data?.draft?.html;
+		return typeof html === 'string' && !html.includes(DRAFT_PLACEHOLDER_SIGNATURE);
+	}).length;
+
 	// Reveal reachability — any stage-changed event with stage==='reveal'.
 	const revealReached = events.some(
 		(e) => e.type === 'stage-changed' && e.data?.stage === 'reveal'
@@ -1211,6 +1243,8 @@ async function main() {
 			time_from_session_to_first_error_ms: timeFromSessionToFirstErrorMs,
 			facade_ready_count: facadeReadyCount,
 			draft_updated_count: draftUpdatedCount,
+			draft_placeholder_count: draftPlaceholderCount,
+			draft_refined_count: draftRefinedCount,
 			synthesis_updated_count: synthesisUpdatedCount,
 			swipe_result_count: swipeResultCount,
 			evidence_updated_count: evidenceUpdatedCount,
@@ -1298,6 +1332,7 @@ async function main() {
 	console.log(
 		`[validate] result=${artifact.result} reason=${reason} ` +
 		`${sessionSummary} facades=${facadeReadyCount} drafts=${draftUpdatedCount} ` +
+		`drafts_p/r=${draftPlaceholderCount}/${draftRefinedCount} ` +
 		`synth=${synthesisUpdatedCount} swipe=${swipe.attempted ? swipe.status : 'skipped'} ` +
 		`sse_err=${errorEventCount} auth_err=${agentErrorLines.length} ` +
 		`err_msg=${errorMessagePresentCount} ` +

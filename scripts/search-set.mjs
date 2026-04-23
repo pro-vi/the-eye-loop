@@ -104,6 +104,8 @@ function extractMetrics(artifact) {
 		time_from_session_to_first_error_ms: m.time_from_session_to_first_error_ms ?? null,
 		facade_ready_count: m.facade_ready_count ?? 0,
 		draft_updated_count: m.draft_updated_count ?? 0,
+		draft_placeholder_count: m.draft_placeholder_count ?? 0,
+		draft_refined_count: m.draft_refined_count ?? 0,
 		synthesis_updated_count: m.synthesis_updated_count ?? 0,
 		swipe_result_count: m.swipe_result_count ?? 0,
 		evidence_updated_count: m.evidence_updated_count ?? 0,
@@ -368,6 +370,34 @@ async function main() {
 			reveal_reach_rate: revealReachRate,
 			facade_ready_count_sum: facadeReadyCountSum,
 			draft_updated_count_sum: draftUpdatedCountSum,
+			// iter-64 draft refinement rollups — split iter-63's placeholder-
+			// enabled draft_updated_count_sum into placeholder-still-present vs
+			// LLM-refined-away. Invariant at aggregate:
+			//   draft_placeholder_count_sum + draft_refined_count_sum
+			//     === draft_updated_count_sum
+			// Under the current healthy-auth 10s-window baseline with iter-63's
+			// synchronous placeholder at builder scaffold start, expected values
+			// per 5-intent set are placeholder_sum=5/_min=1 (one per session-ready)
+			// and refined_sum=0/_min=0 (Haiku scaffold+rebuild rarely complete).
+			// Under multi-session mode (VALIDATE_SECOND_INTENT) placeholder_min
+			// doubles to 2 per intent, matching draft_updated_count_min=2. Under
+			// post-latency-optimization regimes refined_sum flips positive
+			// (scaffold returns within the window OR swipe-triggered rebuild
+			// completes); under iter-63-revert regimes placeholder_sum drops to
+			// 0 while refined_sum stays 0 — silently regressing the V0 pane-
+			// never-empty contract. _min probes catch single-intent regression
+			// that _sum would hide; the pair discriminates three states:
+			// (1) placeholder-only (iter-63 seeded, LLM unfinished) — current,
+			// (2) refined (LLM completed) — future product win,
+			// (3) empty (both zero) — broken-auth or placeholder regression.
+			draft_placeholder_count_sum: sumMetric('draft_placeholder_count'),
+			draft_placeholder_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.draft_placeholder_count ?? 0))
+				: 0,
+			draft_refined_count_sum: sumMetric('draft_refined_count'),
+			draft_refined_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.draft_refined_count ?? 0))
+				: 0,
 			synthesis_updated_count_sum: synthesisUpdatedCountSum,
 			swipe_result_count_sum: swipeResultCountSum,
 			error_event_count_sum: errorEventSum,
