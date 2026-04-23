@@ -586,6 +586,37 @@ async function main() {
 	// per agent, also widening (e.g. 18 → 24 for pre-iter-23 scout pattern).
 	// A roster change (adding/removing agents) would shift the base value.
 	const agentStatusEventCount = eventCounts['agent-status'] ?? 0;
+
+	// Primary-stream agent-status per-role breakdown — closes the last unprobed
+	// orthogonal cell in the {primary, stream_2} × {agent-status, error} × per-
+	// role matrix. Landed siblings: iter-31 primary total (agent_status_event_
+	// count), iter-40 stream_2 per-role (stream_2_agent_status_{role}_count),
+	// iter-44 primary per-role error (error_source_{role}_count). Under the
+	// broken-auth baseline with iter-23/24 no-retry + diagnostic preservation,
+	// the expected per-intent values decompose as:
+	//   scout=12 (6 thinking + 6 idle/provider-auth-failed across 6 scouts)
+	//   oracle=3 (1 replay idle at stream connect + 1 thinking cold-start +
+	//     1 idle/provider-auth-failed)
+	//   builder=3 (1 replay idle at stream connect + 1 thinking scaffold +
+	//     1 idle/provider-auth-failed)
+	// Sum = 12+3+3 = 18, matching iter-31's total. The per-role decomposition
+	// catches regressions the total-only probe cannot: a roster rebalance
+	// where one role's cardinality inflates while another drops would keep
+	// the total at 18 but shift the per-role values. Under healthy auth the
+	// 'provider-auth-failed' idle transitions are replaced by normal lifecycle
+	// transitions, so the per-role counts become product-behavior sensors
+	// rather than just failure-path cardinality checks.
+	let agentStatusScoutCount = 0;
+	let agentStatusOracleCount = 0;
+	let agentStatusBuilderCount = 0;
+	for (const e of events) {
+		if (e.type !== 'agent-status') continue;
+		const role = e.data?.agent?.role;
+		if (role === 'scout') agentStatusScoutCount++;
+		else if (role === 'oracle') agentStatusOracleCount++;
+		else if (role === 'builder') agentStatusBuilderCount++;
+	}
+
 	const agentErrorLines = stderrLines.filter((l) => ERROR_SIGNAL_RE.test(l.text));
 
 	// Reveal reachability — any stage-changed event with stage==='reveal'.
@@ -993,6 +1024,9 @@ async function main() {
 			provider_auth_failure_count: providerAuthFailureCount,
 			auth_diagnostic_preserved_count: authDiagnosticPreservedCount,
 			agent_status_event_count: agentStatusEventCount,
+			agent_status_scout_count: agentStatusScoutCount,
+			agent_status_oracle_count: agentStatusOracleCount,
+			agent_status_builder_count: agentStatusBuilderCount,
 			agent_error_signal_count: agentErrorLines.length,
 			scout_started_count: scoutStartedCount,
 			first_scout_started_ms: firstScoutStartedMs,
@@ -1055,6 +1089,7 @@ async function main() {
 		`sse_err=${errorEventCount} auth_err=${agentErrorLines.length} ` +
 		`s1_roles=s${errorSourceScoutCount}/o${errorSourceOracleCount}/b${errorSourceBuilderCount} ` +
 		`agent_status=${agentStatusEventCount} ` +
+		`agent_status_roles=s${agentStatusScoutCount}/o${agentStatusOracleCount}/b${agentStatusBuilderCount} ` +
 		`stage_changed=${stageChangedEventCount} stage_before_ready=${stageChangedBeforeSessionReady} ` +
 		`s2_err=${stream2.error_event_count} s2_agents=${stream2.agent_status_count} s2_stage=${stream2.stage_changed_count} s2_diag=${stream2.diagnostic_preserved_count} s2_err_auth=${stream2.error_provider_auth_count} ` +
 		`s2_roles=s${stream2.agent_status_scout_count}/o${stream2.agent_status_oracle_count}/b${stream2.agent_status_builder_count} ` +

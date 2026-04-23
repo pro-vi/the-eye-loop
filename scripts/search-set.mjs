@@ -116,6 +116,9 @@ function extractMetrics(artifact) {
 		provider_auth_failure_count: m.provider_auth_failure_count ?? 0,
 		auth_diagnostic_preserved_count: m.auth_diagnostic_preserved_count ?? 0,
 		agent_status_event_count: m.agent_status_event_count ?? 0,
+		agent_status_scout_count: m.agent_status_scout_count ?? 0,
+		agent_status_oracle_count: m.agent_status_oracle_count ?? 0,
+		agent_status_builder_count: m.agent_status_builder_count ?? 0,
 		agent_error_signal_count: m.agent_error_signal_count ?? 0,
 		scout_started_count: m.scout_started_count ?? 0,
 		scout_start_spread_ms: m.scout_start_spread_ms ?? null,
@@ -508,6 +511,31 @@ async function main() {
 			agent_status_event_count_sum: sumMetric('agent_status_event_count'),
 			agent_status_event_count_min: perIntent.length
 				? Math.min(...perIntent.map((p) => p.metrics.agent_status_event_count ?? 0))
+				: 0,
+			// iter-52 primary-stream agent-status per-role breakdown. Closes
+			// the last orthogonal cell in {primary, stream_2} × {agent-status,
+			// error} × per-role (siblings: iter-31 primary total, iter-40
+			// stream_2 per-role, iter-44 primary error per-role). Under broken-
+			// auth baseline expected invariants: scout=60/12 (12 per intent × 5
+			// intents, 6 scouts each emitting 2 agent-status events = thinking
+			// + idle), oracle=15/3 (1 replay + 1 thinking + 1 idle per intent),
+			// builder=15/3 (same as oracle). A regression that reintroduces
+			// retries under auth failure would inflate scout counts past 12;
+			// a regression that drops the replay from /api/stream's start()
+			// block would drop oracle and builder to 2 per intent; a roster
+			// rebalance where scouts become 3 but inflate oracle/builder
+			// would keep the iter-31 total at 18 but shift per-role values.
+			agent_status_scout_count_sum: sumMetric('agent_status_scout_count'),
+			agent_status_scout_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.agent_status_scout_count ?? 0))
+				: 0,
+			agent_status_oracle_count_sum: sumMetric('agent_status_oracle_count'),
+			agent_status_oracle_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.agent_status_oracle_count ?? 0))
+				: 0,
+			agent_status_builder_count_sum: sumMetric('agent_status_builder_count'),
+			agent_status_builder_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.agent_status_builder_count ?? 0))
 				: 0,
 			// iter-34 primary-stream stage-changed probe. Closes iter-27's
 			// explicitly-deferred ordering invariant: under the broken-auth
