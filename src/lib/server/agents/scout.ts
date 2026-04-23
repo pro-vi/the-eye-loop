@@ -443,8 +443,16 @@ Mobile viewport 375x667. No scripts. No external resources.`;
 					message: err instanceof Error ? err.message : String(err)
 				});
 				if (code === 'provider_auth_failure') {
+					// Return directly from the IIFE so the post-loop cleanup's
+					// setStatus('idle', '') cannot overwrite this diagnostic focus
+					// ~1ms later — without this, the UX agent rail loses the
+					// "provider auth failed" signal that iter-13 specifically
+					// added to tell operators which scouts died of auth.
 					setStatus(agent, 'idle', 'provider auth failed');
-					break;
+					if (activeRuns.get(agentId) === stop) {
+						activeRuns.delete(agentId);
+					}
+					return;
 				}
 				consecutiveFailures++;
 				const backoffMs = Math.min(
