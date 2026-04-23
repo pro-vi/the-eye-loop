@@ -251,6 +251,16 @@ async function runSynthesis() {
 
 export async function seedSession(intent: string): Promise<{ sessionId: string }> {
 	debugLog('Oracle', 'session-start', { intent: intent.trim() });
+	// Capture the stage BEFORE reset so a session following one that advanced
+	// past 'words' can announce the transition back to existing SSE subscribers.
+	// The /api/stream replay block (iter-27) handles NEW connections, but an
+	// already-connected client (e.g. a second tab that watched session 1 reach
+	// 'mockups' or 'reveal') never sees a stage-changed event when session 2
+	// resets context.stage to 'words' — leaving that tab's UI stuck in the old
+	// stage's mode. Parallel in spirit to iter-21's session-ready bus clear
+	// and iter-19's palette reset: both close cross-session state leaks that
+	// the replay block alone cannot see.
+	const previousStage = context.stage;
 	context.reset();
 	context.intent = intent;
 	context.sessionId = crypto.randomUUID();
@@ -262,6 +272,18 @@ export async function seedSession(intent: string): Promise<{ sessionId: string }
 	pendingSynthesis = false;
 
 	emitSessionReady({ intent });
+
+	// Only emit when the previous session's stage actually differed from the
+	// reset target — on the FIRST session of a process (and on any session
+	// whose predecessor ended at 'words') previousStage === context.stage, so
+	// this is a no-op and the broken-auth baseline stage_changed_event_count
+	// stays at its iter-34 value of 1 (the replay emit). The emit fires only
+	// on healthy-auth multi-session flows where session N reached 'mockups'
+	// or 'reveal' — exactly the scenario that stream_2 + the primary replay
+	// block cannot cover for already-connected clients.
+	if (previousStage !== context.stage) {
+		emitStageChanged({ stage: context.stage, swipeCount: context.swipeCount });
+	}
 
 	// Fire-and-forget: awaiting the cold-start LLM call would block POST
 	// /api/session for ~2-3s under healthy auth. Scouts fall back to
