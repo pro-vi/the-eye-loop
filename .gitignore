@@ -7,6 +7,14 @@ node_modules/
 
 # Research (cloned repos, syntheses, internal findings)
 .research/
-scripts/
+
+# scripts/ is ignored by default (local experiments, boss-run logs); the live
+# validator and its findings artifacts are explicitly tracked so future
+# iterations can run the ramp smoke and diff structured traces.
+scripts/*
+!scripts/validate.sh
+!scripts/validate.mjs
+!scripts/findings/
+!scripts/findings/**
+
 debug.jsonl
-scripts/boss-run/
