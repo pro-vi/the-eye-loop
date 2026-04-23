@@ -388,6 +388,7 @@ async function main() {
 		agent_status_builder_count: 0,
 		stage_valid_count: 0,
 		error_source_valid_count: 0,
+		error_code_valid_count: 0,
 		error_message_present_count: 0,
 		first_event_ms_after_open: null,
 		last_event_ms_after_open: null,
@@ -522,11 +523,27 @@ async function main() {
 		// (iter-26) and error_provider_auth_count (iter-39) stay at 1.
 		const VALID_STAGES = ['words', 'mockups', 'reveal'];
 		const VALID_ERROR_SOURCES = ['scout', 'oracle', 'builder'];
+		// iter-56: error.code union-membership probe — closes the last unfilled
+		// cell in the {primary, stream_2} × {stage, source, code, message}
+		// field-validity matrix. Iter-39's stream_2_error_provider_auth_count
+		// is a SPECIFIC-VALUE probe (==='provider_auth_failure'); this is its
+		// UNION-MEMBERSHIP sibling (∈ ErrorCode union per types.ts:93). The two
+		// are orthogonal: under broken-auth they're identical (every code is
+		// provider_auth_failure), but a future regression that emits a NEW
+		// valid code (provider_error or generation_error from a non-401 failure)
+		// would diverge — provider_auth_count drops below event_count while
+		// code_valid_count stays at event_count. Conversely, a regression
+		// emitting code='unknown' or undefined drops code_valid below
+		// provider_auth (which already filters to a specific string).
+		const VALID_ERROR_CODES = ['provider_auth_failure', 'provider_error', 'generation_error'];
 		stream2.stage_valid_count = stream2.events.filter(
 			(e) => e.type === 'stage-changed' && VALID_STAGES.includes(e.data?.stage)
 		).length;
 		stream2.error_source_valid_count = stream2.events.filter(
 			(e) => e.type === 'error' && VALID_ERROR_SOURCES.includes(e.data?.source)
+		).length;
+		stream2.error_code_valid_count = stream2.events.filter(
+			(e) => e.type === 'error' && VALID_ERROR_CODES.includes(e.data?.code)
 		).length;
 		// iter-54 message-field presence probe — closes the last unprobed field
 		// on the iter-3 'error' SSEEvent (message), completing the {source, code,
@@ -993,11 +1010,24 @@ async function main() {
 	//     = stream_2_agent_status = stream_2_diagnostic = error_source_valid.
 	const VALID_STAGES = new Set(['words', 'mockups', 'reveal']);
 	const VALID_ERROR_SOURCES = new Set(['scout', 'oracle', 'builder']);
+	// iter-56: error.code union-membership probe (primary stream) — symmetric
+	// to the stream_2.error_code_valid_count above, completing the {primary,
+	// stream_2} × {stage, source, code, message} field-validity matrix that
+	// iter-54/iter-55 left with code as the last open cell on both streams.
+	// Distinct from provider_auth_failure_count (iter-39 specific-value probe):
+	// under broken-auth they're equal (40==40 aggregate), but they diverge under
+	// any regime emitting non-auth codes — provider_auth drops, code_valid stays
+	// at event_count. Detects emit sites passing untyped strings or stale union
+	// values that compile-time checks miss when 'as ErrorCode' suppression is used.
+	const VALID_ERROR_CODES = new Set(['provider_auth_failure', 'provider_error', 'generation_error']);
 	const stageValidCount = events.filter(
 		(e) => e.type === 'stage-changed' && VALID_STAGES.has(e.data?.stage)
 	).length;
 	const errorSourceValidCount = errorEvents.filter((e) =>
 		VALID_ERROR_SOURCES.has(e.data?.source)
+	).length;
+	const errorCodeValidCount = errorEvents.filter((e) =>
+		VALID_ERROR_CODES.has(e.data?.code)
 	).length;
 
 	// Multi-session probe — always computed, but only populated when
@@ -1120,6 +1150,7 @@ async function main() {
 			stream_2_agent_status_builder_count: stream2.agent_status_builder_count,
 			stream_2_stage_valid_count: stream2.stage_valid_count,
 			stream_2_error_source_valid_count: stream2.error_source_valid_count,
+			stream_2_error_code_valid_count: stream2.error_code_valid_count,
 			stream_2_error_message_present_count: stream2.error_message_present_count,
 			stream_2_first_event_ms_after_open: stream2.first_event_ms_after_open,
 			stream_2_replay_span_ms: stream2.replay_span_ms,
@@ -1128,6 +1159,7 @@ async function main() {
 			stage_changed_before_session_ready: stageChangedBeforeSessionReady,
 			stage_valid_count: stageValidCount,
 			error_source_valid_count: errorSourceValidCount,
+			error_code_valid_count: errorCodeValidCount,
 			oracle_cold_start_latency_ms: oracleColdStartLatencyMs,
 			oracle_synthesis_latency_ms: oracleSynthesisLatencyMs,
 			oracle_reveal_build_latency_ms: oracleRevealBuildLatencyMs,
@@ -1165,10 +1197,10 @@ async function main() {
 		`agent_status=${agentStatusEventCount} ` +
 		`agent_status_roles=s${agentStatusScoutCount}/o${agentStatusOracleCount}/b${agentStatusBuilderCount} ` +
 		`stage_changed=${stageChangedEventCount} stage_before_ready=${stageChangedBeforeSessionReady} ` +
-		`stage_valid=${stageValidCount} err_src_valid=${errorSourceValidCount} ` +
+		`stage_valid=${stageValidCount} err_src_valid=${errorSourceValidCount} err_code_valid=${errorCodeValidCount} ` +
 		`s2_err=${stream2.error_event_count} s2_agents=${stream2.agent_status_count} s2_stage=${stream2.stage_changed_count} s2_diag=${stream2.diagnostic_preserved_count} s2_err_auth=${stream2.error_provider_auth_count} ` +
 		`s2_roles=s${stream2.agent_status_scout_count}/o${stream2.agent_status_oracle_count}/b${stream2.agent_status_builder_count} ` +
-		`s2_stage_valid=${stream2.stage_valid_count} s2_err_src_valid=${stream2.error_source_valid_count} s2_err_msg=${stream2.error_message_present_count} ` +
+		`s2_stage_valid=${stream2.stage_valid_count} s2_err_src_valid=${stream2.error_source_valid_count} s2_err_code_valid=${stream2.error_code_valid_count} s2_err_msg=${stream2.error_message_present_count} ` +
 		`s2_first=${stream2.first_event_ms_after_open}ms s2_span=${stream2.replay_span_ms}ms ` +
 		`oracle_cs=${oracleColdStartLatencyMs === null ? '-' : oracleColdStartLatencyMs + 'ms'} ` +
 		`oracle_syn=${oracleSynthesisLatencyMs === null ? '-' : oracleSynthesisLatencyMs + 'ms'} ` +

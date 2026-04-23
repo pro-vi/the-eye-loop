@@ -134,6 +134,7 @@ function extractMetrics(artifact) {
 		stream_2_agent_status_builder_count: m.stream_2_agent_status_builder_count ?? 0,
 		stream_2_stage_valid_count: m.stream_2_stage_valid_count ?? 0,
 		stream_2_error_source_valid_count: m.stream_2_error_source_valid_count ?? 0,
+		stream_2_error_code_valid_count: m.stream_2_error_code_valid_count ?? 0,
 		stream_2_error_message_present_count: m.stream_2_error_message_present_count ?? 0,
 		stream_2_first_event_ms_after_open: m.stream_2_first_event_ms_after_open ?? null,
 		stream_2_replay_span_ms: m.stream_2_replay_span_ms ?? null,
@@ -142,6 +143,7 @@ function extractMetrics(artifact) {
 		stage_changed_before_session_ready: m.stage_changed_before_session_ready ?? 0,
 		stage_valid_count: m.stage_valid_count ?? 0,
 		error_source_valid_count: m.error_source_valid_count ?? 0,
+		error_code_valid_count: m.error_code_valid_count ?? 0,
 		oracle_cold_start_latency_ms: m.oracle_cold_start_latency_ms ?? null,
 		oracle_synthesis_latency_ms: m.oracle_synthesis_latency_ms ?? null,
 		oracle_reveal_build_latency_ms: m.oracle_reveal_build_latency_ms ?? null,
@@ -500,6 +502,26 @@ async function main() {
 			stream_2_error_source_valid_count_min: perIntent.length
 				? Math.min(...perIntent.map((p) => p.metrics.stream_2_error_source_valid_count ?? 0))
 				: 0,
+			// iter-56 error.code union-membership rollups (stream_2 + primary
+			// below). Closes the last unfilled cell in {primary, stream_2} ×
+			// {stage, source, code, message} field-validity matrix that iter-54
+			// (message) and iter-55 (primary stage + source) left open. Distinct
+			// from iter-39's stream_2_error_provider_auth_count_sum (iter-3 era
+			// SPECIFIC-VALUE probe ===' provider_auth_failure'): under broken-auth
+			// they're identical (every code is provider_auth_failure, sum=5/_min=1
+			// stream_2; sum=40/_min=8 primary), but under any post-auth-fix regime
+			// emitting non-auth codes (provider_error from a 5xx, generation_error
+			// from a parse failure) provider_auth_count drops below event_count
+			// while error_code_valid_count stays at event_count. The two probes
+			// together discriminate three regimes: (1) broken-auth: both equal
+			// event_count, (2) healthy with non-auth errors: code_valid stays high,
+			// provider_auth drops, (3) corrupt emit: code_valid drops below event
+			// while provider_auth stays at zero. Adds 8th identity term to the
+			// iter-25 7-way equality at 40: error_code_valid_count_sum=40.
+			stream_2_error_code_valid_count_sum: sumMetric('stream_2_error_code_valid_count'),
+			stream_2_error_code_valid_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.stream_2_error_code_valid_count ?? 0))
+				: 0,
 			// iter-54 message-field presence rollups — closes the last unprobed
 			// field on the iter-3 'error' SSEEvent across BOTH primary and
 			// stream_2, completing the {primary, stream_2} × {source, code,
@@ -618,6 +640,23 @@ async function main() {
 			error_source_valid_count_sum: sumMetric('error_source_valid_count'),
 			error_source_valid_count_min: perIntent.length
 				? Math.min(...perIntent.map((p) => p.metrics.error_source_valid_count ?? 0))
+				: 0,
+			// iter-56 primary-stream error.code union-membership rollup. Pairs
+			// with stream_2_error_code_valid_count_sum above to close the
+			// matrix on BOTH streams. Under broken-auth baseline the invariant
+			// is _sum=40 _min=8 (joins the iter-25/55 equality at 40 as the
+			// 8th identity term: error_event = distinct_agent = provider_auth =
+			// auth_diagnostic = stream_2_agent_status = stream_2_diagnostic =
+			// error_source_valid = error_code_valid = 40). Equality with
+			// provider_auth_failure_count_sum (40) is regime-dependent: under
+			// broken-auth they coincide, under healthy auth with mixed failure
+			// modes provider_auth drops below event_count while error_code_valid
+			// stays at event_count — making this probe a direct measurement
+			// surface for "are non-auth failures classified into the typed
+			// union, or are they slipping through as untyped strings?"
+			error_code_valid_count_sum: sumMetric('error_code_valid_count'),
+			error_code_valid_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.error_code_valid_count ?? 0))
 				: 0,
 			time_to_first_stage_changed_ms_p50: percentile(
 				perIntent.map((p) => p.metrics.time_to_first_stage_changed_ms),
