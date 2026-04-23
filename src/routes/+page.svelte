@@ -189,6 +189,20 @@
 			}
 		});
 
+		// Cross-session state clear for an already-connected stream. Parallels
+		// iter-21's server-side bus.lastError clear on session-ready and iter-42's
+		// conditional stage-changed emit for existing subscribers. startSession()
+		// already resets sessionError in the same tab that initiated the fetch;
+		// this handler closes the analogous gap for a second tab (or any stream
+		// that held a connection across a session boundary it did not initiate),
+		// where session 1's provider_auth_failure banner would otherwise persist
+		// in the UI until session 2's first error event arrives ~180ms later
+		// (under the current broken-auth baseline) or indefinitely (under a
+		// healthy-auth session where no error ever fires).
+		es.addEventListener('session-ready', () => {
+			sessionError = null;
+		});
+
 		es.onerror = (e) => {
 			// SSE-typed 'error' messages also hit onerror in some runtimes;
 			// the MessageEvent variant is handled above.
