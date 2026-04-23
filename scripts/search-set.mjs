@@ -112,6 +112,7 @@ function extractMetrics(artifact) {
 		distinct_error_agent_count: m.distinct_error_agent_count ?? 0,
 		provider_auth_failure_count: m.provider_auth_failure_count ?? 0,
 		auth_diagnostic_preserved_count: m.auth_diagnostic_preserved_count ?? 0,
+		agent_status_event_count: m.agent_status_event_count ?? 0,
 		agent_error_signal_count: m.agent_error_signal_count ?? 0,
 		scout_started_count: m.scout_started_count ?? 0,
 		scout_start_spread_ms: m.scout_start_spread_ms ?? null,
@@ -377,6 +378,22 @@ async function main() {
 			stream_2_diagnostic_preserved_count_sum: sumMetric('stream_2_diagnostic_preserved_count'),
 			stream_2_diagnostic_preserved_count_min: perIntent.length
 				? Math.min(...perIntent.map((p) => p.metrics.stream_2_diagnostic_preserved_count ?? 0))
+				: 0,
+			// iter-31 primary-stream lifecycle volume. Complementary to
+			// scout_started_count_sum (counts distinct scouts that reached
+			// 'thinking') and auth_diagnostic_preserved_count (content of final
+			// focus): this metric counts TOTAL agent-status emits on the primary
+			// stream (2 pre-session replay + live transitions). Under the
+			// broken-auth baseline with iter-13 no-retry + iter-23/24 diagnostic
+			// preservation the invariant is exactly 18 per intent (2 + 8
+			// thinking + 8 idle/diagnostic) — _sum = 90 and _min = 18 across 5
+			// intents. A regression that reintroduces retry loops under auth
+			// failure widens the count per retry; a regression of iter-23 fall-
+			// through adds a 6-event tail (18 → 24); a roster cardinality change
+			// shifts the base value.
+			agent_status_event_count_sum: sumMetric('agent_status_event_count'),
+			agent_status_event_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.agent_status_event_count ?? 0))
 				: 0
 		},
 		per_intent: perIntent

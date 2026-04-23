@@ -466,6 +466,24 @@ async function main() {
 	const swipeResultCount = eventCounts['swipe-result'] ?? 0;
 	const evidenceUpdatedCount = eventCounts['evidence-updated'] ?? 0;
 	const errorEventCount = eventCounts['error'] ?? 0;
+	// Primary-stream agent-status lifecycle volume — complementary to iter-16
+	// scout_started_count (distinct scouts that reached 'thinking') and iter-25
+	// auth_diagnostic_preserved_count (content of the FINAL focus). This counts
+	// ALL agent-status emits on stream 1 (2 pre-session replay + live lifecycle
+	// transitions). Under the broken-auth baseline with iter-23/24 no-retry +
+	// diagnostic preservation, the expected value is exactly 18 per intent:
+	//   2 replay (oracle+builder idle pre-session, emitted to stream 1 on
+	//     connect before POST /api/session)
+	//   8 thinking transitions (oracle cold-start + builder scaffold + 6 scouts
+	//     generating probe, all at ~session-ready)
+	//   8 idle/provider-auth-failed transitions (iter-23 scout IIFE-return +
+	//     iter-24 oracle/builder preservation)
+	// A regression that reintroduces a retry loop under auth failure would add
+	// extra thinking/idle transitions per retry, widening the count past 18.
+	// A regression of iter-23/24 fall-through would add an extra idle/'' tail
+	// per agent, also widening (e.g. 18 → 24 for pre-iter-23 scout pattern).
+	// A roster change (adding/removing agents) would shift the base value.
+	const agentStatusEventCount = eventCounts['agent-status'] ?? 0;
 	const agentErrorLines = stderrLines.filter((l) => ERROR_SIGNAL_RE.test(l.text));
 
 	// Reveal reachability — any stage-changed event with stage==='reveal'.
@@ -720,6 +738,7 @@ async function main() {
 			distinct_error_agent_count: distinctErrorAgentCount,
 			provider_auth_failure_count: providerAuthFailureCount,
 			auth_diagnostic_preserved_count: authDiagnosticPreservedCount,
+			agent_status_event_count: agentStatusEventCount,
 			agent_error_signal_count: agentErrorLines.length,
 			scout_started_count: scoutStartedCount,
 			first_scout_started_ms: firstScoutStartedMs,
@@ -758,6 +777,7 @@ async function main() {
 		`${sessionSummary} facades=${facadeReadyCount} drafts=${draftUpdatedCount} ` +
 		`synth=${synthesisUpdatedCount} swipe=${swipe.attempted ? swipe.status : 'skipped'} ` +
 		`sse_err=${errorEventCount} auth_err=${agentErrorLines.length} ` +
+		`agent_status=${agentStatusEventCount} ` +
 		`s2_err=${stream2.error_event_count} s2_agents=${stream2.agent_status_count} s2_stage=${stream2.stage_changed_count} s2_diag=${stream2.diagnostic_preserved_count}`
 	);
 	process.exit(pass ? 0 : 1);
