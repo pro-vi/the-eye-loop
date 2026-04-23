@@ -254,10 +254,12 @@ export async function seedSession(intent: string): Promise<{ sessionId: string }
 
 	emitSessionReady({ intent });
 
-	// Await cold-start so scouts get axis assignments on their first iteration
-	await runColdStart(intent, context.sessionId);
+	// Fire-and-forget: awaiting the cold-start LLM call would block POST
+	// /api/session for ~2-3s under healthy auth. Scouts fall back to
+	// self-assignment via getAxisAssignment() until synthesis lands.
+	// runColdStart has its own sessionId staleness guards.
+	void runColdStart(intent, context.sessionId);
 
-	setOracleStatus('idle', 'monitoring');
 	console.log(`[oracle] session created for "${intent}"`);
 	return { sessionId: context.sessionId };
 }
