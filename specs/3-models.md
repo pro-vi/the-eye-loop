@@ -1,184 +1,109 @@
 # Model Architecture — The Eye Loop
 
-Three-tier model architecture: fast generator, image renderer, slow oracle.
+Landed runtime: **Anthropic Claude**, two-tier. Fast tier for scouts/builder-incremental/oracle; quality tier reserved for builder reveal. Images are cut — scouts emit `word` or `mockup` facades only. Source of truth: `src/lib/server/ai.ts`.
 
 ---
 
-## Model Roster
+## Model Roster (landed)
 
-| Tier | Model ID | Display Name | Role | Latency | Context |
-|------|----------|-------------|------|---------|---------|
-| Generator | `gemini-3.1-flash-lite-preview` | 3.1 Flash Lite | Scout text/HTML, Builder, Compaction | 1-5s | 1M in / 65K out |
-| Renderer | `gemini-3.1-flash-image-preview` | Nano Banana 2 | Image facade generation | ~21s | 65K in / 65K out |
-| Oracle | `gemini-3.1-pro-preview` | 3.1 Pro | Fract detection, stuck detection, quality gate | 18-25s | 1M in / 65K out |
+| Tier | Model ID | Display Name | Role |
+|------|----------|-------------|------|
+| Fast | `claude-haiku-4-5-20251001` | Haiku 4.5 | Scouts (word + HTML mockup), Oracle synthesis, Builder scaffold/rebuild |
+| Quality | `claude-sonnet-4-6` | Sonnet 4.6 | Builder reveal |
+
+Exported as `FAST_MODEL` and `QUALITY_MODEL` from `src/lib/server/ai.ts`. Call sites live in `src/lib/server/agents/{scout,builder,oracle}.ts`.
 
 ## Tier Responsibilities
 
-### Generator (Flash Lite 3.1)
+### Fast (Haiku 4.5)
 
-Called on every swipe cycle. Must stay under 5s for demo feel.
+Every swipe-cycle path. Must feel responsive.
 
-- **Scout word facades** — single words/phrases, ~1.2s
-- **Scout image SCHEMA prompts** — 7-field structured prompts for Renderer, ~2.6s
-- **Scout HTML mockups** — complete HTML+CSS (375x667 mobile), ~4.5s
-- **Builder updates** — integrate swipe results, emit probe briefs, ~1.9s
-- **Compaction** — rewrite Anima YAML every 5 swipes, ~1.7s
+- **Scout word facade** — single evocative word or 2-3 word phrase via `Output.object()` + Zod schema (`ScoutOutputSchema` in `scout.ts`)
+- **Scout HTML mockup** — free-form HTML+CSS generation when the scout metadata returns `format: 'mockup'`, parsed out of the text response
+- **Oracle synthesis** — every 4 swipes, emits `TasteSynthesis` (emergent axes + scout assignments + divergence)
+- **Builder scaffold** — initial draft on session-created, maintains `PrototypeDraft`
+- **Builder incremental rebuild** — on swipe-result, integrates accepted/rejected patterns
 
-### Renderer (Nano Banana 2)
+### Quality (Sonnet 4.6)
 
-Called when Generator produces an IMAGE SCHEMA prompt. Pre-buffered in facade queue.
+Single call: builder reveal at stage=`reveal`. Exchanges latency for coherence on the final artifact.
 
-- Image generation via `generateText()` with `providerOptions.google.responseModalities: ['TEXT', 'IMAGE']`
-- Returns `result.files[]` with base64 PNG/JPEG
-- Output: UI moodboards, color swatches, typography samples, component previews
-- ~21s latency — acceptable because queue pre-buffers 3-5 facades ahead
+## Provider auth
 
-### Oracle (3.1 Pro)
-
-Called rarely (every 5-10 swipes) for high-stakes decisions. Runs in background.
-
-- **Fract detection** — when a dimension resolves, propose grounded child axes from local evidence
-- **Stuck detection** — info gain declining, decide: shift stage / broaden / reveal / reframe
-- **Quality gate** — sanity check compacted Anima every ~10 swipes (optional, cut if needed)
-
-## Why Not Other Models
-
-Benchmarked on 2026-03-21 against actual prompt patterns from `1-prompts.md`.
-
-| Model | Verdict | Reason |
-|-------|---------|--------|
-| `gemini-2.5-flash` | Skip | 10-43s (thinking overhead), no quality gain over Flash Lite |
-| `gemini-2.5-pro` | Skip | 15-24s, only won Image SCHEMA (67% → 100%) — fixable with Zod schemas |
-| `gemini-2.5-flash-image` (NB OG) | Backup | 3x faster (6s) but blurry/artistic output, less useful for UI facades |
-| `gemini-3-pro-image-preview` (NB Pro) | Skip | Same speed as NB2, photorealistic style less useful for UI |
-| `gemini-3-flash-preview` | Skip | 54s latency — unusable |
-
-## Environment
+Uses the Claude Code OAuth header path, not the standard Anthropic API key path. `createAnthropic({ apiKey: 'x', headers: { ... } })` is the whole surface.
 
 ```env
 # .env
-GEMINI_API_KEY=...          # AI Studio key
-# Aliased at runtime:
-# process.env.GOOGLE_GENERATIVE_AI_API_KEY ??= process.env.GEMINI_API_KEY
+CLAUDE_CODE_OAUTH_TOKEN=...   # required; provider call 401s without it
 ```
 
-## Code Pattern
-
 ```typescript
-import { google } from '@ai-sdk/google';
+import { createAnthropic } from '@ai-sdk/anthropic';
+import { env } from '$env/dynamic/private';
 
-// Generator — all text tasks
-const generator = google('gemini-3.1-flash-lite-preview');
-
-// Renderer — image facades only
-const renderer = google('gemini-3.1-flash-image-preview');
-
-// Oracle — rare background decisions
-const oracle = google('gemini-3.1-pro-preview');
-```
-
-Image generation pattern:
-```typescript
-const result = await generateText({
-  model: renderer,
-  prompt: imageSchemaPrompt,
-  providerOptions: {
-    google: { responseModalities: ['TEXT', 'IMAGE'] },
+const anthropic = createAnthropic({
+  apiKey: 'x',
+  headers: {
+    'x-api-key': '',
+    Authorization: `Bearer ${env.CLAUDE_CODE_OAUTH_TOKEN ?? ''}`,
+    'anthropic-beta': 'claude-code-20250219,oauth-2025-04-20',
+    'user-agent': 'claude-cli/2.1.2 (external, cli)',
+    'x-app': 'cli',
   },
 });
-// result.files[0].base64, result.files[0].mediaType
+
+export const FAST_MODEL = anthropic('claude-haiku-4-5-20251001');
+export const QUALITY_MODEL = anthropic('claude-sonnet-4-6');
 ```
 
-## Rate Limits (AI Studio Free)
+Missing/invalid token surfaces as `401 Invalid bearer token` at the first provider call and is classified as `provider_auth_failure` on the bus (`src/lib/server/bus.ts:classifyErrorCode`).
 
-| Model | RPM | TPM | RPD |
-|-------|-----|-----|-----|
-| 3.1 Pro | 2K | 8M | Unlimited |
-| 3.1 Flash Lite | 30K | 30M | Unlimited |
-| Nano Banana 2 | 5K | 10M | 50K |
-
-No rate concerns for single-user demo. Flash Lite has the most generous limits.
+---
 
 ## Temperature Discipline
 
-Different tasks need different temperature settings (validated by gemini-cli project patterns):
+Matches landed call sites in `src/lib/server/agents/{scout,builder,oracle}.ts`:
 
-| Tier | Temperature | Why |
-|------|------------|-----|
-| Generator (scouts) | `1.0` (default) | Creative facade generation needs diversity |
-| Generator (builder) | `0` | Analytical — identifying construction blockers |
-| Generator (compaction) | `0` | Deterministic — merging/pruning evidence |
-| Renderer (NB2) | `1.0` (default) | Creative image generation |
-| Oracle | `0` | Analytical — fract detection, stuck decisions |
+| Call site | Temperature | Why |
+|-----------|------------|-----|
+| Scout probe generation | `1.0` | Creative — diverse taste probes |
+| Scout HTML mockup | default | Inherits from `FAST_MODEL`, free-form HTML |
+| Builder scaffold / rebuild / reveal | `0` | Analytical — integrate evidence deterministically |
+| Oracle synthesis / cold-start | `0` | Analytical — emergent-axis inference |
 
-## Renderer Patterns (from research)
+## Fallback plan (landed runtime)
+
+If Haiku 4.5 is flaky or rate-limited, swap `FAST_MODEL` in `src/lib/server/ai.ts` to another Claude SKU. One edit, propagates to every agent. Typical fallbacks:
+
+| From | To | Trade-off |
+|------|-----|-----------|
+| `claude-haiku-4-5-20251001` | `claude-sonnet-4-6` | Higher quality, higher latency, higher cost |
+| `claude-sonnet-4-6` (reveal) | `claude-haiku-4-5-20251001` | Drops reveal coherence for speed |
+
+Provider auth never fails over automatically — every call uses the same `CLAUDE_CODE_OAUTH_TOKEN` via `createAnthropic(...)`.
+
+---
+
+## Appendix: historical Gemini three-tier design
+
+The content below describes the earlier Gemini-era preview runtime (generator = Flash Lite 3.1, renderer = Nano Banana 2, oracle = Pro 3.1) that was superseded by the landed Anthropic two-tier design above. Kept for pattern/benchmark reference only — none of these APIs, models, or code snippets are reachable in the current build.
+
+### Gemini-era roster (superseded)
+
+| Tier | Model ID | Role |
+|------|----------|------|
+| Generator | `gemini-3.1-flash-lite-preview` | Scout text/HTML, Builder, Compaction |
+| Renderer | `gemini-3.1-flash-image-preview` (Nano Banana 2) | Image facade generation |
+| Oracle | `gemini-3.1-pro-preview` | Fract detection, stuck detection, quality gate |
+
+### Renderer patterns (Gemini NB2, not in landed runtime)
 
 Patterns validated by nano-banana-2-skill and gemimg projects:
 
-1. **Reference images go FIRST in parts array, text prompt LAST.** Gemini uses visual context before text instruction — improves style consistency for one-axis sweeps.
-
-2. **Style transfer via text prompt does NOT work.** "Make it warmer" is unreliable. Pass the accepted facade as reference image + instruct only the axis change.
-
-3. **Stateless editing is MANDATORY, not just preferred.** Multi-turn conversation history with NB2 fails with `thought_signature` error — AI SDK does not handle this. Each facade MUST be a fresh `generateText` call with reference image as `type: 'file'` in a single user message. Never pass assistant-generated images back in conversation history.
-
-4. **Google Search grounding: skip.** Benchmarked — adds ~7s latency to image gen with no quality improvement. Same for HTML mockups. Not worth it.
-
-5. **Max 3 iterative edits on same reference before rebuilding prompt from scratch** — drift accumulates.
-
-6. **One-axis sweeps work.** NB2 cleanly isolates single-axis changes (palette, shape, density) while preserving all other properties. Reference-first ordering confirmed effective.
-
-Image editing (one-axis sweep):
-```typescript
-const result = await generateText({
-  model: renderer,
-  providerOptions: {
-    google: { responseModalities: ['TEXT', 'IMAGE'] },
-  },
-  messages: [{
-    role: 'user',
-    content: [
-      // Reference image FIRST
-      { type: 'file', data: existingBase64, mediaType: 'image/png' },
-      // Variation instruction LAST
-      { type: 'text', text: 'Change only the color temperature to warm golden. Keep everything else identical.' },
-    ],
-  }],
-});
-```
-
-## Verified: Structured Output + Image Gen
-
-`Output.object()` + `responseModalities: ['TEXT', 'IMAGE']` **work together in a single call.** NB2 returns both typed metadata and image files. No need for two-call split.
-
-```typescript
-const result = await generateText({
-  model: renderer,
-  output: Output.object({
-    schema: z.object({
-      hypothesis_tested: z.string(),
-      accept_implies: z.string(),
-      reject_implies: z.string(),
-      dimension: z.string(),
-      held_constant: z.array(z.string()),
-    }),
-  }),
-  providerOptions: {
-    google: { responseModalities: ['TEXT', 'IMAGE'] },
-  },
-  prompt: facadePrompt,
-});
-// result.output → typed metadata
-// result.files[0] → image
-```
-
-Note: without `Output.object()`, NB2 may return no text at all — raw JSON-in-text parsing is unreliable. Always use structured output for metadata.
-
-## Fallback Model IDs
-
-If a preview model breaks during demo, hot-swap by changing one string:
-
-| Tier | Primary | Fallback | Trade-off |
-|------|---------|----------|-----------|
-| Generator | `gemini-3.1-flash-lite-preview` | `gemini-2.5-flash` | 1-5s → 10-40s (thinking overhead) |
-| Renderer | `gemini-3.1-flash-image-preview` | `gemini-2.5-flash-image` | 21s → 6s, lower quality |
-| Oracle | `gemini-3.1-pro-preview` | `gemini-2.5-pro` | Similar latency, less capable |
+1. Reference images go FIRST in parts array, text prompt LAST — improves style consistency on one-axis sweeps.
+2. Style transfer via text prompt alone is unreliable; pass the accepted facade as reference image and instruct only the axis change.
+3. Stateless editing is mandatory — multi-turn NB2 fails with `thought_signature` via the AI SDK. Each facade is a fresh `generateText` call with reference image as `type: 'file'` in a single user message.
+4. Google Search grounding adds ~7s latency with no quality improvement — skip.
+5. Max 3 iterative edits on same reference before rebuilding prompt from scratch — drift accumulates.
+6. `Output.object()` + `responseModalities: ['TEXT', 'IMAGE']` compose — NB2 returns both typed metadata and image files in a single call. Without `Output.object()`, raw JSON-in-text parsing is unreliable.
