@@ -1053,6 +1053,71 @@ async function main() {
 			builder_scaffold_count_sum: sumMetric('builder_scaffold_count'),
 			builder_scaffold_count_min: perIntent.length
 				? Math.min(...perIntent.map((p) => p.metrics.builder_scaffold_count ?? 0))
+				: 0,
+			// iter-68 harness-completeness close-out: promote the three per-intent
+			// metrics that were forward-carried through extractMetrics (since
+			// iter-18/20/22) but never surfaced at aggregate level. iter-66's
+			// learning explicitly named this audit surface ("field in extractMetrics
+			// but not in aggregate_metrics"), distinct from the iter-54/55/56/58/
+			// 60/61/67 "content probe on event X" pattern and distinct from the
+			// iter-26/27/29/37/39/40/41/65/66 "stream_2 cell" pattern. Under the
+			// current iter-61 healthy-auth baseline:
+			//   evidence_updated_count_sum=5 _min=1 — one evidence-updated per
+			//     session, fired by oracle.handleSwipe after swipe ingestion.
+			//     Identity with swipe_result_count_sum=5 today (one swipe per
+			//     session); a regression where oracle fails to emit evidence-
+			//     updated after swipe-result would drop _min to 0 while leaving
+			//     swipe_result_count_sum intact. Complementary to iter-66's
+			//     stream_2_evidence_updated_count_sum=5 _min=1 (snapshot-replay
+			//     cardinality): primary tests live-emission, stream_2 tests
+			//     replay-on-connect. A regression that fires evidence-updated
+			//     live but drops it from replay would leave primary intact while
+			//     collapsing stream_2.
+			//   time_to_first_draft_after_swipe_ms_{p50,p90,max} — measures swipe-
+			//     to-rebuild latency (not the placeholder which fires pre-swipe).
+			//     Under the current 12s-window search-set this is null across all
+			//     5 intents because rebuild doesn't complete before window close
+			//     (builder_scaffold_latency_ms_p90=~12087ms per iter-51 probe).
+			//     Forward-deploy: when scaffold latency drops OR window widens,
+			//     this metric flips non-null and becomes the primary refinement-
+			//     latency surface — directly connecting to iter-64's
+			//     draft_refined_count_sum=0 frontier anchor (refined_sum becomes
+			//     positive iff rebuild completes in-window, which this latency
+			//     measures). A single-intent 14s-window run already shows
+			//     ~11738ms, confirming the metric is derivable when rebuild
+			//     completes.
+			//   agent_error_signal_count_sum _min — stderr-derived Anthropic SDK
+			//     error line count (ERROR_SIGNAL_RE match). Under healthy-auth
+			//     baseline =0 per intent (no provider errors). Under broken-auth
+			//     baseline flips non-zero (~8-40+ depending on backoff regime).
+			//     iter-54's learning noted SSE-derived probes are more stable
+			//     than stderr-derived; this rollup surfaces the stderr channel
+			//     as a cross-check against iter-25/26/39/54 SSE-side probes that
+			//     could drift from stderr signal under SDK upgrades or stderr
+			//     format changes. A divergence between agent_error_signal_count
+			//     (stderr) and error_event_count (SSE) under the same regime
+			//     flags SDK-to-bus wiring bugs invisible to either alone.
+			evidence_updated_count_sum: sumMetric('evidence_updated_count'),
+			evidence_updated_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.evidence_updated_count ?? 0))
+				: 0,
+			time_to_first_draft_after_swipe_ms_p50: percentile(
+				perIntent.map((p) => p.metrics.time_to_first_draft_after_swipe_ms),
+				50
+			),
+			time_to_first_draft_after_swipe_ms_p90: percentile(
+				perIntent.map((p) => p.metrics.time_to_first_draft_after_swipe_ms),
+				90
+			),
+			time_to_first_draft_after_swipe_ms_max: (() => {
+				const vals = perIntent
+					.map((p) => p.metrics.time_to_first_draft_after_swipe_ms)
+					.filter((v) => typeof v === 'number' && Number.isFinite(v));
+				return vals.length ? Math.max(...vals) : null;
+			})(),
+			agent_error_signal_count_sum: sumMetric('agent_error_signal_count'),
+			agent_error_signal_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.agent_error_signal_count ?? 0))
 				: 0
 		},
 		per_intent: perIntent
