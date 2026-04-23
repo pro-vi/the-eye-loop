@@ -404,6 +404,13 @@ export function startBuilder(): void {
 			const capturedId = context.sessionId;
 			setStatus('thinking', 'generating initial scaffold');
 			let authFailed = false;
+			// iter-48: cross-session staleness flag, parallel family to iter-45
+			// runColdStart catch, iter-46 rebuild catch+finally, iter-47
+			// runSynthesis catch. Under fire-and-forget scaffold + slow
+			// generateText + tight multi-session timing, session N's rejection
+			// (or success) must not call emitError on N+1's bus.lastError nor
+			// overwrite N+1's builder-01 focus via the finally's setStatus.
+			let stale = false;
 
 			try {
 				const result = await generateText({
@@ -414,14 +421,39 @@ export function startBuilder(): void {
 					prompt: 'Generate the initial draft scaffold for this session.'
 				});
 
-				// Only merge if no swipe has beaten us AND session is still current
-				if (context.swipeCount === 0 && context.sessionId === capturedId && result.output) {
+				// iter-48: staleness check first — parallel to iter-46 rebuild
+				// success-path. A stale run must skip both the merge AND the
+				// finally's setStatus (the latter would clobber N+1's builder
+				// focus, which the new session's own onSessionReady just set to
+				// 'generating initial scaffold').
+				if (context.sessionId !== capturedId) {
+					stale = true;
+					return;
+				}
+
+				// Only merge if no swipe has beaten us
+				if (context.swipeCount === 0 && result.output) {
 					context.draft.title = result.output.title;
 					context.draft.summary = result.output.summary;
 					context.draft.html = result.output.html;
 					emitDraftUpdated({ draft: context.draft });
 				}
 			} catch (err) {
+				// iter-48 staleness guard, symmetric to the success-path check
+				// above and parallel to iter-45 runColdStart catch / iter-46
+				// rebuild catch / iter-47 runSynthesis catch. A stale rejection
+				// would otherwise emitError (polluting N+1's bus.lastError,
+				// iter-26 replay source) and fall through to finally's setStatus
+				// (overwriting N+1's builder-01 focus).
+				if (context.sessionId !== capturedId) {
+					stale = true;
+					debugLog('Builder', 'scaffold-stale-error', {
+						captured: capturedId,
+						current: context.sessionId,
+						err: String(err)
+					});
+					return;
+				}
 				console.error('[builder] scaffold failed:', err);
 				const code = classifyErrorCode(err);
 				if (code === 'provider_auth_failure') authFailed = true;
@@ -432,10 +464,19 @@ export function startBuilder(): void {
 					message: err instanceof Error ? err.message : String(err)
 				});
 			} finally {
-				// Parallel to iter-23's scout.ts auth-break path: preserve the
-				// diagnostic focus on auth failure so the operator-facing final
-				// agent-status isn't overwritten with the generic 'watching'.
-				setStatus('idle', authFailed ? 'provider auth failed' : 'watching for swipes');
+				// iter-48: skip the setStatus write when the run was stale — the
+				// new session owns builder-01's agent state now. busy +
+				// drainPending still run because the module-level busy gate must
+				// be released for the new session's rebuild queue to drain
+				// (drainPending's own sessionId check at line ~176 already keeps
+				// it safe for session-scoped pending, iter-46 rationale).
+				// Parallel to iter-23's scout.ts auth-break path on the non-stale
+				// path: preserve the diagnostic focus on auth failure so the
+				// operator-facing final agent-status isn't overwritten with the
+				// generic 'watching'.
+				if (!stale) {
+					setStatus('idle', authFailed ? 'provider auth failed' : 'watching for swipes');
+				}
 				busy = false;
 				drainPending();
 			}
