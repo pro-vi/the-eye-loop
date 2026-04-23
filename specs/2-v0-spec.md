@@ -171,6 +171,8 @@ The oracle has two roles. `specs/4-akinator.md`, `specs/scope/v0/07-oracle.md`
 
 ## Data Contract
 
+Source of truth: `src/lib/context/types.ts`. The shapes below mirror the landed TypeScript types; when the code diverges, types.ts wins and this block gets re-aligned.
+
 ```ts
 type Stage = 'words' | 'mockups' | 'reveal';
 
@@ -180,15 +182,20 @@ interface SwipeEvidence {
   hypothesis: string;
   decision: 'accept' | 'reject';
   latencySignal: 'fast' | 'slow';
+  format: 'word' | 'mockup';
+  implication: string;  // design signal copied from facade.acceptImplies / rejectImplies
 }
 
 interface Facade {
   id: string;
   agentId: string;
   hypothesis: string;
+  axisTargeted?: string;    // label of the taste axis this probe targets — drives scout dedup
   label: string;
   content: string;
   format: 'word' | 'mockup';
+  acceptImplies?: string;   // design implication if user accepts
+  rejectImplies?: string;   // design implication if user rejects
 }
 
 interface SwipeRecord {
@@ -244,9 +251,32 @@ interface TasteSynthesis {
   }>;
   persona_anima_divergence: string | null;
 }
+
+// SSE wire union — everything pushed from bus to /api/stream clients.
+// Derived SSEEventMap + SSEEventType in types.ts keep bus helpers aligned.
+type SSEEvent =
+  | { type: 'facade-ready'; facade: Facade }
+  | { type: 'facade-stale'; facadeId: string }
+  | { type: 'swipe-result'; record: SwipeRecord }
+  | { type: 'evidence-updated'; evidence: SwipeEvidence[]; antiPatterns: string[] }
+  | { type: 'agent-status'; agent: AgentState }
+  | { type: 'draft-updated'; draft: PrototypeDraft }
+  | { type: 'builder-hint'; hint: string }
+  | { type: 'stage-changed'; stage: Stage; swipeCount: number }
+  | { type: 'synthesis-updated'; synthesis: TasteSynthesis }
+  | { type: 'session-ready'; intent: string }
+  | {
+      type: 'error';
+      source: 'scout' | 'oracle' | 'builder';
+      code: 'provider_auth_failure' | 'provider_error' | 'generation_error';
+      agentId?: string;
+      message: string;
+    };
 ```
 
 No `TasteAxis`. No `axisId`. No coded confidence scores. Axes are emergent — discovered by the oracle from evidence patterns. `specs/4-akinator.md`
+
+`Facade.axisTargeted` is a free-form label (e.g. `"look-and-feel"`) used only for scout-side dedup, not a typed identifier — it does not reintroduce the removed coded-axis model.
 
 ---
 
