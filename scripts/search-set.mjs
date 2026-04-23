@@ -117,7 +117,8 @@ function extractMetrics(artifact) {
 		scout_start_spread_ms: m.scout_start_spread_ms ?? null,
 		error_event_spread_ms: m.error_event_spread_ms ?? null,
 		stream_2_error_event_count: m.stream_2_error_event_count ?? 0,
-		stream_2_agent_status_count: m.stream_2_agent_status_count ?? 0
+		stream_2_agent_status_count: m.stream_2_agent_status_count ?? 0,
+		stream_2_stage_changed_count: m.stream_2_stage_changed_count ?? 0
 	};
 }
 
@@ -354,6 +355,15 @@ async function main() {
 			stream_2_agent_status_count_sum: sumMetric('stream_2_agent_status_count'),
 			stream_2_agent_status_count_min: perIntent.length
 				? Math.min(...perIntent.map((p) => p.metrics.stream_2_agent_status_count ?? 0))
+				: 0,
+			// iter-27 stream-replay completeness: stage-changed emitted on every
+			// reconnect so the client can transition mode correctly after tab
+			// suspend/resume or Vercel maxDuration=300s stream cutoff. Under the
+			// broken-auth baseline context.stage stays at 'words' (default), but
+			// the replay still fires — _min=1 when wired, 0 when reverted.
+			stream_2_stage_changed_count_sum: sumMetric('stream_2_stage_changed_count'),
+			stream_2_stage_changed_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.stream_2_stage_changed_count ?? 0))
 				: 0
 		},
 		per_intent: perIntent

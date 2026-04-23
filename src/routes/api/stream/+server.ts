@@ -46,6 +46,16 @@ export function GET() {
 			const replayErr = getLastError();
 			if (replayErr) send('error', replayErr);
 
+			// Replay current stage so a reconnecting client can transition mode
+			// correctly. The client's stage-changed handler sets stage + flips
+			// mode to 'reveal' when stage==='reveal' — without replay, a late
+			// connect during 'mockups' or 'reveal' would leave the UI stuck in
+			// the default 'words' mode despite the server advancing the stage.
+			// Emit unconditionally: context.stage is always defined, stage ===
+			// 'words' on replay is a client-side no-op set, non-default stages
+			// are load-bearing for the reveal UX.
+			send('stage-changed', { stage: context.stage, swipeCount: context.swipeCount });
+
 			const cleanupBus = onAny(<K extends SSEEventType>(event: K, payload: SSEEventMap[K]) => {
 				send(event, payload);
 			});

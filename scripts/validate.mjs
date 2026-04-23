@@ -380,6 +380,7 @@ async function main() {
 		event_counts: {},
 		error_event_count: 0,
 		agent_status_count: 0,
+		stage_changed_count: 0,
 		error: null
 	};
 	{
@@ -416,6 +417,7 @@ async function main() {
 							(stream2.event_counts[parsed.type] ?? 0) + 1;
 						if (parsed.type === 'error') stream2.error_event_count++;
 						if (parsed.type === 'agent-status') stream2.agent_status_count++;
+						if (parsed.type === 'stage-changed') stream2.stage_changed_count++;
 					}
 				}
 				try { ctrl2.abort(); } catch {}
@@ -711,7 +713,8 @@ async function main() {
 			error_event_count_after_session_2: errorEventCountAfterSession2,
 			time_from_session_2_to_first_error_ms: timeFromSession2ToFirstErrorMs,
 			stream_2_error_event_count: stream2.error_event_count,
-			stream_2_agent_status_count: stream2.agent_status_count
+			stream_2_agent_status_count: stream2.agent_status_count,
+			stream_2_stage_changed_count: stream2.stage_changed_count
 		},
 		error_event_samples: errorEvents.slice(0, 8).map((e) => ({
 			ts_ms: e.ts_ms,
@@ -733,7 +736,7 @@ async function main() {
 		`${sessionSummary} facades=${facadeReadyCount} drafts=${draftUpdatedCount} ` +
 		`synth=${synthesisUpdatedCount} swipe=${swipe.attempted ? swipe.status : 'skipped'} ` +
 		`sse_err=${errorEventCount} auth_err=${agentErrorLines.length} ` +
-		`s2_err=${stream2.error_event_count} s2_agents=${stream2.agent_status_count}`
+		`s2_err=${stream2.error_event_count} s2_agents=${stream2.agent_status_count} s2_stage=${stream2.stage_changed_count}`
 	);
 	process.exit(pass ? 0 : 1);
 }
