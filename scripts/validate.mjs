@@ -340,12 +340,24 @@ async function main() {
 	const errorEvents = events.filter((e) => e.type === 'error');
 	const errorCodeCounts = {};
 	const errorSourceCounts = {};
+	const errorAgentCounts = {};
 	for (const e of errorEvents) {
 		const code = e.data?.code ?? 'unknown';
 		const src = e.data?.source ?? 'unknown';
+		const aid = e.data?.agentId ?? '';
+		const key = `${src}:${aid}`;
 		errorCodeCounts[code] = (errorCodeCounts[code] ?? 0) + 1;
 		errorSourceCounts[src] = (errorSourceCounts[src] ?? 0) + 1;
+		errorAgentCounts[key] = (errorAgentCounts[key] ?? 0) + 1;
 	}
+	// Distinct (source, agentId) tuples — roster completeness probe. Under
+	// iter-13's zero-retry-on-auth regime this equals error_event_count
+	// exactly (no retry ever fires, each source-agent emits once). Under
+	// iter-11 backoff on transient errors, error_event_count exceeds this
+	// as retries accumulate. Under provider_auth_failure baseline the
+	// expected value is 8 (6 scouts + 1 oracle + 1 builder); a value below
+	// 8 flags an agent that failed to start.
+	const distinctErrorAgentCount = Object.keys(errorAgentCounts).length;
 	const providerAuthFailureCount = errorCodeCounts['provider_auth_failure'] ?? 0;
 
 	const sessionOk = sessionStatus >= 200 && sessionStatus < 300;
@@ -413,6 +425,8 @@ async function main() {
 			error_event_count: errorEventCount,
 			error_code_counts: errorCodeCounts,
 			error_source_counts: errorSourceCounts,
+			error_agent_counts: errorAgentCounts,
+			distinct_error_agent_count: distinctErrorAgentCount,
 			provider_auth_failure_count: providerAuthFailureCount,
 			agent_error_signal_count: agentErrorLines.length
 		},

@@ -104,6 +104,7 @@ function extractMetrics(artifact) {
 		evidence_updated_count: m.evidence_updated_count ?? 0,
 		reveal_reached: m.reveal_reached ?? false,
 		error_event_count: m.error_event_count ?? 0,
+		distinct_error_agent_count: m.distinct_error_agent_count ?? 0,
 		provider_auth_failure_count: m.provider_auth_failure_count ?? 0,
 		agent_error_signal_count: m.agent_error_signal_count ?? 0
 	};
@@ -208,6 +209,13 @@ async function main() {
 	const draftUpdatedCountSum = sumMetric('draft_updated_count');
 	const synthesisUpdatedCountSum = sumMetric('synthesis_updated_count');
 	const swipeResultCountSum = sumMetric('swipe_result_count');
+	const distinctErrorAgentCountSum = sumMetric('distinct_error_agent_count');
+	const distinctErrorAgentCountValues = perIntent.map(
+		(p) => p.metrics.distinct_error_agent_count ?? 0
+	);
+	const distinctErrorAgentCountMin = distinctErrorAgentCountValues.length
+		? Math.min(...distinctErrorAgentCountValues)
+		: 0;
 	const revealReachedCount = perIntent.reduce(
 		(acc, p) => acc + (p.metrics.reveal_reached ? 1 : 0),
 		0
@@ -242,7 +250,9 @@ async function main() {
 			synthesis_updated_count_sum: synthesisUpdatedCountSum,
 			swipe_result_count_sum: swipeResultCountSum,
 			error_event_count_sum: errorEventSum,
-			provider_auth_failure_count_sum: authFailureSum
+			provider_auth_failure_count_sum: authFailureSum,
+			distinct_error_agent_count_sum: distinctErrorAgentCountSum,
+			distinct_error_agent_count_min: distinctErrorAgentCountMin
 		},
 		per_intent: perIntent
 	};
