@@ -529,6 +529,19 @@ export async function buildRevealDraft(): Promise<void> {
 	// reveal, unreachable under broken auth because no swipes reach the
 	// REVEAL_THRESHOLD=15 evidence count).
 	let authFailed = false;
+	// iter-49: cross-session staleness flag, parallel family to iter-45
+	// runColdStart catch, iter-46 rebuild catch+finally, iter-47 runSynthesis
+	// catch, and iter-48 scaffold catch+finally. buildRevealDraft is invoked
+	// fire-and-forget via oracle.ts:432's buildRevealDraft().finally(...) so
+	// under tight multi-session timing (reveal-triggered slow QUALITY_MODEL
+	// generateText + mid-run new session) a stale rejection or success would
+	// otherwise emitError (polluting N+1's bus.lastError, iter-26 replay
+	// source) or setStatus via finally (overwriting N+1's builder-01 focus
+	// that the new session's onSessionReady just set to 'generating initial
+	// scaffold'). Two-site treatment (catch + finally) matches rebuild/scaffold
+	// topology; runSynthesis/runColdStart asymmetries don't apply here since
+	// buildRevealDraft's finally has no pre-existing gate like synthesisRunId.
+	let stale = false;
 	try {
 		const antiStr = context.antiPatterns.length
 			? context.antiPatterns.map((p) => `  - ${p}`).join('\n')
@@ -593,7 +606,15 @@ OUTPUT: final title, summary, html (complete, polished, rich), changeNote, patte
 			maxOutputTokens: 16000
 		});
 
-		if (context.sessionId !== capturedId || !result.output) return;
+		// iter-49: staleness check first — parallel to iter-46 rebuild success
+		// path. A stale run must skip both the merge AND the finally's setStatus
+		// (the latter would clobber N+1's builder focus, which the new session's
+		// onSessionReady just set to 'generating initial scaffold').
+		if (context.sessionId !== capturedId) {
+			stale = true;
+			return;
+		}
+		if (!result.output) return;
 
 		context.draft.title = result.output.title;
 		context.draft.summary = result.output.summary;
@@ -608,6 +629,21 @@ OUTPUT: final title, summary, html (complete, polished, rich), changeNote, patte
 
 		console.log(`[builder] final reveal: "${result.output.title}" (${result.output.html.length} chars)`);
 	} catch (err) {
+		// iter-49 staleness guard, symmetric to the success-path check above
+		// and parallel to iter-45 runColdStart catch / iter-46 rebuild catch /
+		// iter-47 runSynthesis catch / iter-48 scaffold catch. A stale
+		// rejection would otherwise emitError (polluting N+1's bus.lastError)
+		// and fall through to finally's setStatus (overwriting N+1's builder
+		// focus).
+		if (context.sessionId !== capturedId) {
+			stale = true;
+			debugLog('Builder', 'reveal-stale-error', {
+				captured: capturedId,
+				current: context.sessionId,
+				err: String(err)
+			});
+			return;
+		}
 		console.error('[builder] final reveal build failed:', err);
 		const code = classifyErrorCode(err);
 		if (code === 'provider_auth_failure') authFailed = true;
@@ -618,6 +654,12 @@ OUTPUT: final title, summary, html (complete, polished, rich), changeNote, patte
 			message: err instanceof Error ? err.message : String(err)
 		});
 	} finally {
-		setStatus('idle', authFailed ? 'provider auth failed' : 'reveal complete');
+		// iter-49: skip the setStatus write when the run was stale — the new
+		// session owns builder-01's agent state now, and this run's 'reveal
+		// complete' or 'provider auth failed' would overwrite it. Parallel to
+		// iter-46 rebuild / iter-48 scaffold finally gating.
+		if (!stale) {
+			setStatus('idle', authFailed ? 'provider auth failed' : 'reveal complete');
+		}
 	}
 }
