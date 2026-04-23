@@ -376,7 +376,22 @@ export function startOracle(): void {
 				// Builder does final synthesis FIRST, then we tell the client
 				buildRevealDraft().finally(() => {
 					emitStageChanged({ stage: 'reveal', swipeCount: context.swipeCount });
-					setOracleStatus('idle', 'reveal complete');
+					// iter-33: mirror builder's auth-failure focus at the oracle-level
+					// wrapper. iter-32's flag-and-branch in buildRevealDraft's finally
+					// already sets the builder's status to 'provider auth failed' on
+					// provider_auth_failure, but this oracle orchestrator unconditionally
+					// overrode its own focus to 'reveal complete' — extending the
+					// focus-preservation family (iter-23/24/32) one level up so the
+					// roster-wide operator-facing diagnostic stays consistent across the
+					// reveal flow. Reading builder's persisted focus avoids coupling via
+					// a new return signature and preserves the .finally belt for any
+					// unexpected rejection inside buildRevealDraft itself.
+					const builderAgent = context.agents.get('builder-01');
+					const revealAuthFailed = builderAgent?.focus === 'provider auth failed';
+					setOracleStatus(
+						'idle',
+						revealAuthFailed ? 'provider auth failed' : 'reveal complete'
+					);
 					console.log('[oracle] reveal ready — client notified');
 				});
 
