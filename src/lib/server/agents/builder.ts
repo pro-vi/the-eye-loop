@@ -412,6 +412,29 @@ export function startBuilder(): void {
 			// overwrite N+1's builder-01 focus via the finally's setStatus.
 			let stale = false;
 
+			// iter-63: synchronous intent-derived placeholder draft so the
+			// prototype pane is never empty during the ~10s Haiku scaffold call.
+			// Fixes the V0 demo row "sees the draft update during the session"
+			// under the healthy-auth race: when a swipe lands before scaffold's
+			// generateText resolves (common — facade-ready at ~5s, scaffold at
+			// ~10s), the success-path gate `swipeCount === 0` silently skips
+			// emitDraftUpdated, and the subsequent rebuild takes another ~10s,
+			// leaving the pane blank for ~20s post-session. The placeholder
+			// emission here closes that gap; if scaffold completes cleanly
+			// before any swipe, the full result overwrites this. Pre-try-block
+			// placement means the emit is independent of generateText success
+			// or staleness — under broken auth the placeholder still lands
+			// before the 401 catch emits the error banner.
+			const safeIntent = intent.replace(/[<&]/g, (c) => (c === '<' ? '&lt;' : '&amp;'));
+			context.draft.title = intent;
+			context.draft.summary = 'Drafting your prototype from the swipes…';
+			context.draft.html =
+				'<div style="padding:2rem;text-align:center;color:var(--muted,#8a7f78);opacity:0.75">' +
+				`<h2 style="margin:0 0 1rem;font-weight:400">${safeIntent}</h2>` +
+				'<p style="margin:0">Building your first draft…</p>' +
+				'</div>';
+			emitDraftUpdated({ draft: context.draft });
+
 			try {
 				const result = await generateText({
 					model: FAST_MODEL,

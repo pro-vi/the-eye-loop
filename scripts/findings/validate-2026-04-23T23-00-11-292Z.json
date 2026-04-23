@@ -1,0 +1,1276 @@
+{
+  "started_at": "2026-04-23T22:59:48.826Z",
+  "finished_at": "2026-04-23T23:00:11.291Z",
+  "elapsed_ms": 22465,
+  "result": "PASS",
+  "reason": "facade_and_draft_observed",
+  "intent": "a personal dashboard for tracking long-term health experiments",
+  "dev_url": "http://localhost:30224",
+  "session": {
+    "rtt_ms": 10,
+    "status": 200,
+    "body": {
+      "intent": "a personal dashboard for tracking long-term health experiments",
+      "sessionId": "d5bb4790-c696-4ce6-af02-d31d7d3f3765"
+    },
+    "error": null
+  },
+  "session_2": {
+    "attempted": true,
+    "intent": "a focus timer app for deep work",
+    "rtt_ms": 5,
+    "status": 200,
+    "body": {
+      "intent": "a focus timer app for deep work",
+      "sessionId": "24388b09-fbe3-4655-8ad9-9ef36b4cfdad"
+    },
+    "error": null,
+    "posted_at_ms": 3011,
+    "waited_ms": 1501
+  },
+  "stream": {
+    "opened_at_ms": 845,
+    "error": null,
+    "event_counts": {
+      "agent-status": 29,
+      "stage-changed": 1,
+      "draft-updated": 2,
+      "session-ready": 2,
+      "facade-ready": 7,
+      "swipe-result": 1,
+      "evidence-updated": 1,
+      "synthesis-updated": 1
+    },
+    "first_event_ms": {
+      "agent-status": 850,
+      "stage-changed": 850,
+      "draft-updated": 1364,
+      "session-ready": 1364,
+      "facade-ready": 5281,
+      "swipe-result": 5311,
+      "evidence-updated": 5311,
+      "synthesis-updated": 6364
+    },
+    "events": [
+      {
+        "ts_ms": 850,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "oracle",
+            "name": "Oracle",
+            "role": "oracle",
+            "status": "idle",
+            "focus": "monitoring"
+          }
+        }
+      },
+      {
+        "ts_ms": 850,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "idle",
+            "focus": "waiting for session"
+          }
+        }
+      },
+      {
+        "ts_ms": 850,
+        "type": "stage-changed",
+        "data": {
+          "type": "stage-changed",
+          "stage": "words",
+          "swipeCount": 0
+        }
+      },
+      {
+        "ts_ms": 1364,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "thinking",
+            "focus": "generating initial scaffold"
+          }
+        }
+      },
+      {
+        "ts_ms": 1364,
+        "type": "draft-updated",
+        "data": {
+          "type": "draft-updated",
+          "draft": {
+            "title": "a personal dashboard for tracking long-term health experiments",
+            "summary": "Drafting your prototype from the swipes…",
+            "html": "<div style=\"padding:2rem;text-align:center;color:var(--muted,#8a7f78);opacity:0.75\"><h2 style=\"margin:0 0 1rem;font-weight:400\">a personal dashboard for tracking long-term health experiments</h2><p style=\"margin:0\">Building your first draft…</p></div>",
+            "acceptedPatterns": [],
+            "rejectedPatterns": []
+          }
+        }
+      },
+      {
+        "ts_ms": 1364,
+        "type": "session-ready",
+        "data": {
+          "type": "session-ready",
+          "intent": "a personal dashboard for tracking long-term health experiments"
+        }
+      },
+      {
+        "ts_ms": 1364,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "oracle",
+            "name": "Oracle",
+            "role": "oracle",
+            "status": "thinking",
+            "focus": "cold-start analysis"
+          }
+        }
+      },
+      {
+        "ts_ms": 1364,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-01",
+            "name": "Iris",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1364,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-02",
+            "name": "Prism",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1364,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-03",
+            "name": "Lumen",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1364,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-04",
+            "name": "Aura",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1364,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-05",
+            "name": "Facet",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1364,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-06",
+            "name": "Echo",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 3018,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "thinking",
+            "focus": "generating initial scaffold"
+          }
+        }
+      },
+      {
+        "ts_ms": 3018,
+        "type": "draft-updated",
+        "data": {
+          "type": "draft-updated",
+          "draft": {
+            "title": "a focus timer app for deep work",
+            "summary": "Drafting your prototype from the swipes…",
+            "html": "<div style=\"padding:2rem;text-align:center;color:var(--muted,#8a7f78);opacity:0.75\"><h2 style=\"margin:0 0 1rem;font-weight:400\">a focus timer app for deep work</h2><p style=\"margin:0\">Building your first draft…</p></div>",
+            "acceptedPatterns": [],
+            "rejectedPatterns": []
+          }
+        }
+      },
+      {
+        "ts_ms": 3018,
+        "type": "session-ready",
+        "data": {
+          "type": "session-ready",
+          "intent": "a focus timer app for deep work"
+        }
+      },
+      {
+        "ts_ms": 3018,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "oracle",
+            "name": "Oracle",
+            "role": "oracle",
+            "status": "thinking",
+            "focus": "cold-start analysis"
+          }
+        }
+      },
+      {
+        "ts_ms": 3018,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-01",
+            "name": "Iris",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 3018,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-02",
+            "name": "Prism",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 3018,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-03",
+            "name": "Lumen",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 3018,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-04",
+            "name": "Aura",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 3018,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-05",
+            "name": "Facet",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 3018,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-06",
+            "name": "Echo",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 5281,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "e80c279c-d419-40d2-a0b0-d3275196f5bb",
+            "agentId": "scout-03",
+            "hypothesis": "Users respond positively to encouraging, upbeat audio cues over neutral or robotic ones",
+            "axisTargeted": "Personality — playful vs serious",
+            "label": "Cheerful timer voice",
+            "content": "Cheerful timer voice",
+            "format": "word",
+            "acceptImplies": "The app should use warm, motivational language in notifications and voice prompts; personality should lean playful and human",
+            "rejectImplies": "The app should use neutral, minimal audio feedback; personality should stay professional and understated"
+          }
+        }
+      },
+      {
+        "ts_ms": 5281,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-03",
+            "name": "Lumen",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Cheerful timer voice\"",
+            "lastFacadeId": "e80c279c-d419-40d2-a0b0-d3275196f5bb"
+          }
+        }
+      },
+      {
+        "ts_ms": 5311,
+        "type": "swipe-result",
+        "data": {
+          "type": "swipe-result",
+          "record": {
+            "facadeId": "e80c279c-d419-40d2-a0b0-d3275196f5bb",
+            "agentId": "scout-03",
+            "decision": "accept",
+            "latencyMs": 600,
+            "latencyBucket": "slow"
+          }
+        }
+      },
+      {
+        "ts_ms": 5311,
+        "type": "evidence-updated",
+        "data": {
+          "type": "evidence-updated",
+          "evidence": [
+            {
+              "facadeId": "e80c279c-d419-40d2-a0b0-d3275196f5bb",
+              "content": "Cheerful timer voice",
+              "hypothesis": "Users respond positively to encouraging, upbeat audio cues over neutral or robotic ones",
+              "decision": "accept",
+              "latencySignal": "slow",
+              "format": "word",
+              "implication": "The app should use warm, motivational language in notifications and voice prompts; personality should lean playful and human"
+            }
+          ],
+          "antiPatterns": []
+        }
+      },
+      {
+        "ts_ms": 5311,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-03",
+            "name": "Lumen",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe",
+            "lastFacadeId": "e80c279c-d419-40d2-a0b0-d3275196f5bb"
+          }
+        }
+      },
+      {
+        "ts_ms": 5389,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "f14c1cae-3959-44fa-8380-559003a722ea",
+            "agentId": "scout-02",
+            "hypothesis": "A persistent left sidebar displaying the timer and controls, with main content area for session notes or task details",
+            "axisTargeted": "Navigation and primary content layout (sidebar vs full-width vs tabs)",
+            "label": "Sidebar with timer",
+            "content": "Sidebar with timer",
+            "format": "word",
+            "acceptImplies": "User values always-visible timer and clear separation between navigation/controls and workspace",
+            "rejectImplies": "User prefers timer integrated into header, full-width workspace, or tab-based navigation for timer access"
+          }
+        }
+      },
+      {
+        "ts_ms": 5389,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-02",
+            "name": "Prism",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Sidebar with timer\"",
+            "lastFacadeId": "f14c1cae-3959-44fa-8380-559003a722ea"
+          }
+        }
+      },
+      {
+        "ts_ms": 5422,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "10197a86-e573-493a-96f1-a03775f1ad59",
+            "agentId": "scout-01",
+            "hypothesis": "Users doing deep work prefer low-contrast, distraction-free visuals that reduce cognitive load and eye strain during long sessions",
+            "axisTargeted": "Light vs. dark, visual density",
+            "label": "Dark minimal interface",
+            "content": "Dark minimal interface",
+            "format": "word",
+            "acceptImplies": "Lean into muted color palettes, high contrast text, sparse UI elements, possibly dark mode as default",
+            "rejectImplies": "Explore lighter backgrounds, more visual variety, or higher information density on screen"
+          }
+        }
+      },
+      {
+        "ts_ms": 5422,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-01",
+            "name": "Iris",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Dark minimal interface\"",
+            "lastFacadeId": "10197a86-e573-493a-96f1-a03775f1ad59"
+          }
+        }
+      },
+      {
+        "ts_ms": 6078,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "6dd55ed9-e6dc-4671-a9af-476457a42259",
+            "agentId": "scout-04",
+            "hypothesis": "Users building focus apps oscillate between wanting calming organic feedback vs. crisp digital precision—this probes whether a gentle, breathing visual rhythm feels supportive or too passive for deep work",
+            "axisTargeted": "organic vs digital",
+            "label": "Soft timer pulse",
+            "content": "Soft timer pulse",
+            "format": "word",
+            "acceptImplies": "User leans toward warm, ambient feedback; may prefer nature-inspired elements, gradual transitions, less aggressive notifications",
+            "rejectImplies": "User wants clear, instant feedback and sharp state changes; may prefer minimalist digital aesthetics, bold numbers, instant visual confirmation"
+          }
+        }
+      },
+      {
+        "ts_ms": 6078,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-04",
+            "name": "Aura",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Soft timer pulse\"",
+            "lastFacadeId": "6dd55ed9-e6dc-4671-a9af-476457a42259"
+          }
+        }
+      },
+      {
+        "ts_ms": 6082,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "e567f133-c15d-4b87-92f4-b5f67294249a",
+            "agentId": "scout-06",
+            "hypothesis": "Users find deep work easier when timer progress feels organic and dissolving rather than mechanically ticking down",
+            "axisTargeted": "Motion continuity: smooth decay vs discrete steps",
+            "label": "Countdown melts away",
+            "content": "Countdown melts away",
+            "format": "word",
+            "acceptImplies": "User wants fluid, almost invisible time passage—progress that feels natural, not forced. Likely prefers animations over updates, ambient feedback over alerts.",
+            "rejectImplies": "User wants clear, definitive time markers. Prefers snappy, instant state changes they can trust at a glance. Dislikes ambiguous motion."
+          }
+        }
+      },
+      {
+        "ts_ms": 6082,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-06",
+            "name": "Echo",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Countdown melts away\"",
+            "lastFacadeId": "e567f133-c15d-4b87-92f4-b5f67294249a"
+          }
+        }
+      },
+      {
+        "ts_ms": 6127,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "4700a396-7d04-4e00-abb6-e8bdc5098cd8",
+            "agentId": "scout-05",
+            "hypothesis": "Focus timer apps rely on large time displays but users need to understand what they're optimizing for",
+            "axisTargeted": "Information hierarchy — whether the app leads with time-remaining (dense metric) or session goals (narrative frame)",
+            "label": "Big numbers, small context",
+            "content": "Big numbers, small context",
+            "format": "word",
+            "acceptImplies": "User values prominent countdown/timer as primary visual feedback; prefers metric-first design where elapsed/remaining time dominates the interface",
+            "rejectImplies": "User wants context first (what am I timing? why does this session matter?); prefers narrative framing where the goal or session type anchors the display before raw time"
+          }
+        }
+      },
+      {
+        "ts_ms": 6127,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-05",
+            "name": "Facet",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Big numbers, small context\"",
+            "lastFacadeId": "4700a396-7d04-4e00-abb6-e8bdc5098cd8"
+          }
+        }
+      },
+      {
+        "ts_ms": 6364,
+        "type": "synthesis-updated",
+        "data": {
+          "type": "synthesis-updated",
+          "synthesis": {
+            "axes": [
+              {
+                "label": "Whether user prefers minimal, distraction-free visual design vs. rich, detailed interface aesthetics for focus work",
+                "poleA": "Minimal or detailed",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user wants timer controls front-and-center vs. tucked away, revealing preference for interaction density during deep work",
+                "poleA": "Big buttons or hidden",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user responds to motivational, encouraging tone vs. neutral, no-nonsense communication style",
+                "poleA": "Cheerleader or silent",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user gravitates toward calm, serene atmosphere vs. energizing, stimulating visual mood for focus sessions",
+                "poleA": "Peaceful or energizing",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user wants detailed session stats and insights vs. simple, glanceable progress indicators",
+                "poleA": "Stats or just progress",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user prefers smooth, subtle animations vs. snappy, responsive feedback when interacting with the timer",
+                "poleA": "Smooth or snappy",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              }
+            ],
+            "edge_case_flags": [],
+            "scout_assignments": [
+              {
+                "scout": "Iris",
+                "probe_axis": "Whether user prefers minimal, distraction-free visual design vs. rich, detailed interface aesthetics for focus work",
+                "reason": "Cold start: first question for Iris"
+              },
+              {
+                "scout": "Prism",
+                "probe_axis": "Whether user wants timer controls front-and-center vs. tucked away, revealing preference for interaction density during deep work",
+                "reason": "Cold start: first question for Prism"
+              },
+              {
+                "scout": "Lumen",
+                "probe_axis": "Whether user responds to motivational, encouraging tone vs. neutral, no-nonsense communication style",
+                "reason": "Cold start: first question for Lumen"
+              },
+              {
+                "scout": "Aura",
+                "probe_axis": "Whether user gravitates toward calm, serene atmosphere vs. energizing, stimulating visual mood for focus sessions",
+                "reason": "Cold start: first question for Aura"
+              },
+              {
+                "scout": "Facet",
+                "probe_axis": "Whether user wants detailed session stats and insights vs. simple, glanceable progress indicators",
+                "reason": "Cold start: first question for Facet"
+              },
+              {
+                "scout": "Echo",
+                "probe_axis": "Whether user prefers smooth, subtle animations vs. snappy, responsive feedback when interacting with the timer",
+                "reason": "Cold start: first question for Echo"
+              }
+            ],
+            "persona_anima_divergence": null
+          }
+        }
+      },
+      {
+        "ts_ms": 6364,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "oracle",
+            "name": "Oracle",
+            "role": "oracle",
+            "status": "idle",
+            "focus": "monitoring"
+          }
+        }
+      },
+      {
+        "ts_ms": 8250,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "e62b1953-a4d1-4882-a30a-98bd9b635bc1",
+            "agentId": "scout-03",
+            "hypothesis": "Users prefer visual-only feedback (progress indicators, haptics) over any voice or sound during deep work sessions",
+            "axisTargeted": "voice presence vs visual feedback",
+            "label": "Strict silence",
+            "content": "Strict silence",
+            "format": "word",
+            "acceptImplies": "The app should default to silent operation with optional visual and haptic cues; voice features should be opt-in, not default",
+            "rejectImplies": "Users want audio feedback as a core feature; silence alone feels incomplete or demotivating for timer interactions"
+          }
+        }
+      },
+      {
+        "ts_ms": 8250,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-03",
+            "name": "Lumen",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Strict silence\"",
+            "lastFacadeId": "e62b1953-a4d1-4882-a30a-98bd9b635bc1"
+          }
+        }
+      },
+      {
+        "ts_ms": 13065,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "idle",
+            "focus": "watching for swipes"
+          }
+        }
+      },
+      {
+        "ts_ms": 13065,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "thinking",
+            "focus": "analyzing accept on \"Cheerful timer voice\""
+          }
+        }
+      }
+    ]
+  },
+  "stream_2": {
+    "attempted": true,
+    "opened_at_ms": 21357,
+    "elapsed_ms": 805,
+    "event_counts": {
+      "synthesis-updated": 1,
+      "draft-updated": 1,
+      "evidence-updated": 1,
+      "agent-status": 8,
+      "facade-ready": 6,
+      "stage-changed": 1
+    },
+    "error_event_count": 0,
+    "agent_status_count": 8,
+    "stage_changed_count": 1,
+    "diagnostic_preserved_count": 0,
+    "error_provider_auth_count": 0,
+    "agent_status_scout_count": 6,
+    "agent_status_oracle_count": 1,
+    "agent_status_builder_count": 1,
+    "stage_valid_count": 1,
+    "error_source_valid_count": 0,
+    "error_code_valid_count": 0,
+    "error_message_present_count": 0,
+    "agent_status_valid_count": 8,
+    "stage_changed_swipe_count_valid_count": 1,
+    "first_event_ms_after_open": 3,
+    "last_event_ms_after_open": 3,
+    "replay_span_ms": 0,
+    "events": [
+      {
+        "ts_ms": 21360,
+        "type": "synthesis-updated",
+        "data": {
+          "type": "synthesis-updated",
+          "synthesis": {
+            "axes": [
+              {
+                "label": "Whether user prefers minimal, distraction-free visual design vs. rich, detailed interface aesthetics for focus work",
+                "poleA": "Minimal or detailed",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user wants timer controls front-and-center vs. tucked away, revealing preference for interaction density during deep work",
+                "poleA": "Big buttons or hidden",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user responds to motivational, encouraging tone vs. neutral, no-nonsense communication style",
+                "poleA": "Cheerleader or silent",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user gravitates toward calm, serene atmosphere vs. energizing, stimulating visual mood for focus sessions",
+                "poleA": "Peaceful or energizing",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user wants detailed session stats and insights vs. simple, glanceable progress indicators",
+                "poleA": "Stats or just progress",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user prefers smooth, subtle animations vs. snappy, responsive feedback when interacting with the timer",
+                "poleA": "Smooth or snappy",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              }
+            ],
+            "edge_case_flags": [],
+            "scout_assignments": [
+              {
+                "scout": "Iris",
+                "probe_axis": "Whether user prefers minimal, distraction-free visual design vs. rich, detailed interface aesthetics for focus work",
+                "reason": "Cold start: first question for Iris"
+              },
+              {
+                "scout": "Prism",
+                "probe_axis": "Whether user wants timer controls front-and-center vs. tucked away, revealing preference for interaction density during deep work",
+                "reason": "Cold start: first question for Prism"
+              },
+              {
+                "scout": "Lumen",
+                "probe_axis": "Whether user responds to motivational, encouraging tone vs. neutral, no-nonsense communication style",
+                "reason": "Cold start: first question for Lumen"
+              },
+              {
+                "scout": "Aura",
+                "probe_axis": "Whether user gravitates toward calm, serene atmosphere vs. energizing, stimulating visual mood for focus sessions",
+                "reason": "Cold start: first question for Aura"
+              },
+              {
+                "scout": "Facet",
+                "probe_axis": "Whether user wants detailed session stats and insights vs. simple, glanceable progress indicators",
+                "reason": "Cold start: first question for Facet"
+              },
+              {
+                "scout": "Echo",
+                "probe_axis": "Whether user prefers smooth, subtle animations vs. snappy, responsive feedback when interacting with the timer",
+                "reason": "Cold start: first question for Echo"
+              }
+            ],
+            "persona_anima_divergence": null
+          }
+        }
+      },
+      {
+        "ts_ms": 21360,
+        "type": "draft-updated",
+        "data": {
+          "type": "draft-updated",
+          "draft": {
+            "title": "a focus timer app for deep work",
+            "summary": "Drafting your prototype from the swipes…",
+            "html": "<div style=\"padding:2rem;text-align:center;color:var(--muted,#8a7f78);opacity:0.75\"><h2 style=\"margin:0 0 1rem;font-weight:400\">a focus timer app for deep work</h2><p style=\"margin:0\">Building your first draft…</p></div>",
+            "acceptedPatterns": [],
+            "rejectedPatterns": []
+          }
+        }
+      },
+      {
+        "ts_ms": 21360,
+        "type": "evidence-updated",
+        "data": {
+          "type": "evidence-updated",
+          "evidence": [
+            {
+              "facadeId": "e80c279c-d419-40d2-a0b0-d3275196f5bb",
+              "content": "Cheerful timer voice",
+              "hypothesis": "Users respond positively to encouraging, upbeat audio cues over neutral or robotic ones",
+              "decision": "accept",
+              "latencySignal": "slow",
+              "format": "word",
+              "implication": "The app should use warm, motivational language in notifications and voice prompts; personality should lean playful and human"
+            }
+          ],
+          "antiPatterns": []
+        }
+      },
+      {
+        "ts_ms": 21360,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "thinking",
+            "focus": "analyzing accept on \"Cheerful timer voice\""
+          }
+        }
+      },
+      {
+        "ts_ms": 21360,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "oracle",
+            "name": "Oracle",
+            "role": "oracle",
+            "status": "idle",
+            "focus": "monitoring"
+          }
+        }
+      },
+      {
+        "ts_ms": 21360,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-01",
+            "name": "Iris",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Dark minimal interface\"",
+            "lastFacadeId": "10197a86-e573-493a-96f1-a03775f1ad59"
+          }
+        }
+      },
+      {
+        "ts_ms": 21360,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-02",
+            "name": "Prism",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Sidebar with timer\"",
+            "lastFacadeId": "f14c1cae-3959-44fa-8380-559003a722ea"
+          }
+        }
+      },
+      {
+        "ts_ms": 21360,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-03",
+            "name": "Lumen",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Strict silence\"",
+            "lastFacadeId": "e62b1953-a4d1-4882-a30a-98bd9b635bc1"
+          }
+        }
+      },
+      {
+        "ts_ms": 21360,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-04",
+            "name": "Aura",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Soft timer pulse\"",
+            "lastFacadeId": "6dd55ed9-e6dc-4671-a9af-476457a42259"
+          }
+        }
+      },
+      {
+        "ts_ms": 21360,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-05",
+            "name": "Facet",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Big numbers, small context\"",
+            "lastFacadeId": "4700a396-7d04-4e00-abb6-e8bdc5098cd8"
+          }
+        }
+      },
+      {
+        "ts_ms": 21360,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-06",
+            "name": "Echo",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Countdown melts away\"",
+            "lastFacadeId": "e567f133-c15d-4b87-92f4-b5f67294249a"
+          }
+        }
+      },
+      {
+        "ts_ms": 21360,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "f14c1cae-3959-44fa-8380-559003a722ea",
+            "agentId": "scout-02",
+            "hypothesis": "A persistent left sidebar displaying the timer and controls, with main content area for session notes or task details",
+            "axisTargeted": "Navigation and primary content layout (sidebar vs full-width vs tabs)",
+            "label": "Sidebar with timer",
+            "content": "Sidebar with timer",
+            "format": "word",
+            "acceptImplies": "User values always-visible timer and clear separation between navigation/controls and workspace",
+            "rejectImplies": "User prefers timer integrated into header, full-width workspace, or tab-based navigation for timer access"
+          }
+        }
+      },
+      {
+        "ts_ms": 21360,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "10197a86-e573-493a-96f1-a03775f1ad59",
+            "agentId": "scout-01",
+            "hypothesis": "Users doing deep work prefer low-contrast, distraction-free visuals that reduce cognitive load and eye strain during long sessions",
+            "axisTargeted": "Light vs. dark, visual density",
+            "label": "Dark minimal interface",
+            "content": "Dark minimal interface",
+            "format": "word",
+            "acceptImplies": "Lean into muted color palettes, high contrast text, sparse UI elements, possibly dark mode as default",
+            "rejectImplies": "Explore lighter backgrounds, more visual variety, or higher information density on screen"
+          }
+        }
+      },
+      {
+        "ts_ms": 21360,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "6dd55ed9-e6dc-4671-a9af-476457a42259",
+            "agentId": "scout-04",
+            "hypothesis": "Users building focus apps oscillate between wanting calming organic feedback vs. crisp digital precision—this probes whether a gentle, breathing visual rhythm feels supportive or too passive for deep work",
+            "axisTargeted": "organic vs digital",
+            "label": "Soft timer pulse",
+            "content": "Soft timer pulse",
+            "format": "word",
+            "acceptImplies": "User leans toward warm, ambient feedback; may prefer nature-inspired elements, gradual transitions, less aggressive notifications",
+            "rejectImplies": "User wants clear, instant feedback and sharp state changes; may prefer minimalist digital aesthetics, bold numbers, instant visual confirmation"
+          }
+        }
+      },
+      {
+        "ts_ms": 21360,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "e567f133-c15d-4b87-92f4-b5f67294249a",
+            "agentId": "scout-06",
+            "hypothesis": "Users find deep work easier when timer progress feels organic and dissolving rather than mechanically ticking down",
+            "axisTargeted": "Motion continuity: smooth decay vs discrete steps",
+            "label": "Countdown melts away",
+            "content": "Countdown melts away",
+            "format": "word",
+            "acceptImplies": "User wants fluid, almost invisible time passage—progress that feels natural, not forced. Likely prefers animations over updates, ambient feedback over alerts.",
+            "rejectImplies": "User wants clear, definitive time markers. Prefers snappy, instant state changes they can trust at a glance. Dislikes ambiguous motion."
+          }
+        }
+      },
+      {
+        "ts_ms": 21360,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "4700a396-7d04-4e00-abb6-e8bdc5098cd8",
+            "agentId": "scout-05",
+            "hypothesis": "Focus timer apps rely on large time displays but users need to understand what they're optimizing for",
+            "axisTargeted": "Information hierarchy — whether the app leads with time-remaining (dense metric) or session goals (narrative frame)",
+            "label": "Big numbers, small context",
+            "content": "Big numbers, small context",
+            "format": "word",
+            "acceptImplies": "User values prominent countdown/timer as primary visual feedback; prefers metric-first design where elapsed/remaining time dominates the interface",
+            "rejectImplies": "User wants context first (what am I timing? why does this session matter?); prefers narrative framing where the goal or session type anchors the display before raw time"
+          }
+        }
+      },
+      {
+        "ts_ms": 21360,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "e62b1953-a4d1-4882-a30a-98bd9b635bc1",
+            "agentId": "scout-03",
+            "hypothesis": "Users prefer visual-only feedback (progress indicators, haptics) over any voice or sound during deep work sessions",
+            "axisTargeted": "voice presence vs visual feedback",
+            "label": "Strict silence",
+            "content": "Strict silence",
+            "format": "word",
+            "acceptImplies": "The app should default to silent operation with optional visual and haptic cues; voice features should be opt-in, not default",
+            "rejectImplies": "Users want audio feedback as a core feature; silence alone feels incomplete or demotivating for timer interactions"
+          }
+        }
+      },
+      {
+        "ts_ms": 21360,
+        "type": "stage-changed",
+        "data": {
+          "type": "stage-changed",
+          "stage": "words",
+          "swipeCount": 1
+        }
+      }
+    ],
+    "error": null
+  },
+  "facade_visible": {
+    "attempted": true,
+    "status": 200,
+    "error": null,
+    "rtt_ms": 4
+  },
+  "swipe": {
+    "attempted": true,
+    "facadeId": "e80c279c-d419-40d2-a0b0-d3275196f5bb",
+    "facade_ready_at_ms": 5281,
+    "posted_at_ms": 5307,
+    "rtt_ms": 4,
+    "status": 200,
+    "body": {
+      "ok": true,
+      "swipeCount": 1,
+      "stage": "words"
+    },
+    "error": null
+  },
+  "metrics": {
+    "time_to_first_facade_ms": 5281,
+    "time_to_first_draft_ms": 1364,
+    "time_to_first_synthesis_ms": 6364,
+    "time_to_first_draft_after_swipe_ms": null,
+    "time_to_first_evidence_after_swipe_ms": 4,
+    "time_to_session_ready_ms": 1364,
+    "time_to_first_error_ms": null,
+    "time_from_session_to_first_facade_ms": 3917,
+    "time_from_session_to_first_draft_ms": 0,
+    "time_from_session_to_first_error_ms": null,
+    "facade_ready_count": 7,
+    "draft_updated_count": 2,
+    "synthesis_updated_count": 1,
+    "swipe_result_count": 1,
+    "evidence_updated_count": 1,
+    "reveal_reached": false,
+    "error_event_count": 0,
+    "error_code_counts": {},
+    "error_source_counts": {},
+    "error_agent_counts": {},
+    "distinct_error_agent_count": 0,
+    "error_source_scout_count": 0,
+    "error_source_oracle_count": 0,
+    "error_source_builder_count": 0,
+    "provider_auth_failure_count": 0,
+    "error_message_present_count": 0,
+    "auth_diagnostic_preserved_count": 0,
+    "agent_status_event_count": 29,
+    "agent_status_scout_count": 20,
+    "agent_status_oracle_count": 4,
+    "agent_status_builder_count": 5,
+    "agent_error_signal_count": 0,
+    "scout_started_count": 6,
+    "first_scout_started_ms": 1364,
+    "last_scout_started_ms": 1364,
+    "scout_start_spread_ms": 0,
+    "first_error_event_ms": null,
+    "last_error_event_ms": null,
+    "error_event_spread_ms": null,
+    "session_ready_count": 2,
+    "distinct_session_ready_intent_count": 2,
+    "session_ready_intent_present_count": 2,
+    "error_event_count_before_session_2": 0,
+    "error_event_count_after_session_2": 0,
+    "time_from_session_2_to_first_error_ms": null,
+    "stream_2_error_event_count": 0,
+    "stream_2_agent_status_count": 8,
+    "stream_2_stage_changed_count": 1,
+    "stream_2_diagnostic_preserved_count": 0,
+    "stream_2_error_provider_auth_count": 0,
+    "stream_2_agent_status_scout_count": 6,
+    "stream_2_agent_status_oracle_count": 1,
+    "stream_2_agent_status_builder_count": 1,
+    "stream_2_stage_valid_count": 1,
+    "stream_2_error_source_valid_count": 0,
+    "stream_2_error_code_valid_count": 0,
+    "stream_2_error_message_present_count": 0,
+    "stream_2_agent_status_valid_count": 8,
+    "stream_2_stage_changed_swipe_count_valid_count": 1,
+    "stream_2_first_event_ms_after_open": 3,
+    "stream_2_replay_span_ms": 0,
+    "stage_changed_event_count": 1,
+    "time_to_first_stage_changed_ms": 850,
+    "stage_changed_before_session_ready": 1,
+    "stage_valid_count": 1,
+    "error_source_valid_count": 0,
+    "error_code_valid_count": 0,
+    "agent_status_valid_count": 29,
+    "stage_changed_swipe_count_valid_count": 1,
+    "oracle_cold_start_latency_ms": 3346,
+    "oracle_synthesis_latency_ms": null,
+    "oracle_reveal_build_latency_ms": null,
+    "oracle_cold_start_count": 1,
+    "oracle_synthesis_count": 0,
+    "oracle_reveal_build_count": 0,
+    "scout_probe_latency_ms_p50": 4058,
+    "scout_probe_latency_ms_max": 4763,
+    "scout_probe_count": 7,
+    "builder_scaffold_latency_ms": 10047,
+    "builder_scaffold_count": 1
+  },
+  "error_event_samples": [],
+  "provider_error_samples": [],
+  "stderr_tail": "",
+  "artifact_path": "/Users/provi/Development/_projs/the-eye-loop-gnhf-worktrees/you-are-running-an-e-2c98fb/scripts/findings/validate-2026-04-23T23-00-11-292Z.json"
+}
