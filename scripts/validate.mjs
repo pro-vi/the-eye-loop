@@ -54,7 +54,11 @@ function persistArtifact(artifact) {
 	mkdirSync(FINDINGS_DIR, { recursive: true });
 	const stamped = resolve(FINDINGS_DIR, `validate-${fileStamp()}.json`);
 	const latest = resolve(FINDINGS_DIR, 'validate-latest.json');
-	const payload = JSON.stringify(artifact, null, 2);
+	// Embed the stamped path inside the artifact so downstream consumers
+	// (search-set.mjs aggregator) can resolve the preserved per-run file
+	// instead of the overwritten validate-latest.json pointer.
+	const augmented = { ...artifact, artifact_path: stamped };
+	const payload = JSON.stringify(augmented, null, 2);
 	writeFileSync(stamped, payload);
 	writeFileSync(latest, payload);
 	console.log(`[validate] artifact: ${stamped}`);

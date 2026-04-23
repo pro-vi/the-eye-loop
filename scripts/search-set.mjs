@@ -150,6 +150,13 @@ async function main() {
 		const runElapsed = Date.now() - runT0;
 		const artifact = readLatestArtifact();
 		const metrics = extractMetrics(artifact);
+		// Prefer the stamped path embedded in the artifact by validate.mjs —
+		// validate-latest.json is overwritten by the next intent, so recording
+		// only FINDINGS_LATEST leaves N-1 per-intent rows pointing at the wrong
+		// trace. Fall back to FINDINGS_LATEST if the field is absent (older
+		// artifact schema or a read error).
+		const stampedArtifactPath =
+			typeof artifact?.artifact_path === 'string' ? artifact.artifact_path : FINDINGS_LATEST;
 		const entry = {
 			id: row.id,
 			intent: row.intent,
@@ -164,7 +171,7 @@ async function main() {
 			reason: artifact?.reason ?? null,
 			session_status: artifact?.session?.status ?? null,
 			metrics,
-			artifact_path: FINDINGS_LATEST
+			artifact_path: stampedArtifactPath
 		};
 		perIntent.push(entry);
 		console.log(

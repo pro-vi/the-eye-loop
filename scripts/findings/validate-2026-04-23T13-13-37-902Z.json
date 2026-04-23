@@ -1,22 +1,22 @@
 {
-  "started_at": "2026-04-23T13:13:49.816Z",
-  "finished_at": "2026-04-23T13:14:01.772Z",
-  "elapsed_ms": 11956,
+  "started_at": "2026-04-23T13:13:26.138Z",
+  "finished_at": "2026-04-23T13:13:37.902Z",
+  "elapsed_ms": 11763,
   "result": "FAIL",
   "reason": "provider_auth_failure",
-  "intent": "a CRM for freelancers",
-  "dev_url": "http://localhost:33313",
+  "intent": "recipe app for people who hate cooking",
+  "dev_url": "http://localhost:31916",
   "session": {
-    "rtt_ms": 372,
+    "rtt_ms": 174,
     "status": 200,
     "body": {
-      "intent": "a CRM for freelancers",
-      "sessionId": "bcbef9c3-fcc5-4fef-8c29-ecfecf221213"
+      "intent": "recipe app for people who hate cooking",
+      "sessionId": "3b1b2e11-fabf-4890-ab43-d6be0d77907e"
     },
     "error": null
   },
   "stream": {
-    "opened_at_ms": 774,
+    "opened_at_ms": 772,
     "error": null,
     "event_counts": {
       "agent-status": 55,
@@ -24,13 +24,13 @@
       "error": 14
     },
     "first_event_ms": {
-      "agent-status": 779,
+      "agent-status": 777,
       "session-ready": 1288,
-      "error": 1439
+      "error": 1445
     },
     "events": [
       {
-        "ts_ms": 779,
+        "ts_ms": 777,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -44,7 +44,7 @@
         }
       },
       {
-        "ts_ms": 779,
+        "ts_ms": 777,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -76,7 +76,7 @@
         "type": "session-ready",
         "data": {
           "type": "session-ready",
-          "intent": "a CRM for freelancers"
+          "intent": "recipe app for people who hate cooking"
         }
       },
       {
@@ -94,7 +94,7 @@
         }
       },
       {
-        "ts_ms": 1439,
+        "ts_ms": 1445,
         "type": "error",
         "data": {
           "type": "error",
@@ -105,7 +105,7 @@
         }
       },
       {
-        "ts_ms": 1439,
+        "ts_ms": 1445,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -119,7 +119,7 @@
         }
       },
       {
-        "ts_ms": 1648,
+        "ts_ms": 1448,
         "type": "error",
         "data": {
           "type": "error",
@@ -130,7 +130,7 @@
         }
       },
       {
-        "ts_ms": 1648,
+        "ts_ms": 1448,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -144,7 +144,7 @@
         }
       },
       {
-        "ts_ms": 1648,
+        "ts_ms": 1448,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -158,7 +158,7 @@
         }
       },
       {
-        "ts_ms": 1648,
+        "ts_ms": 1448,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -183,7 +183,7 @@
         }
       },
       {
-        "ts_ms": 2151,
+        "ts_ms": 1950,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -197,7 +197,7 @@
         }
       },
       {
-        "ts_ms": 2245,
+        "ts_ms": 2079,
         "type": "error",
         "data": {
           "type": "error",
@@ -208,7 +208,7 @@
         }
       },
       {
-        "ts_ms": 2650,
+        "ts_ms": 2450,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -222,7 +222,7 @@
         }
       },
       {
-        "ts_ms": 2770,
+        "ts_ms": 2566,
         "type": "error",
         "data": {
           "type": "error",
@@ -233,7 +233,7 @@
         }
       },
       {
-        "ts_ms": 2808,
+        "ts_ms": 2807,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -247,7 +247,7 @@
         }
       },
       {
-        "ts_ms": 3151,
+        "ts_ms": 2948,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -261,21 +261,7 @@
         }
       },
       {
-        "ts_ms": 3248,
-        "type": "agent-status",
-        "data": {
-          "type": "agent-status",
-          "agent": {
-            "id": "scout-02",
-            "name": "Prism",
-            "role": "scout",
-            "status": "thinking",
-            "focus": "generating probe"
-          }
-        }
-      },
-      {
-        "ts_ms": 3300,
+        "ts_ms": 3069,
         "type": "error",
         "data": {
           "type": "error",
@@ -286,7 +272,21 @@
         }
       },
       {
-        "ts_ms": 3650,
+        "ts_ms": 3081,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-02",
+            "name": "Prism",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 3450,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -300,7 +300,21 @@
         }
       },
       {
-        "ts_ms": 3741,
+        "ts_ms": 3568,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-03",
+            "name": "Lumen",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 3731,
         "type": "error",
         "data": {
           "type": "error",
@@ -311,21 +325,7 @@
         }
       },
       {
-        "ts_ms": 3771,
-        "type": "agent-status",
-        "data": {
-          "type": "agent-status",
-          "agent": {
-            "id": "scout-03",
-            "name": "Lumen",
-            "role": "scout",
-            "status": "thinking",
-            "focus": "generating probe"
-          }
-        }
-      },
-      {
-        "ts_ms": 3897,
+        "ts_ms": 3949,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -339,7 +339,7 @@
         }
       },
       {
-        "ts_ms": 4151,
+        "ts_ms": 3949,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -353,7 +353,7 @@
         }
       },
       {
-        "ts_ms": 4239,
+        "ts_ms": 4043,
         "type": "error",
         "data": {
           "type": "error",
@@ -364,7 +364,7 @@
         }
       },
       {
-        "ts_ms": 4302,
+        "ts_ms": 4070,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -378,7 +378,7 @@
         }
       },
       {
-        "ts_ms": 4385,
+        "ts_ms": 4180,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -392,21 +392,7 @@
         }
       },
       {
-        "ts_ms": 4744,
-        "type": "agent-status",
-        "data": {
-          "type": "agent-status",
-          "agent": {
-            "id": "scout-05",
-            "name": "Facet",
-            "role": "scout",
-            "status": "thinking",
-            "focus": "generating probe"
-          }
-        }
-      },
-      {
-        "ts_ms": 4932,
+        "ts_ms": 4699,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -420,13 +406,13 @@
         }
       },
       {
-        "ts_ms": 4988,
+        "ts_ms": 4734,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
           "agent": {
-            "id": "scout-01",
-            "name": "Iris",
+            "id": "scout-05",
+            "name": "Facet",
             "role": "scout",
             "status": "thinking",
             "focus": "generating probe"
@@ -434,7 +420,7 @@
         }
       },
       {
-        "ts_ms": 5240,
+        "ts_ms": 5046,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -448,63 +434,7 @@
         }
       },
       {
-        "ts_ms": 5470,
-        "type": "agent-status",
-        "data": {
-          "type": "agent-status",
-          "agent": {
-            "id": "scout-04",
-            "name": "Aura",
-            "role": "scout",
-            "status": "thinking",
-            "focus": "generating probe"
-          }
-        }
-      },
-      {
-        "ts_ms": 5474,
-        "type": "agent-status",
-        "data": {
-          "type": "agent-status",
-          "agent": {
-            "id": "scout-02",
-            "name": "Prism",
-            "role": "scout",
-            "status": "thinking",
-            "focus": "generating probe"
-          }
-        }
-      },
-      {
-        "ts_ms": 5867,
-        "type": "agent-status",
-        "data": {
-          "type": "agent-status",
-          "agent": {
-            "id": "scout-05",
-            "name": "Facet",
-            "role": "scout",
-            "status": "thinking",
-            "focus": "generating probe"
-          }
-        }
-      },
-      {
-        "ts_ms": 6067,
-        "type": "agent-status",
-        "data": {
-          "type": "agent-status",
-          "agent": {
-            "id": "scout-03",
-            "name": "Lumen",
-            "role": "scout",
-            "status": "thinking",
-            "focus": "generating probe"
-          }
-        }
-      },
-      {
-        "ts_ms": 6125,
+        "ts_ms": 5046,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -518,7 +448,63 @@
         }
       },
       {
-        "ts_ms": 6502,
+        "ts_ms": 5270,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-02",
+            "name": "Prism",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 5336,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-04",
+            "name": "Aura",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 5829,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-05",
+            "name": "Facet",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 6059,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-03",
+            "name": "Lumen",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 6148,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -532,63 +518,7 @@
         }
       },
       {
-        "ts_ms": 6581,
-        "type": "agent-status",
-        "data": {
-          "type": "agent-status",
-          "agent": {
-            "id": "scout-04",
-            "name": "Aura",
-            "role": "scout",
-            "status": "thinking",
-            "focus": "generating probe"
-          }
-        }
-      },
-      {
-        "ts_ms": 6626,
-        "type": "agent-status",
-        "data": {
-          "type": "agent-status",
-          "agent": {
-            "id": "scout-02",
-            "name": "Prism",
-            "role": "scout",
-            "status": "thinking",
-            "focus": "generating probe"
-          }
-        }
-      },
-      {
-        "ts_ms": 7075,
-        "type": "agent-status",
-        "data": {
-          "type": "agent-status",
-          "agent": {
-            "id": "scout-05",
-            "name": "Facet",
-            "role": "scout",
-            "status": "thinking",
-            "focus": "generating probe"
-          }
-        }
-      },
-      {
-        "ts_ms": 7168,
-        "type": "agent-status",
-        "data": {
-          "type": "agent-status",
-          "agent": {
-            "id": "scout-03",
-            "name": "Lumen",
-            "role": "scout",
-            "status": "thinking",
-            "focus": "generating probe"
-          }
-        }
-      },
-      {
-        "ts_ms": 7485,
+        "ts_ms": 6222,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -602,7 +532,91 @@
         }
       },
       {
-        "ts_ms": 7578,
+        "ts_ms": 6370,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-02",
+            "name": "Prism",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 6473,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-04",
+            "name": "Aura",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 6916,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-05",
+            "name": "Facet",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 7156,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-03",
+            "name": "Lumen",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 7340,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-01",
+            "name": "Iris",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 7386,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-06",
+            "name": "Echo",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 7438,
         "type": "error",
         "data": {
           "type": "error",
@@ -613,35 +627,7 @@
         }
       },
       {
-        "ts_ms": 7598,
-        "type": "agent-status",
-        "data": {
-          "type": "agent-status",
-          "agent": {
-            "id": "scout-06",
-            "name": "Echo",
-            "role": "scout",
-            "status": "thinking",
-            "focus": "generating probe"
-          }
-        }
-      },
-      {
-        "ts_ms": 7669,
-        "type": "agent-status",
-        "data": {
-          "type": "agent-status",
-          "agent": {
-            "id": "scout-04",
-            "name": "Aura",
-            "role": "scout",
-            "status": "thinking",
-            "focus": "generating probe"
-          }
-        }
-      },
-      {
-        "ts_ms": 7834,
+        "ts_ms": 7521,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -655,7 +641,21 @@
         }
       },
       {
-        "ts_ms": 7934,
+        "ts_ms": 7616,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-04",
+            "name": "Aura",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 7652,
         "type": "error",
         "data": {
           "type": "error",
@@ -666,7 +666,7 @@
         }
       },
       {
-        "ts_ms": 8170,
+        "ts_ms": 8053,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -680,7 +680,7 @@
         }
       },
       {
-        "ts_ms": 8317,
+        "ts_ms": 8250,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -694,7 +694,7 @@
         }
       },
       {
-        "ts_ms": 8436,
+        "ts_ms": 8338,
         "type": "error",
         "data": {
           "type": "error",
@@ -705,7 +705,7 @@
         }
       },
       {
-        "ts_ms": 8579,
+        "ts_ms": 8441,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -719,7 +719,7 @@
         }
       },
       {
-        "ts_ms": 8697,
+        "ts_ms": 8487,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -733,7 +733,21 @@
         }
       },
       {
-        "ts_ms": 8789,
+        "ts_ms": 8656,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-02",
+            "name": "Prism",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 8711,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -747,7 +761,7 @@
         }
       },
       {
-        "ts_ms": 8884,
+        "ts_ms": 8809,
         "type": "error",
         "data": {
           "type": "error",
@@ -758,21 +772,7 @@
         }
       },
       {
-        "ts_ms": 8937,
-        "type": "agent-status",
-        "data": {
-          "type": "agent-status",
-          "agent": {
-            "id": "scout-02",
-            "name": "Prism",
-            "role": "scout",
-            "status": "thinking",
-            "focus": "generating probe"
-          }
-        }
-      },
-      {
-        "ts_ms": 9271,
+        "ts_ms": 9183,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -786,7 +786,7 @@
         }
       },
       {
-        "ts_ms": 9437,
+        "ts_ms": 9341,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -800,7 +800,7 @@
         }
       },
       {
-        "ts_ms": 9582,
+        "ts_ms": 9565,
         "type": "error",
         "data": {
           "type": "error",
@@ -811,21 +811,7 @@
         }
       },
       {
-        "ts_ms": 9673,
-        "type": "agent-status",
-        "data": {
-          "type": "agent-status",
-          "agent": {
-            "id": "scout-01",
-            "name": "Iris",
-            "role": "scout",
-            "status": "thinking",
-            "focus": "generating probe"
-          }
-        }
-      },
-      {
-        "ts_ms": 9806,
+        "ts_ms": 9621,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -839,13 +825,13 @@
         }
       },
       {
-        "ts_ms": 9886,
+        "ts_ms": 9622,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
           "agent": {
-            "id": "scout-04",
-            "name": "Aura",
+            "id": "scout-01",
+            "name": "Iris",
             "role": "scout",
             "status": "thinking",
             "focus": "generating probe"
@@ -853,18 +839,7 @@
         }
       },
       {
-        "ts_ms": 9900,
-        "type": "error",
-        "data": {
-          "type": "error",
-          "source": "scout",
-          "code": "provider_auth_failure",
-          "agentId": "scout-06",
-          "message": "Invalid bearer token"
-        }
-      },
-      {
-        "ts_ms": 10061,
+        "ts_ms": 9772,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -878,13 +853,13 @@
         }
       },
       {
-        "ts_ms": 10584,
+        "ts_ms": 9812,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
           "agent": {
-            "id": "scout-05",
-            "name": "Facet",
+            "id": "scout-04",
+            "name": "Aura",
             "role": "scout",
             "status": "thinking",
             "focus": "generating probe"
@@ -892,7 +867,18 @@
         }
       },
       {
-        "ts_ms": 10585,
+        "ts_ms": 9896,
+        "type": "error",
+        "data": {
+          "type": "error",
+          "source": "scout",
+          "code": "provider_auth_failure",
+          "agentId": "scout-06",
+          "message": "Invalid bearer token"
+        }
+      },
+      {
+        "ts_ms": 10439,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -906,7 +892,21 @@
         }
       },
       {
-        "ts_ms": 10769,
+        "ts_ms": 10568,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-05",
+            "name": "Facet",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 10899,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -920,7 +920,7 @@
         }
       },
       {
-        "ts_ms": 10903,
+        "ts_ms": 10899,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -934,13 +934,13 @@
         }
       },
       {
-        "ts_ms": 10994,
+        "ts_ms": 11016,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
           "agent": {
-            "id": "scout-04",
-            "name": "Aura",
+            "id": "scout-02",
+            "name": "Prism",
             "role": "scout",
             "status": "thinking",
             "focus": "generating probe"
@@ -948,13 +948,13 @@
         }
       },
       {
-        "ts_ms": 11203,
+        "ts_ms": 11040,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
           "agent": {
-            "id": "scout-02",
-            "name": "Prism",
+            "id": "scout-04",
+            "name": "Aura",
             "role": "scout",
             "status": "thinking",
             "focus": "generating probe"
@@ -1005,14 +1005,14 @@
   },
   "error_event_samples": [
     {
-      "ts_ms": 1439,
+      "ts_ms": 1445,
       "source": "builder",
       "code": "provider_auth_failure",
       "agentId": "builder-01",
       "message": "Invalid bearer token"
     },
     {
-      "ts_ms": 1648,
+      "ts_ms": 1448,
       "source": "oracle",
       "code": "provider_auth_failure",
       "agentId": "oracle",
@@ -1026,35 +1026,35 @@
       "message": "Invalid bearer token"
     },
     {
-      "ts_ms": 2245,
+      "ts_ms": 2079,
       "source": "scout",
       "code": "provider_auth_failure",
       "agentId": "scout-02",
       "message": "Invalid bearer token"
     },
     {
-      "ts_ms": 2770,
+      "ts_ms": 2566,
       "source": "scout",
       "code": "provider_auth_failure",
       "agentId": "scout-03",
       "message": "Invalid bearer token"
     },
     {
-      "ts_ms": 3300,
+      "ts_ms": 3069,
       "source": "scout",
       "code": "provider_auth_failure",
       "agentId": "scout-04",
       "message": "Invalid bearer token"
     },
     {
-      "ts_ms": 3741,
+      "ts_ms": 3731,
       "source": "scout",
       "code": "provider_auth_failure",
       "agentId": "scout-05",
       "message": "Invalid bearer token"
     },
     {
-      "ts_ms": 4239,
+      "ts_ms": 4043,
       "source": "scout",
       "code": "provider_auth_failure",
       "agentId": "scout-06",
@@ -1063,38 +1063,38 @@
   ],
   "provider_error_samples": [
     {
-      "ts_ms": 1439,
+      "ts_ms": 1445,
       "text": "[builder] scaffold failed: APICallError [AI_APICallError]: Invalid bearer token"
     },
     {
-      "ts_ms": 1439,
+      "ts_ms": 1445,
       "text": "  statusCode: 401,"
     },
     {
-      "ts_ms": 1439,
-      "text": "  responseBody: '{\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"Invalid bearer token\"},\"request_id\":\"req_011CaLmBoUykkWCWsHts3g7W\"}',"
+      "ts_ms": 1445,
+      "text": "  responseBody: '{\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"Invalid bearer token\"},\"request_id\":\"req_011CaLmA4J9yVTuHj5skCEyu\"}',"
     },
     {
-      "ts_ms": 1439,
+      "ts_ms": 1445,
       "text": "    error: { type: 'authentication_error', message: 'Invalid bearer token' }"
     },
     {
-      "ts_ms": 1439,
+      "ts_ms": 1445,
       "text": "  Symbol(vercel.ai.error.AI_APICallError): true"
     },
     {
-      "ts_ms": 1646,
+      "ts_ms": 1446,
       "text": "[oracle] cold-start failed, scouts will self-assign: APICallError [AI_APICallError]: Invalid bearer token"
     },
     {
-      "ts_ms": 1646,
+      "ts_ms": 1446,
       "text": "  statusCode: 401,"
     },
     {
-      "ts_ms": 1646,
-      "text": "  responseBody: '{\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"Invalid bearer token\"},\"request_id\":\"req_011CaLmBoTF7mSD3aT7DGaeX\"}',"
+      "ts_ms": 1446,
+      "text": "  responseBody: '{\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"Invalid bearer token\"},\"request_id\":\"req_011CaLmA4KPvKspENUtrmvAS\"}',"
     }
   ],
-  "stderr_tail": ":4281:36)\n    at async file:///Users/provi/Development/_projs/the-eye-loop-gnhf-worktrees/you-are-running-an-e-2c98fb/node_modules/.pnpm/ai@6.0.134_zod@3.25.76/node_modules/ai/dist/index.mjs:2258:24\n    at async generateText (file:///Users/provi/Development/_projs/the-eye-loop-gnhf-worktrees/you-are-running-an-e-2c98fb/node_modules/.pnpm/ai@6.0.134_zod@3.25.76/node_modules/ai/dist/index.mjs:4102:12) {\n  cause: undefined,\n  url: 'https://api.anthropic.com/v1/messages',\n  requestBodyValues: {\n    model: 'claude-haiku-4-5-20251001',\n    max_tokens: 64000,\n    temperature: 1,\n    top_k: undefined,\n    top_p: undefined,\n    stop_sequences: undefined,\n    output_config: { format: [Object] },\n    system: [ [Object] ],\n    messages: [ [Object] ],\n    tools: undefined,\n    tool_choice: undefined,\n    stream: undefined\n  },\n  statusCode: 401,\n  responseHeaders: {\n    'cf-cache-status': 'DYNAMIC',\n    'cf-ray': '9f0d20fc5bf2cff5-SJC',\n    connection: 'keep-alive',\n    'content-length': '133',\n    'content-security-policy': \"default-src 'none'; frame-ancestors 'none'\",\n    'content-type': 'application/json',\n    date: 'Thu, 23 Apr 2026 13:14:01 GMT',\n    'request-id': 'req_011CaLmCXfVmJHbZRZjsceh4',\n    server: 'cloudflare',\n    'set-cookie': '_cfuvid=pDrHf9WbcaJZxm2DJLffgTtr2DsJfqNh7bjkRfK.frc-1776950041.0195718-1.0.1.1-Zjc4qKjaykLs3wl97Eahi08l1Dst9kOtq7yWXDokID4; HttpOnly; SameSite=None; Secure; Path=/; Domain=api.anthropic.com',\n    'strict-transport-security': 'max-age=31536000; includeSubDomains; preload',\n    'x-envoy-upstream-service-time': '10',\n    'x-robots-tag': 'none',\n    'x-should-retry': 'false'\n  },\n  responseBody: '{\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"Invalid bearer token\"},\"request_id\":\"req_011CaLmCXfVmJHbZRZjsceh4\"}',\n  isRetryable: false,\n  data: {\n    type: 'error',\n    error: { type: 'authentication_error', message: 'Invalid bearer token' }\n  },\n  Symbol(vercel.ai.error): true,\n  Symbol(vercel.ai.error.AI_APICallError): true\n}\n",
-  "artifact_path": "/Users/provi/Development/_projs/the-eye-loop-gnhf-worktrees/you-are-running-an-e-2c98fb/scripts/findings/validate-2026-04-23T13-14-01-772Z.json"
+  "stderr_tail": ":4281:36)\n    at async file:///Users/provi/Development/_projs/the-eye-loop-gnhf-worktrees/you-are-running-an-e-2c98fb/node_modules/.pnpm/ai@6.0.134_zod@3.25.76/node_modules/ai/dist/index.mjs:2258:24\n    at async generateText (file:///Users/provi/Development/_projs/the-eye-loop-gnhf-worktrees/you-are-running-an-e-2c98fb/node_modules/.pnpm/ai@6.0.134_zod@3.25.76/node_modules/ai/dist/index.mjs:4102:12) {\n  cause: undefined,\n  url: 'https://api.anthropic.com/v1/messages',\n  requestBodyValues: {\n    model: 'claude-haiku-4-5-20251001',\n    max_tokens: 64000,\n    temperature: 1,\n    top_k: undefined,\n    top_p: undefined,\n    stop_sequences: undefined,\n    output_config: { format: [Object] },\n    system: [ [Object] ],\n    messages: [ [Object] ],\n    tools: undefined,\n    tool_choice: undefined,\n    stream: undefined\n  },\n  statusCode: 401,\n  responseHeaders: {\n    'cf-cache-status': 'DYNAMIC',\n    'cf-ray': '9f0d20673fcd6037-SJC',\n    connection: 'keep-alive',\n    'content-length': '133',\n    'content-security-policy': \"default-src 'none'; frame-ancestors 'none'\",\n    'content-type': 'application/json',\n    date: 'Thu, 23 Apr 2026 13:13:37 GMT',\n    'request-id': 'req_011CaLmAnRT6mPSCPNoJuwWS',\n    server: 'cloudflare',\n    'set-cookie': '_cfuvid=8l48oOmN.tcP4moiaAMR19kSWAuJ6khj2jVNViC6M6M-1776950017.153296-1.0.1.1-SdS8C8FzHxH5w_XvEVtec0AeVBf_.6AFzyRHLPlLzig; HttpOnly; SameSite=None; Secure; Path=/; Domain=api.anthropic.com',\n    'strict-transport-security': 'max-age=31536000; includeSubDomains; preload',\n    'x-envoy-upstream-service-time': '279',\n    'x-robots-tag': 'none',\n    'x-should-retry': 'false'\n  },\n  responseBody: '{\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"Invalid bearer token\"},\"request_id\":\"req_011CaLmAnRT6mPSCPNoJuwWS\"}',\n  isRetryable: false,\n  data: {\n    type: 'error',\n    error: { type: 'authentication_error', message: 'Invalid bearer token' }\n  },\n  Symbol(vercel.ai.error): true,\n  Symbol(vercel.ai.error.AI_APICallError): true\n}\n",
+  "artifact_path": "/Users/provi/Development/_projs/the-eye-loop-gnhf-worktrees/you-are-running-an-e-2c98fb/scripts/findings/validate-2026-04-23T13-13-37-902Z.json"
 }
