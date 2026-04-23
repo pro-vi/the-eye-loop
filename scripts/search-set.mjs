@@ -144,6 +144,8 @@ function extractMetrics(artifact) {
 		stage_valid_count: m.stage_valid_count ?? 0,
 		error_source_valid_count: m.error_source_valid_count ?? 0,
 		error_code_valid_count: m.error_code_valid_count ?? 0,
+		agent_status_valid_count: m.agent_status_valid_count ?? 0,
+		stream_2_agent_status_valid_count: m.stream_2_agent_status_valid_count ?? 0,
 		oracle_cold_start_latency_ms: m.oracle_cold_start_latency_ms ?? null,
 		oracle_synthesis_latency_ms: m.oracle_synthesis_latency_ms ?? null,
 		oracle_reveal_build_latency_ms: m.oracle_reveal_build_latency_ms ?? null,
@@ -657,6 +659,35 @@ async function main() {
 			error_code_valid_count_sum: sumMetric('error_code_valid_count'),
 			error_code_valid_count_min: perIntent.length
 				? Math.min(...perIntent.map((p) => p.metrics.error_code_valid_count ?? 0))
+				: 0,
+			// iter-58 agent.status union-membership rollups (primary + stream_2).
+			// Extends the iter-41/55/56 typed-union membership family from
+			// {stage, source, code, message} to the 5th and last typed-union
+			// field on any SSE event (agent.status ∈ {'idle','thinking','queued',
+			// 'waiting'} per types.ts:41). Under broken-auth baseline:
+			//   agent_status_valid_count_sum=90 _min=18 (primary — matches the
+			//     iter-31 agent_status_event_count_sum, identity invariant: every
+			//     agent-status emit on the primary stream carries a valid status)
+			//   stream_2_agent_status_valid_count_sum=40 _min=8 (stream_2 — joins
+			//     the iter-25/54/55/56 equality at 40 as the 10th identity term:
+			//     error_event = distinct_agent = provider_auth = auth_diagnostic
+			//     = stream_2_agent_status = stream_2_diagnostic = error_source_valid
+			//     = error_message_present = error_code_valid
+			//     = stream_2_agent_status_valid = 40)
+			// Orthogonal regression: a future setStatus call site passing 'running'
+			// / 'done' / undefined from a typo or a stale pre-rename literal (or
+			// a future status-union extension leaking an unhandled literal onto
+			// the wire) would leave every iter-31/52/40 count/role/focus probe
+			// intact while dropping this probe below agent_status_event_count.
+			// Iter-50/51 latency derivation only fires on idle/thinking-focus
+			// pairs, so an invalid status would be invisible to those probes too.
+			agent_status_valid_count_sum: sumMetric('agent_status_valid_count'),
+			agent_status_valid_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.agent_status_valid_count ?? 0))
+				: 0,
+			stream_2_agent_status_valid_count_sum: sumMetric('stream_2_agent_status_valid_count'),
+			stream_2_agent_status_valid_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.stream_2_agent_status_valid_count ?? 0))
 				: 0,
 			time_to_first_stage_changed_ms_p50: percentile(
 				perIntent.map((p) => p.metrics.time_to_first_stage_changed_ms),

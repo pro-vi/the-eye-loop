@@ -390,6 +390,7 @@ async function main() {
 		error_source_valid_count: 0,
 		error_code_valid_count: 0,
 		error_message_present_count: 0,
+		agent_status_valid_count: 0,
 		first_event_ms_after_open: null,
 		last_event_ms_after_open: null,
 		replay_span_ms: null,
@@ -565,6 +566,23 @@ async function main() {
 		// (the human-readable reason text under the code-keyed title).
 		stream2.error_message_present_count = stream2.events.filter(
 			(e) => e.type === 'error' && typeof e.data?.message === 'string' && e.data.message.length > 0
+		).length;
+		// iter-58: agent.status union-membership probe — extends iter-41/55/56's
+		// typed-union membership family to the 5th and last typed-union field on
+		// the agent-status event (agent.status ∈ {'idle','thinking','queued','waiting'}
+		// per types.ts:41). Sibling probes on stream_2: stage_valid (iter-41),
+		// error_source_valid (iter-41), error_code_valid (iter-56), error_message_present
+		// (iter-54), agent per-role count (iter-40). Orthogonal regression class:
+		// a regression that emits agent-status with status='running' / 'done' /
+		// undefined from a future union extension or a typo in setStatus would
+		// leave every count/role/focus probe intact while dropping this probe
+		// below stream_2_agent_status_count. Under broken-auth baseline the lone
+		// replay emits 8 agent-status events all with status='idle' (post-failure
+		// cleanup), so the invariant is stream_2_agent_status_valid_count = 8
+		// per intent, matching stream_2_agent_status_count.
+		const VALID_AGENT_STATUSES = ['idle', 'thinking', 'queued', 'waiting'];
+		stream2.agent_status_valid_count = stream2.events.filter(
+			(e) => e.type === 'agent-status' && VALID_AGENT_STATUSES.includes(e.data?.agent?.status)
 		).length;
 		// Replay-tightness probe — closes iter-34's explicitly-deferred "assert
 		// p90-p50<20ms as an additional stability invariant" opportunity, but
@@ -1029,6 +1047,23 @@ async function main() {
 	const errorCodeValidCount = errorEvents.filter((e) =>
 		VALID_ERROR_CODES.has(e.data?.code)
 	).length;
+	// iter-58: agent.status union-membership probe (primary stream) — symmetric
+	// to stream2.agent_status_valid_count above. Extends the iter-41/55/56
+	// typed-union membership family from {stage, source, code, message} to
+	// {stage, source, code, message, agent.status}, filling the 5th and last
+	// typed-union field on any SSE event. Under broken-auth baseline the
+	// invariant is agent_status_valid_count = agent_status_event_count = 18
+	// per intent (2 replay idle + 8 thinking + 8 idle/provider-auth-failed).
+	// Orthogonal to iter-50/51 latency derivation because those match specific
+	// focus strings; a 'running' or 'done' status from a typo or a future
+	// union extension would still be counted in iter-31 total and iter-52
+	// per-role (by agent.role, independent of agent.status) but would drop
+	// this probe below agent_status_event_count — an orthogonal regression
+	// class the existing probes cannot see.
+	const VALID_AGENT_STATUSES = new Set(['idle', 'thinking', 'queued', 'waiting']);
+	const agentStatusValidCount = events.filter(
+		(e) => e.type === 'agent-status' && VALID_AGENT_STATUSES.has(e.data?.agent?.status)
+	).length;
 
 	// Multi-session probe — always computed, but only populated when
 	// VALIDATE_SECOND_INTENT is set. session-ready events carry the intent in
@@ -1152,6 +1187,7 @@ async function main() {
 			stream_2_error_source_valid_count: stream2.error_source_valid_count,
 			stream_2_error_code_valid_count: stream2.error_code_valid_count,
 			stream_2_error_message_present_count: stream2.error_message_present_count,
+			stream_2_agent_status_valid_count: stream2.agent_status_valid_count,
 			stream_2_first_event_ms_after_open: stream2.first_event_ms_after_open,
 			stream_2_replay_span_ms: stream2.replay_span_ms,
 			stage_changed_event_count: stageChangedEventCount,
@@ -1160,6 +1196,7 @@ async function main() {
 			stage_valid_count: stageValidCount,
 			error_source_valid_count: errorSourceValidCount,
 			error_code_valid_count: errorCodeValidCount,
+			agent_status_valid_count: agentStatusValidCount,
 			oracle_cold_start_latency_ms: oracleColdStartLatencyMs,
 			oracle_synthesis_latency_ms: oracleSynthesisLatencyMs,
 			oracle_reveal_build_latency_ms: oracleRevealBuildLatencyMs,
@@ -1198,9 +1235,11 @@ async function main() {
 		`agent_status_roles=s${agentStatusScoutCount}/o${agentStatusOracleCount}/b${agentStatusBuilderCount} ` +
 		`stage_changed=${stageChangedEventCount} stage_before_ready=${stageChangedBeforeSessionReady} ` +
 		`stage_valid=${stageValidCount} err_src_valid=${errorSourceValidCount} err_code_valid=${errorCodeValidCount} ` +
+		`agent_status_valid=${agentStatusValidCount} ` +
 		`s2_err=${stream2.error_event_count} s2_agents=${stream2.agent_status_count} s2_stage=${stream2.stage_changed_count} s2_diag=${stream2.diagnostic_preserved_count} s2_err_auth=${stream2.error_provider_auth_count} ` +
 		`s2_roles=s${stream2.agent_status_scout_count}/o${stream2.agent_status_oracle_count}/b${stream2.agent_status_builder_count} ` +
 		`s2_stage_valid=${stream2.stage_valid_count} s2_err_src_valid=${stream2.error_source_valid_count} s2_err_code_valid=${stream2.error_code_valid_count} s2_err_msg=${stream2.error_message_present_count} ` +
+		`s2_agent_status_valid=${stream2.agent_status_valid_count} ` +
 		`s2_first=${stream2.first_event_ms_after_open}ms s2_span=${stream2.replay_span_ms}ms ` +
 		`oracle_cs=${oracleColdStartLatencyMs === null ? '-' : oracleColdStartLatencyMs + 'ms'} ` +
 		`oracle_syn=${oracleSynthesisLatencyMs === null ? '-' : oracleSynthesisLatencyMs + 'ms'} ` +
