@@ -1,0 +1,5 @@
+{"id":"weather-runners","intent":"weather app for runners","source":"specs/2-v0-spec.md:40","tags":["spec-example","domain-clear"]}
+{"id":"ai-workspace","intent":"ai workspace","source":"specs/4-akinator.md:428","tags":["akinator-example","vague-intent"]}
+{"id":"recipe-hate-cooking","intent":"recipe app for people who hate cooking","source":"specs/4-akinator.md:436","tags":["akinator-example","persona-anima-divergence"]}
+{"id":"health-dashboard","intent":"a personal dashboard for tracking long-term health experiments","source":"scripts/validate.mjs:30","tags":["current-baseline","dashboard"]}
+{"id":"crm-freelancers","intent":"a CRM for freelancers","source":"v0-contract","tags":["domain-specific","productivity"]}

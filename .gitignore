@@ -9,11 +9,14 @@ node_modules/
 .research/
 
 # scripts/ is ignored by default (local experiments, boss-run logs); the live
-# validator and its findings artifacts are explicitly tracked so future
-# iterations can run the ramp smoke and diff structured traces.
+# validator, the search-set runner, and findings artifacts are explicitly
+# tracked so future iterations can run the ramp smoke and diff structured
+# traces.
 scripts/*
 !scripts/validate.sh
 !scripts/validate.mjs
+!scripts/search-set.sh
+!scripts/search-set.mjs
 !scripts/findings/
 !scripts/findings/**
 
