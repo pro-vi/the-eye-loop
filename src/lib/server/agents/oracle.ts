@@ -337,6 +337,23 @@ async function runColdStart(intent: string, capturedSessionId: string) {
 			});
 		}
 	} catch (err) {
+		// Session staleness guard, symmetric to the success-path check at
+		// context.sessionId !== capturedSessionId after generateText resolves.
+		// seedSession fires runColdStart fire-and-forget (iter-15), so an in-
+		// flight cold-start that rejects AFTER a new session started would
+		// otherwise emit a stale error event — polluting bus.lastError (iter-21
+		// session-ready clear only runs once per boundary, not per pending call)
+		// and writing a stale agent focus onto the new session's agents map.
+		// Parallel cross-session state-leak family to iter-19 palette reset,
+		// iter-21 lastErrorEmit clear, and iter-42 conditional stage-changed.
+		if (context.sessionId !== capturedSessionId) {
+			debugLog('Oracle', 'cold-start-stale-error', {
+				captured: capturedSessionId,
+				current: context.sessionId,
+				err: String(err)
+			});
+			return;
+		}
 		console.error('[oracle] cold-start failed, scouts will self-assign:', err);
 		const code = classifyErrorCode(err);
 		emitError({
@@ -348,7 +365,7 @@ async function runColdStart(intent: string, capturedSessionId: string) {
 		// Parallel to iter-23's scout.ts auth-break path: preserve the
 		// diagnostic focus instead of falling through to the trailing
 		// setOracleStatus('idle', 'monitoring') which would overwrite it.
-		if (code === 'provider_auth_failure' && context.sessionId === capturedSessionId) {
+		if (code === 'provider_auth_failure') {
 			setOracleStatus('idle', 'provider auth failed');
 			return;
 		}
