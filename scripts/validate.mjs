@@ -972,6 +972,34 @@ async function main() {
 			? 1
 			: 0;
 
+	// Primary-stream payload-value membership probes — symmetric to iter-41's
+	// stream_2_stage_valid_count / stream_2_error_source_valid_count probes on
+	// the /api/stream replay block, closing the {primary, stream_2} × {stage-
+	// changed.stage, error.source} membership matrix on the PRIMARY stream's
+	// live emission path (iter-41 covered only the replay path). A regression
+	// that emits a stage-changed with an out-of-union stage ('images', typo,
+	// stale pre-rename value) or an error with a non-trio source drops the
+	// matching _valid count below its iter-41 sibling on the primary stream,
+	// while leaving the replay probe at its baseline (replay snapshot reads
+	// context.stage at reconnect, which is type-gated; live emission walks
+	// the full runtime history of setStage calls).
+	//
+	// Under broken-auth baseline the expected values are:
+	//   stage_valid_count = 1 (replay at connect emits stage='words')
+	//   error_source_valid_count = 8 (6 scouts + oracle + builder, all valid)
+	// The error_source_valid_count extends the iter-25 6-way equality invariant
+	// into a 7-way equality at 40 under the single-failure-mode regime:
+	//   error_event = distinct_agent = provider_auth = auth_diagnostic
+	//     = stream_2_agent_status = stream_2_diagnostic = error_source_valid.
+	const VALID_STAGES = new Set(['words', 'mockups', 'reveal']);
+	const VALID_ERROR_SOURCES = new Set(['scout', 'oracle', 'builder']);
+	const stageValidCount = events.filter(
+		(e) => e.type === 'stage-changed' && VALID_STAGES.has(e.data?.stage)
+	).length;
+	const errorSourceValidCount = errorEvents.filter((e) =>
+		VALID_ERROR_SOURCES.has(e.data?.source)
+	).length;
+
 	// Multi-session probe — always computed, but only populated when
 	// VALIDATE_SECOND_INTENT is set. session-ready events carry the intent in
 	// their data, so we can count distinct sessions and distinct intents
@@ -1098,6 +1126,8 @@ async function main() {
 			stage_changed_event_count: stageChangedEventCount,
 			time_to_first_stage_changed_ms: timeToFirstStageChangedMs,
 			stage_changed_before_session_ready: stageChangedBeforeSessionReady,
+			stage_valid_count: stageValidCount,
+			error_source_valid_count: errorSourceValidCount,
 			oracle_cold_start_latency_ms: oracleColdStartLatencyMs,
 			oracle_synthesis_latency_ms: oracleSynthesisLatencyMs,
 			oracle_reveal_build_latency_ms: oracleRevealBuildLatencyMs,
@@ -1135,6 +1165,7 @@ async function main() {
 		`agent_status=${agentStatusEventCount} ` +
 		`agent_status_roles=s${agentStatusScoutCount}/o${agentStatusOracleCount}/b${agentStatusBuilderCount} ` +
 		`stage_changed=${stageChangedEventCount} stage_before_ready=${stageChangedBeforeSessionReady} ` +
+		`stage_valid=${stageValidCount} err_src_valid=${errorSourceValidCount} ` +
 		`s2_err=${stream2.error_event_count} s2_agents=${stream2.agent_status_count} s2_stage=${stream2.stage_changed_count} s2_diag=${stream2.diagnostic_preserved_count} s2_err_auth=${stream2.error_provider_auth_count} ` +
 		`s2_roles=s${stream2.agent_status_scout_count}/o${stream2.agent_status_oracle_count}/b${stream2.agent_status_builder_count} ` +
 		`s2_stage_valid=${stream2.stage_valid_count} s2_err_src_valid=${stream2.error_source_valid_count} s2_err_msg=${stream2.error_message_present_count} ` +

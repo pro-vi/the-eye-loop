@@ -140,6 +140,8 @@ function extractMetrics(artifact) {
 		stage_changed_event_count: m.stage_changed_event_count ?? 0,
 		time_to_first_stage_changed_ms: m.time_to_first_stage_changed_ms ?? null,
 		stage_changed_before_session_ready: m.stage_changed_before_session_ready ?? 0,
+		stage_valid_count: m.stage_valid_count ?? 0,
+		error_source_valid_count: m.error_source_valid_count ?? 0,
 		oracle_cold_start_latency_ms: m.oracle_cold_start_latency_ms ?? null,
 		oracle_synthesis_latency_ms: m.oracle_synthesis_latency_ms ?? null,
 		oracle_reveal_build_latency_ms: m.oracle_reveal_build_latency_ms ?? null,
@@ -584,6 +586,38 @@ async function main() {
 			stage_changed_before_session_ready_sum: sumMetric('stage_changed_before_session_ready'),
 			stage_changed_before_session_ready_min: perIntent.length
 				? Math.min(...perIntent.map((p) => p.metrics.stage_changed_before_session_ready ?? 0))
+				: 0,
+			// iter-55 primary-stream payload-value membership probes. Closes the
+			// iter-41 asymmetry where stream_2 had stage_valid / error_source_valid
+			// membership coverage but the PRIMARY stream's live emission path did
+			// not. Expected under broken-auth baseline:
+			//   stage_valid_count_sum=5 _min=1 (replay at connect emits stage='words')
+			//   error_source_valid_count_sum=40 _min=8 (6 scouts + oracle + builder
+			//     per intent × 5 intents, all tagged with valid sources at emitError
+			//     catch sites in scout.ts / oracle.ts / builder.ts)
+			// The error_source_valid_count_sum=40 joins the iter-25 6-way equality
+			// invariant at 40 as a NEW 7th identity term: error_event_count_sum ==
+			// distinct_error_agent_count_sum == provider_auth_failure_count_sum ==
+			// auth_diagnostic_preserved_count_sum == stream_2_agent_status_count_sum
+			// == stream_2_diagnostic_preserved_count_sum == error_source_valid_count_sum
+			// == 40. The identity breaks if a future regression emits an error with
+			// an out-of-trio source (e.g. typo, future SSE renderer agent leaking
+			// through, stale pre-rename value) — error_event_count stays at 40 but
+			// error_source_valid_count drops below 40, a regression class invisible
+			// to the iter-44 per-role sum (iter-44 only sums the THREE valid
+			// buckets; out-of-union sources would be absent from all three buckets
+			// while still counted in the total). Parallel rationale for
+			// stage_valid_count: a regression emitting stage-changed with
+			// stage='images' (stale pre-iter-12 value) or undefined would drop
+			// stage_valid_count below stage_changed_event_count while every iter-
+			// 34/iter-27 timing/ordering probe stays at baseline.
+			stage_valid_count_sum: sumMetric('stage_valid_count'),
+			stage_valid_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.stage_valid_count ?? 0))
+				: 0,
+			error_source_valid_count_sum: sumMetric('error_source_valid_count'),
+			error_source_valid_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.error_source_valid_count ?? 0))
 				: 0,
 			time_to_first_stage_changed_ms_p50: percentile(
 				perIntent.map((p) => p.metrics.time_to_first_stage_changed_ms),
