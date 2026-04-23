@@ -153,6 +153,9 @@ function extractMetrics(artifact) {
 		stream_2_draft_updated_count: m.stream_2_draft_updated_count ?? 0,
 		stream_2_draft_placeholder_count: m.stream_2_draft_placeholder_count ?? 0,
 		stream_2_draft_refined_count: m.stream_2_draft_refined_count ?? 0,
+		stream_2_facade_ready_count: m.stream_2_facade_ready_count ?? 0,
+		stream_2_synthesis_updated_count: m.stream_2_synthesis_updated_count ?? 0,
+		stream_2_evidence_updated_count: m.stream_2_evidence_updated_count ?? 0,
 		session_ready_intent_present_count: m.session_ready_intent_present_count ?? 0,
 		oracle_cold_start_latency_ms: m.oracle_cold_start_latency_ms ?? null,
 		oracle_synthesis_latency_ms: m.oracle_synthesis_latency_ms ?? null,
@@ -823,6 +826,58 @@ async function main() {
 			stream_2_draft_refined_count_sum: sumMetric('stream_2_draft_refined_count'),
 			stream_2_draft_refined_count_min: perIntent.length
 				? Math.min(...perIntent.map((p) => p.metrics.stream_2_draft_refined_count ?? 0))
+				: 0,
+			// iter-66: close the three remaining unprobed cells on /api/stream
+			// replay (iter-65 explicitly named these as future harness-completeness
+			// opportunities). Under iter-61's healthy-auth regime the replay
+			// block at +server.ts:24-38 emits six event types — three already had
+			// first-class stream_2 probes before iter-66 (agent-status iter-26,
+			// stage-changed iter-27, draft-updated iter-65) plus the error
+			// replay (iter-26/39/41/54/55/56). iter-66 closes the remaining
+			// three: facade-ready (one per context.facades entry),
+			// synthesis-updated (one if context.synthesis is present),
+			// evidence-updated (one if context.evidence.length > 0). Expected
+			// baselines vary by regime:
+			//   - broken-auth (pre-iter-61): all three _sum=0 _min=0 because
+			//     context never accumulates facades/synthesis/evidence under
+			//     401 failure.
+			//   - healthy-auth (current, 12-14s window): _sum varies with
+			//     timing of stream_2 open relative to when scouts/oracle fill
+			//     context. Typical: facade_ready_sum=~20-30 _min=~4-6 across
+			//     5 intents (~4-6 facades at replay time per intent; only 6-7
+			//     facades total per session but stream_2 opens before last);
+			//     synthesis_updated_sum=~5 _min=~1 (synthesis is single-emit);
+			//     evidence_updated_sum=~5 _min=~1 (evidence-updated is also
+			//     single-emit per session under current oracle flow).
+			// Regression classes these catch:
+			//   - /api/stream replay of facade-ready dropped (+server.ts:36-38
+			//     for-loop broken): stream_2_facade_ready_count collapses to 0
+			//     while primary facade_ready_count stays at 7.
+			//   - /api/stream replay of synthesis-updated dropped (+server.ts:24-26
+			//     gate broken): stream_2_synthesis_updated_count collapses to 0
+			//     while primary synthesis_updated_count stays at 1.
+			//   - /api/stream replay of evidence-updated dropped (+server.ts:30-32
+			//     gate broken): stream_2_evidence_updated_count collapses to 0
+			//     while primary evidence_updated_count stays at 1.
+			//   - context state drift (facades array mutated mid-replay,
+			//     synthesis overwritten between set and replay): counts drift
+			//     from expected without breaking primary metrics.
+			// Orthogonal to every existing stream_2 probe: none of the count/
+			// content/cardinality/membership/timing probes on agent-status /
+			// error / stage-changed / draft-updated would catch a replay-only
+			// regression on these three event types. With iter-66, the full
+			// 6-event-type × stream_2 matrix is closed on count dimension.
+			stream_2_facade_ready_count_sum: sumMetric('stream_2_facade_ready_count'),
+			stream_2_facade_ready_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.stream_2_facade_ready_count ?? 0))
+				: 0,
+			stream_2_synthesis_updated_count_sum: sumMetric('stream_2_synthesis_updated_count'),
+			stream_2_synthesis_updated_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.stream_2_synthesis_updated_count ?? 0))
+				: 0,
+			stream_2_evidence_updated_count_sum: sumMetric('stream_2_evidence_updated_count'),
+			stream_2_evidence_updated_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.stream_2_evidence_updated_count ?? 0))
 				: 0,
 			time_to_first_stage_changed_ms_p50: percentile(
 				perIntent.map((p) => p.metrics.time_to_first_stage_changed_ms),

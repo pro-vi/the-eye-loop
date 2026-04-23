@@ -389,6 +389,17 @@ async function main() {
 		draft_updated_count: 0,
 		draft_placeholder_count: 0,
 		draft_refined_count: 0,
+		// iter-66: the three remaining unprobed cells iter-65 explicitly named
+		// — facade-ready, synthesis-updated, evidence-updated — on the /api/stream
+		// replay block (+server.ts:24-38). Under iter-61's healthy-auth regime
+		// these fire proportional to context state at stream_2 open time:
+		// facade-ready once per facade in context.facades, synthesis-updated
+		// once if context.synthesis is set, evidence-updated once if
+		// context.evidence.length > 0. Under broken-auth (pre-iter-61) all three
+		// stay at 0 because no facades/synthesis/evidence accumulate.
+		facade_ready_count: 0,
+		synthesis_updated_count: 0,
+		evidence_updated_count: 0,
 		diagnostic_preserved_count: 0,
 		error_provider_auth_count: 0,
 		agent_status_scout_count: 0,
@@ -442,6 +453,9 @@ async function main() {
 						if (parsed.type === 'agent-status') stream2.agent_status_count++;
 						if (parsed.type === 'stage-changed') stream2.stage_changed_count++;
 						if (parsed.type === 'draft-updated') stream2.draft_updated_count++;
+						if (parsed.type === 'facade-ready') stream2.facade_ready_count++;
+						if (parsed.type === 'synthesis-updated') stream2.synthesis_updated_count++;
+						if (parsed.type === 'evidence-updated') stream2.evidence_updated_count++;
 						stream2.events.push({
 							ts_ms: Date.now() - t0,
 							type: parsed.type,
@@ -1346,6 +1360,11 @@ async function main() {
 			stream_2_draft_updated_count: stream2.draft_updated_count,
 			stream_2_draft_placeholder_count: stream2.draft_placeholder_count,
 			stream_2_draft_refined_count: stream2.draft_refined_count,
+			// iter-66: final three unprobed cells on stream_2 replay (iter-65
+			// explicitly named these as remaining harness-completeness gaps).
+			stream_2_facade_ready_count: stream2.facade_ready_count,
+			stream_2_synthesis_updated_count: stream2.synthesis_updated_count,
+			stream_2_evidence_updated_count: stream2.evidence_updated_count,
 			stream_2_first_event_ms_after_open: stream2.first_event_ms_after_open,
 			stream_2_replay_span_ms: stream2.replay_span_ms,
 			stage_changed_event_count: stageChangedEventCount,
@@ -1401,6 +1420,7 @@ async function main() {
 		`s2_stage_valid=${stream2.stage_valid_count} s2_err_src_valid=${stream2.error_source_valid_count} s2_err_code_valid=${stream2.error_code_valid_count} s2_err_msg=${stream2.error_message_present_count} ` +
 		`s2_agent_status_valid=${stream2.agent_status_valid_count} s2_stage_swipe_valid=${stream2.stage_changed_swipe_count_valid_count} ` +
 		`s2_drafts=${stream2.draft_updated_count} s2_drafts_p/r=${stream2.draft_placeholder_count}/${stream2.draft_refined_count} ` +
+		`s2_facades=${stream2.facade_ready_count} s2_synth=${stream2.synthesis_updated_count} s2_evidence=${stream2.evidence_updated_count} ` +
 		`s2_first=${stream2.first_event_ms_after_open}ms s2_span=${stream2.replay_span_ms}ms ` +
 		`oracle_cs=${oracleColdStartLatencyMs === null ? '-' : oracleColdStartLatencyMs + 'ms'} ` +
 		`oracle_syn=${oracleSynthesisLatencyMs === null ? '-' : oracleSynthesisLatencyMs + 'ms'} ` +
