@@ -414,17 +414,12 @@ export function startBuilder(): void {
 
 			// iter-63: synchronous intent-derived placeholder draft so the
 			// prototype pane is never empty during the ~10s Haiku scaffold call.
-			// Fixes the V0 demo row "sees the draft update during the session"
-			// under the healthy-auth race: when a swipe lands before scaffold's
-			// generateText resolves (common — facade-ready at ~5s, scaffold at
-			// ~10s), the success-path gate `swipeCount === 0` silently skips
-			// emitDraftUpdated, and the subsequent rebuild takes another ~10s,
-			// leaving the pane blank for ~20s post-session. The placeholder
-			// emission here closes that gap; if scaffold completes cleanly
-			// before any swipe, the full result overwrites this. Pre-try-block
-			// placement means the emit is independent of generateText success
-			// or staleness — under broken auth the placeholder still lands
-			// before the 401 catch emits the error banner.
+			// Fixes the V0 demo row "sees the draft update during the session".
+			// Pre-try-block placement means the emit is independent of
+			// generateText success or staleness — under broken auth the
+			// placeholder still lands before the 401 catch emits the error
+			// banner. iter-69: scaffold's success path now always overwrites
+			// this regardless of swipeCount (gate removed — see below).
 			const safeIntent = intent.replace(/[<&]/g, (c) => (c === '<' ? '&lt;' : '&amp;'));
 			context.draft.title = intent;
 			context.draft.summary = 'Drafting your prototype from the swipes…';
@@ -454,8 +449,21 @@ export function startBuilder(): void {
 					return;
 				}
 
-				// Only merge if no swipe has beaten us
-				if (context.swipeCount === 0 && result.output) {
+				// iter-69: always merge on success (was gated on swipeCount === 0,
+				// which suppressed scaffold's result whenever a swipe landed during
+				// the ~10s Haiku call — under healthy-auth demo timing facade-ready
+				// arrives at ~3s and pendingSwipe queues while busy=true, so the
+				// gate triggered on essentially every run, leaving users watching
+				// iter-63's placeholder for ~20s (scaffold completed at ~10.5s but
+				// suppressed; rebuild started at 10.5s and needed another ~10s).
+				// Removing the gate: scaffold emits its real draft at ~10.5s AND
+				// rebuild inherits scaffold's richer HTML as current_draft_html
+				// (instead of the bare placeholder), matching SWIPE_PROMPT's "PATCH
+				// not rewrite" semantics. No race with rebuild because rebuild is
+				// gated on busy=false which is released in the finally AFTER this
+				// merge. Directly moves iter-64's frontier anchor draft_refined_count
+				// from 0 to >=1 per intent.
+				if (result.output) {
 					context.draft.title = result.output.title;
 					context.draft.summary = result.output.summary;
 					context.draft.html = result.output.html;
