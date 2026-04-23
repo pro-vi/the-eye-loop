@@ -134,7 +134,13 @@ function extractMetrics(artifact) {
 		stream_2_replay_span_ms: m.stream_2_replay_span_ms ?? null,
 		stage_changed_event_count: m.stage_changed_event_count ?? 0,
 		time_to_first_stage_changed_ms: m.time_to_first_stage_changed_ms ?? null,
-		stage_changed_before_session_ready: m.stage_changed_before_session_ready ?? 0
+		stage_changed_before_session_ready: m.stage_changed_before_session_ready ?? 0,
+		oracle_cold_start_latency_ms: m.oracle_cold_start_latency_ms ?? null,
+		oracle_synthesis_latency_ms: m.oracle_synthesis_latency_ms ?? null,
+		oracle_reveal_build_latency_ms: m.oracle_reveal_build_latency_ms ?? null,
+		oracle_cold_start_count: m.oracle_cold_start_count ?? 0,
+		oracle_synthesis_count: m.oracle_synthesis_count ?? 0,
+		oracle_reveal_build_count: m.oracle_reveal_build_count ?? 0
 	};
 }
 
@@ -567,7 +573,50 @@ async function main() {
 					.map((p) => p.metrics.stream_2_replay_span_ms)
 					.filter((v) => typeof v === 'number' && Number.isFinite(v));
 				return vals.length ? Math.max(...vals) : null;
-			})()
+			})(),
+			// iter-50 Stage 8 oracle latency surfacing. Prompt's Stage 8 list
+			// names oracle_synthesis_latency; this promotes the per-intent
+			// timings (scalars; null when that code path didn't fire) to
+			// cross-intent p50/p90 rollups plus occurrence count sums. Under
+			// the broken-auth baseline only cold-start fires (synthesis needs
+			// evidence>0, reveal needs evidence>=15), so the expected invariant
+			// is oracle_cold_start_count_sum=5 _min=1 with observable
+			// oracle_cold_start_latency_ms_p50 (≈180-220ms, matching Anthropic
+			// 401 RTT) and both oracle_synthesis_count_sum/_reveal_build_count_sum=0
+			// with null p50/p90 timing rollups. Post-healthy-auth, synthesis
+			// and reveal latencies become observable and both timing p50s
+			// become non-null — the metric is explicitly forward-deploy for
+			// the synthesis/reveal paths while immediately useful for cold-start.
+			oracle_cold_start_latency_ms_p50: percentile(
+				perIntent.map((p) => p.metrics.oracle_cold_start_latency_ms),
+				50
+			),
+			oracle_cold_start_latency_ms_p90: percentile(
+				perIntent.map((p) => p.metrics.oracle_cold_start_latency_ms),
+				90
+			),
+			oracle_synthesis_latency_ms_p50: percentile(
+				perIntent.map((p) => p.metrics.oracle_synthesis_latency_ms),
+				50
+			),
+			oracle_synthesis_latency_ms_p90: percentile(
+				perIntent.map((p) => p.metrics.oracle_synthesis_latency_ms),
+				90
+			),
+			oracle_reveal_build_latency_ms_p50: percentile(
+				perIntent.map((p) => p.metrics.oracle_reveal_build_latency_ms),
+				50
+			),
+			oracle_reveal_build_latency_ms_p90: percentile(
+				perIntent.map((p) => p.metrics.oracle_reveal_build_latency_ms),
+				90
+			),
+			oracle_cold_start_count_sum: sumMetric('oracle_cold_start_count'),
+			oracle_cold_start_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.oracle_cold_start_count ?? 0))
+				: 0,
+			oracle_synthesis_count_sum: sumMetric('oracle_synthesis_count'),
+			oracle_reveal_build_count_sum: sumMetric('oracle_reveal_build_count')
 		},
 		per_intent: perIntent
 	};

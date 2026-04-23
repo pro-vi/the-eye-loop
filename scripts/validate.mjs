@@ -767,6 +767,45 @@ async function main() {
 			? timeToFirstErrorMs - timeToSessionReadyMs
 			: null;
 
+	// iter-50: Stage 8 named metric — oracle_synthesis_latency plus cold-start
+	// and reveal-build companions. Derived from oracle agent-status entry/exit
+	// pairs (thinking[focus=TARGET] followed by the next idle). Focus strings
+	// are set in src/lib/server/agents/oracle.ts at setOracleStatus call sites:
+	//   'cold-start analysis'      -> runColdStart (fires on session-ready)
+	//   'synthesizing evidence'    -> runSynthesis (every SYNTHESIS_CADENCE swipes)
+	//   'building final prototype' -> reveal flow (on REVEAL_THRESHOLD evidence)
+	// Under broken-auth baseline only cold-start fires (synthesis needs
+	// evidence>0, reveal needs evidence>=15). Under healthy auth the
+	// synthesis/reveal latencies will light up as facades + swipes accumulate.
+	// The prompt's Stage 8 list names oracle_synthesis_latency specifically;
+	// surfacing the three as siblings keeps the naming literal while giving
+	// immediate baseline signal from cold-start.
+	function computeOracleLatencies(focusTarget) {
+		const pairs = [];
+		let lastEntry = null;
+		for (const e of events) {
+			if (e.type !== 'agent-status') continue;
+			const agent = e.data?.agent;
+			if (agent?.id !== 'oracle') continue;
+			if (agent.status === 'thinking' && agent.focus === focusTarget) {
+				lastEntry = e.ts_ms;
+			} else if (lastEntry !== null && agent.status === 'idle') {
+				pairs.push(e.ts_ms - lastEntry);
+				lastEntry = null;
+			}
+		}
+		return pairs;
+	}
+	const oracleColdStartLatencies = computeOracleLatencies('cold-start analysis');
+	const oracleSynthesisLatencies = computeOracleLatencies('synthesizing evidence');
+	const oracleRevealBuildLatencies = computeOracleLatencies('building final prototype');
+	const oracleColdStartLatencyMs = oracleColdStartLatencies[0] ?? null;
+	const oracleSynthesisLatencyMs = oracleSynthesisLatencies[0] ?? null;
+	const oracleRevealBuildLatencyMs = oracleRevealBuildLatencies[0] ?? null;
+	const oracleColdStartCount = oracleColdStartLatencies.length;
+	const oracleSynthesisCount = oracleSynthesisLatencies.length;
+	const oracleRevealBuildCount = oracleRevealBuildLatencies.length;
+
 	// Primary-stream stage-changed probe — closes iter-27's explicitly-
 	// deferred ordering invariant ("assert stream 1 sees stage-changed
 	// exactly once at t < time_to_session_ready_ms"). Under the broken-auth
@@ -914,7 +953,13 @@ async function main() {
 			stream_2_replay_span_ms: stream2.replay_span_ms,
 			stage_changed_event_count: stageChangedEventCount,
 			time_to_first_stage_changed_ms: timeToFirstStageChangedMs,
-			stage_changed_before_session_ready: stageChangedBeforeSessionReady
+			stage_changed_before_session_ready: stageChangedBeforeSessionReady,
+			oracle_cold_start_latency_ms: oracleColdStartLatencyMs,
+			oracle_synthesis_latency_ms: oracleSynthesisLatencyMs,
+			oracle_reveal_build_latency_ms: oracleRevealBuildLatencyMs,
+			oracle_cold_start_count: oracleColdStartCount,
+			oracle_synthesis_count: oracleSynthesisCount,
+			oracle_reveal_build_count: oracleRevealBuildCount
 		},
 		error_event_samples: errorEvents.slice(0, 8).map((e) => ({
 			ts_ms: e.ts_ms,
@@ -942,7 +987,10 @@ async function main() {
 		`s2_err=${stream2.error_event_count} s2_agents=${stream2.agent_status_count} s2_stage=${stream2.stage_changed_count} s2_diag=${stream2.diagnostic_preserved_count} s2_err_auth=${stream2.error_provider_auth_count} ` +
 		`s2_roles=s${stream2.agent_status_scout_count}/o${stream2.agent_status_oracle_count}/b${stream2.agent_status_builder_count} ` +
 		`s2_stage_valid=${stream2.stage_valid_count} s2_err_src_valid=${stream2.error_source_valid_count} ` +
-		`s2_first=${stream2.first_event_ms_after_open}ms s2_span=${stream2.replay_span_ms}ms`
+		`s2_first=${stream2.first_event_ms_after_open}ms s2_span=${stream2.replay_span_ms}ms ` +
+		`oracle_cs=${oracleColdStartLatencyMs === null ? '-' : oracleColdStartLatencyMs + 'ms'} ` +
+		`oracle_syn=${oracleSynthesisLatencyMs === null ? '-' : oracleSynthesisLatencyMs + 'ms'} ` +
+		`oracle_rev=${oracleRevealBuildLatencyMs === null ? '-' : oracleRevealBuildLatencyMs + 'ms'}`
 	);
 	process.exit(pass ? 0 : 1);
 }
