@@ -54,6 +54,11 @@ const SECOND_SESSION_POST_DELAY_MS = 1500;
 
 const MAX_STORED_EVENTS = 200;
 const ERROR_SIGNAL_RE = /401|Invalid bearer|authentication_error|AI_APICall|x-api-key/i;
+// iter-63 placeholder signature — verbatim from builder.ts:434, used to
+// discriminate placeholder-only drafts from LLM-refined drafts (iter-64).
+// Hoisted to module scope so both the stream_2 replay-block derivation
+// (iter-65) and the primary-stream derivation (iter-64) share one source.
+const DRAFT_PLACEHOLDER_SIGNATURE = 'Building your first draft…';
 
 function nowIso() { return new Date().toISOString(); }
 function fileStamp() { return nowIso().replace(/[:.]/g, '-'); }
@@ -381,6 +386,9 @@ async function main() {
 		error_event_count: 0,
 		agent_status_count: 0,
 		stage_changed_count: 0,
+		draft_updated_count: 0,
+		draft_placeholder_count: 0,
+		draft_refined_count: 0,
 		diagnostic_preserved_count: 0,
 		error_provider_auth_count: 0,
 		agent_status_scout_count: 0,
@@ -433,6 +441,7 @@ async function main() {
 						if (parsed.type === 'error') stream2.error_event_count++;
 						if (parsed.type === 'agent-status') stream2.agent_status_count++;
 						if (parsed.type === 'stage-changed') stream2.stage_changed_count++;
+						if (parsed.type === 'draft-updated') stream2.draft_updated_count++;
 						stream2.events.push({
 							ts_ms: Date.now() - t0,
 							type: parsed.type,
@@ -606,6 +615,47 @@ async function main() {
 				Number.isInteger(e.data.swipeCount) &&
 				e.data.swipeCount >= 0
 		).length;
+		// iter-65: draft-replay placeholder/refined discriminator (stream_2
+		// mirror of iter-64's primary-stream split). Under iter-61's healthy-auth
+		// regime the /api/stream replay block emits draft-updated when
+		// context.draft.html is non-empty (+server.ts:27-29). iter-63's pre-try
+		// synchronous placeholder guarantees context.draft.html is set at
+		// session-ready, so stream_2 reliably replays a draft. This pair splits
+		// that replay into placeholder (html contains builder.ts:434's signature)
+		// vs refined (does not), yielding identity invariant on the replay path:
+		//   stream_2_draft_placeholder_count + stream_2_draft_refined_count
+		//     === stream_2_draft_updated_count
+		// Under current healthy-auth baseline with 14s window, scaffold completes
+		// after stream_2 opens (opens at ~13s, scaffold at ~10-18s), so the
+		// replayed draft is the placeholder — expected values are
+		// {_updated: 1, _placeholder: 1, _refined: 0}. Regression classes:
+		//   - iter-63 placeholder revert: _placeholder drops to 0, _updated drops
+		//     to 0 (context.draft.html never set at session-ready).
+		//   - /api/stream replay of draft-updated regression (+server.ts:27-29
+		//     gate broken): _updated drops to 0, both sub-counts drop to 0.
+		//   - stream_2 connects AFTER scaffold completes (future latency win):
+		//     _refined flips to 1, _placeholder stays 1 if placeholder draft is
+		//     archived as a separate context.drafts array, or drops to 0 if
+		//     context.draft is mutated in place (current implementation).
+		// Orthogonal to primary-stream iter-64 split: primary counts ALL
+		// draft-updated emissions (every event as it fires); stream_2 counts
+		// only the SNAPSHOT replay at connect time. A regression in the replay
+		// block that drops draft-updated while primary emission continues would
+		// leave iter-64's primary split at {placeholder: 1, refined: 0} while
+		// this stream_2 split collapses to {_updated: 0, _placeholder: 0,
+		// _refined: 0} — two-sided coverage for iter-63's product fix.
+		stream2.draft_placeholder_count = stream2.events.filter(
+			(e) =>
+				e.type === 'draft-updated' &&
+				typeof e.data?.draft?.html === 'string' &&
+				e.data.draft.html.includes(DRAFT_PLACEHOLDER_SIGNATURE)
+		).length;
+		stream2.draft_refined_count = stream2.events.filter(
+			(e) =>
+				e.type === 'draft-updated' &&
+				typeof e.data?.draft?.html === 'string' &&
+				!e.data.draft.html.includes(DRAFT_PLACEHOLDER_SIGNATURE)
+		).length;
 		// Replay-tightness probe — closes iter-34's explicitly-deferred "assert
 		// p90-p50<20ms as an additional stability invariant" opportunity, but
 		// generalized: the /api/stream start() block emits ALL replay events
@@ -719,7 +769,8 @@ async function main() {
 	// pane-never-empty contract. This is the ramp stage 4 discriminative
 	// signal named in iter-63's learning: PASS is no longer binary; the two
 	// sub-counts discriminate placeholder-only, refined, and empty states.
-	const DRAFT_PLACEHOLDER_SIGNATURE = 'Building your first draft…';
+	// DRAFT_PLACEHOLDER_SIGNATURE hoisted to module scope (iter-65) so stream_2
+	// replay-block derivation shares the same signature constant.
 	const draftUpdatedEvents = events.filter((e) => e.type === 'draft-updated');
 	const draftPlaceholderCount = draftUpdatedEvents.filter((e) => {
 		const html = e.data?.draft?.html;
@@ -1292,6 +1343,9 @@ async function main() {
 			stream_2_error_message_present_count: stream2.error_message_present_count,
 			stream_2_agent_status_valid_count: stream2.agent_status_valid_count,
 			stream_2_stage_changed_swipe_count_valid_count: stream2.stage_changed_swipe_count_valid_count,
+			stream_2_draft_updated_count: stream2.draft_updated_count,
+			stream_2_draft_placeholder_count: stream2.draft_placeholder_count,
+			stream_2_draft_refined_count: stream2.draft_refined_count,
 			stream_2_first_event_ms_after_open: stream2.first_event_ms_after_open,
 			stream_2_replay_span_ms: stream2.replay_span_ms,
 			stage_changed_event_count: stageChangedEventCount,
@@ -1346,6 +1400,7 @@ async function main() {
 		`s2_roles=s${stream2.agent_status_scout_count}/o${stream2.agent_status_oracle_count}/b${stream2.agent_status_builder_count} ` +
 		`s2_stage_valid=${stream2.stage_valid_count} s2_err_src_valid=${stream2.error_source_valid_count} s2_err_code_valid=${stream2.error_code_valid_count} s2_err_msg=${stream2.error_message_present_count} ` +
 		`s2_agent_status_valid=${stream2.agent_status_valid_count} s2_stage_swipe_valid=${stream2.stage_changed_swipe_count_valid_count} ` +
+		`s2_drafts=${stream2.draft_updated_count} s2_drafts_p/r=${stream2.draft_placeholder_count}/${stream2.draft_refined_count} ` +
 		`s2_first=${stream2.first_event_ms_after_open}ms s2_span=${stream2.replay_span_ms}ms ` +
 		`oracle_cs=${oracleColdStartLatencyMs === null ? '-' : oracleColdStartLatencyMs + 'ms'} ` +
 		`oracle_syn=${oracleSynthesisLatencyMs === null ? '-' : oracleSynthesisLatencyMs + 'ms'} ` +

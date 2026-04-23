@@ -1,17 +1,17 @@
 {
-  "started_at": "2026-04-23T23:18:35.356Z",
-  "finished_at": "2026-04-23T23:18:49.807Z",
-  "elapsed_ms": 14450,
+  "started_at": "2026-04-23T23:18:06.417Z",
+  "finished_at": "2026-04-23T23:18:20.862Z",
+  "elapsed_ms": 14444,
   "result": "PASS",
   "reason": "facade_and_draft_observed",
-  "intent": "a CRM for freelancers",
-  "dev_url": "http://localhost:38244",
+  "intent": "recipe app for people who hate cooking",
+  "dev_url": "http://localhost:39301",
   "session": {
     "rtt_ms": 10,
     "status": 200,
     "body": {
-      "intent": "a CRM for freelancers",
-      "sessionId": "b3d5cfa1-3789-4de5-82e2-f00a4ac159a8"
+      "intent": "recipe app for people who hate cooking",
+      "sessionId": "9b1112a7-7365-4bda-9205-4473c42af9cc"
     },
     "error": null
   },
@@ -26,7 +26,7 @@
     "waited_ms": null
   },
   "stream": {
-    "opened_at_ms": 833,
+    "opened_at_ms": 826,
     "error": null,
     "event_counts": {
       "agent-status": 21,
@@ -39,18 +39,18 @@
       "synthesis-updated": 1
     },
     "first_event_ms": {
-      "agent-status": 839,
-      "stage-changed": 839,
-      "draft-updated": 1350,
-      "session-ready": 1350,
-      "facade-ready": 3609,
-      "swipe-result": 3768,
-      "evidence-updated": 3768,
-      "synthesis-updated": 5792
+      "agent-status": 831,
+      "stage-changed": 831,
+      "draft-updated": 1343,
+      "session-ready": 1343,
+      "facade-ready": 3686,
+      "swipe-result": 3761,
+      "evidence-updated": 3761,
+      "synthesis-updated": 5035
     },
     "events": [
       {
-        "ts_ms": 839,
+        "ts_ms": 831,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -64,7 +64,7 @@
         }
       },
       {
-        "ts_ms": 839,
+        "ts_ms": 831,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -78,7 +78,7 @@
         }
       },
       {
-        "ts_ms": 839,
+        "ts_ms": 831,
         "type": "stage-changed",
         "data": {
           "type": "stage-changed",
@@ -87,7 +87,7 @@
         }
       },
       {
-        "ts_ms": 1350,
+        "ts_ms": 1343,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -101,29 +101,29 @@
         }
       },
       {
-        "ts_ms": 1350,
+        "ts_ms": 1343,
         "type": "draft-updated",
         "data": {
           "type": "draft-updated",
           "draft": {
-            "title": "a CRM for freelancers",
+            "title": "recipe app for people who hate cooking",
             "summary": "Drafting your prototype from the swipes…",
-            "html": "<div style=\"padding:2rem;text-align:center;color:var(--muted,#8a7f78);opacity:0.75\"><h2 style=\"margin:0 0 1rem;font-weight:400\">a CRM for freelancers</h2><p style=\"margin:0\">Building your first draft…</p></div>",
+            "html": "<div style=\"padding:2rem;text-align:center;color:var(--muted,#8a7f78);opacity:0.75\"><h2 style=\"margin:0 0 1rem;font-weight:400\">recipe app for people who hate cooking</h2><p style=\"margin:0\">Building your first draft…</p></div>",
             "acceptedPatterns": [],
             "rejectedPatterns": []
           }
         }
       },
       {
-        "ts_ms": 1350,
+        "ts_ms": 1343,
         "type": "session-ready",
         "data": {
           "type": "session-ready",
-          "intent": "a CRM for freelancers"
+          "intent": "recipe app for people who hate cooking"
         }
       },
       {
-        "ts_ms": 1350,
+        "ts_ms": 1343,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -137,7 +137,7 @@
         }
       },
       {
-        "ts_ms": 1350,
+        "ts_ms": 1343,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -151,7 +151,7 @@
         }
       },
       {
-        "ts_ms": 1350,
+        "ts_ms": 1343,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -165,7 +165,7 @@
         }
       },
       {
-        "ts_ms": 1350,
+        "ts_ms": 1343,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -179,7 +179,7 @@
         }
       },
       {
-        "ts_ms": 1350,
+        "ts_ms": 1343,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -193,7 +193,7 @@
         }
       },
       {
-        "ts_ms": 1350,
+        "ts_ms": 1343,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -207,7 +207,7 @@
         }
       },
       {
-        "ts_ms": 1350,
+        "ts_ms": 1343,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -221,46 +221,46 @@
         }
       },
       {
-        "ts_ms": 3609,
+        "ts_ms": 3686,
         "type": "facade-ready",
         "data": {
           "type": "facade-ready",
           "facade": {
-            "id": "a768b5eb-011b-4735-abb4-a6dc87394969",
-            "agentId": "scout-03",
-            "hypothesis": "Freelancers respond better to CRM copy that feels like a helpful friend rather than corporate software",
-            "axisTargeted": "friendly vs professional",
-            "label": "Warm and conversational",
-            "content": "Warm and conversational",
+            "id": "7e987b3c-7ccf-4eba-be17-62dce447733b",
+            "agentId": "scout-06",
+            "hypothesis": "Users feel less cooking anxiety when ingredients appear gradually rather than all at once",
+            "axisTargeted": "motion and behavior — progressive reveal vs instant display",
+            "label": "Ingredients fade in",
+            "content": "Ingredients fade in",
             "format": "word",
-            "acceptImplies": "User prefers approachable, human tone in product messaging and UI microcopy",
-            "rejectImplies": "User may prefer polished, businesslike, or neutral tone that signals professionalism and reliability"
+            "acceptImplies": "Use staggered animations for recipe steps and ingredient lists to reduce cognitive load and create a gentler, less overwhelming experience",
+            "rejectImplies": "Show all ingredients and steps at once with no animation; prioritize instant clarity over pacing"
           }
         }
       },
       {
-        "ts_ms": 3609,
+        "ts_ms": 3686,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
           "agent": {
-            "id": "scout-03",
-            "name": "Lumen",
+            "id": "scout-06",
+            "name": "Echo",
             "role": "scout",
             "status": "waiting",
-            "focus": "\"Warm and conversational\"",
-            "lastFacadeId": "a768b5eb-011b-4735-abb4-a6dc87394969"
+            "focus": "\"Ingredients fade in\"",
+            "lastFacadeId": "7e987b3c-7ccf-4eba-be17-62dce447733b"
           }
         }
       },
       {
-        "ts_ms": 3768,
+        "ts_ms": 3761,
         "type": "swipe-result",
         "data": {
           "type": "swipe-result",
           "record": {
-            "facadeId": "a768b5eb-011b-4735-abb4-a6dc87394969",
-            "agentId": "scout-03",
+            "facadeId": "7e987b3c-7ccf-4eba-be17-62dce447733b",
+            "agentId": "scout-06",
             "decision": "accept",
             "latencyMs": 600,
             "latencyBucket": "slow"
@@ -268,59 +268,26 @@
         }
       },
       {
-        "ts_ms": 3768,
+        "ts_ms": 3761,
         "type": "evidence-updated",
         "data": {
           "type": "evidence-updated",
           "evidence": [
             {
-              "facadeId": "a768b5eb-011b-4735-abb4-a6dc87394969",
-              "content": "Warm and conversational",
-              "hypothesis": "Freelancers respond better to CRM copy that feels like a helpful friend rather than corporate software",
+              "facadeId": "7e987b3c-7ccf-4eba-be17-62dce447733b",
+              "content": "Ingredients fade in",
+              "hypothesis": "Users feel less cooking anxiety when ingredients appear gradually rather than all at once",
               "decision": "accept",
               "latencySignal": "slow",
               "format": "word",
-              "implication": "User prefers approachable, human tone in product messaging and UI microcopy"
+              "implication": "Use staggered animations for recipe steps and ingredient lists to reduce cognitive load and create a gentler, less overwhelming experience"
             }
           ],
           "antiPatterns": []
         }
       },
       {
-        "ts_ms": 3768,
-        "type": "agent-status",
-        "data": {
-          "type": "agent-status",
-          "agent": {
-            "id": "scout-03",
-            "name": "Lumen",
-            "role": "scout",
-            "status": "thinking",
-            "focus": "generating probe",
-            "lastFacadeId": "a768b5eb-011b-4735-abb4-a6dc87394969"
-          }
-        }
-      },
-      {
-        "ts_ms": 4072,
-        "type": "facade-ready",
-        "data": {
-          "type": "facade-ready",
-          "facade": {
-            "id": "85fe2248-afcb-40cb-a6b6-211cbbd8755f",
-            "agentId": "scout-06",
-            "hypothesis": "Freelancers prefer instant feedback over smooth transitions — clicks should feel responsive and punchy rather than elegant and fluid",
-            "axisTargeted": "Motion language: snappy/responsive vs smooth/fluid",
-            "label": "Snappy pops",
-            "content": "Snappy pops",
-            "format": "word",
-            "acceptImplies": "Build with instant state changes, brief haptic/sound cues, minimal motion frames. Prioritize responsiveness over polish in micro-interactions.",
-            "rejectImplies": "Explore fluid, eased motion instead. Transitions matter. Users want breathing room and elegance in the interface flow, not snappy clicks."
-          }
-        }
-      },
-      {
-        "ts_ms": 4072,
+        "ts_ms": 3761,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -328,65 +295,32 @@
             "id": "scout-06",
             "name": "Echo",
             "role": "scout",
-            "status": "waiting",
-            "focus": "\"Snappy pops\"",
-            "lastFacadeId": "85fe2248-afcb-40cb-a6b6-211cbbd8755f"
+            "status": "thinking",
+            "focus": "generating probe",
+            "lastFacadeId": "7e987b3c-7ccf-4eba-be17-62dce447733b"
           }
         }
       },
       {
-        "ts_ms": 4123,
+        "ts_ms": 3995,
         "type": "facade-ready",
         "data": {
           "type": "facade-ready",
           "facade": {
-            "id": "0715aa35-97bf-478c-8ece-cea008348e88",
-            "agentId": "scout-05",
-            "hypothesis": "Freelancers prefer visual scanning of active clients over dense tabular data",
-            "axisTargeted": "dense data vs key metrics",
-            "label": "Client list as cards",
-            "content": "Client list as cards",
-            "format": "word",
-            "acceptImplies": "CRM should prioritize scannable card-based layouts for client overview, showing 3-5 key metrics per client (status, last contact, next milestone) rather than full spreadsheet rows",
-            "rejectImplies": "Freelancers need comprehensive data density and tabular structure for client management; card formats waste horizontal space and hide important details"
-          }
-        }
-      },
-      {
-        "ts_ms": 4123,
-        "type": "agent-status",
-        "data": {
-          "type": "agent-status",
-          "agent": {
-            "id": "scout-05",
-            "name": "Facet",
-            "role": "scout",
-            "status": "waiting",
-            "focus": "\"Client list as cards\"",
-            "lastFacadeId": "0715aa35-97bf-478c-8ece-cea008348e88"
-          }
-        }
-      },
-      {
-        "ts_ms": 4133,
-        "type": "facade-ready",
-        "data": {
-          "type": "facade-ready",
-          "facade": {
-            "id": "612fdb8a-0d2b-458f-b1ae-37f6cc07148c",
+            "id": "39fe69dd-fadc-4a37-a04e-ea8196de637e",
             "agentId": "scout-01",
-            "hypothesis": "Freelancers prefer approachable, non-corporate UI that feels less intimidating than traditional CRM tools",
-            "axisTargeted": "Roundedness vs. sharpness",
-            "label": "Soft rounded cards",
-            "content": "Soft rounded cards",
+            "hypothesis": "Users who hate cooking prefer clean, uncluttered interfaces that feel approachable rather than intimidating",
+            "axisTargeted": "Visual complexity vs. simplicity",
+            "label": "Bright and minimal",
+            "content": "Bright and minimal",
             "format": "word",
-            "acceptImplies": "Design system favors curves, generous border-radius, friendly aesthetic; likely appeals to solo/small-team freelancers who want human-centered tools",
-            "rejectImplies": "User may prefer crisp, professional, minimalist look; traditional grid-based layout; or perceives rounded elements as less serious/trustworthy for business data"
+            "acceptImplies": "Design should use plenty of whitespace, high contrast, simple iconography, and a light color palette to reduce cognitive load",
+            "rejectImplies": "Users may prefer warmer tones, more visual texture, darker backgrounds, or denser information layouts to feel less sterile"
           }
         }
       },
       {
-        "ts_ms": 4133,
+        "ts_ms": 3995,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -395,31 +329,31 @@
             "name": "Iris",
             "role": "scout",
             "status": "waiting",
-            "focus": "\"Soft rounded cards\"",
-            "lastFacadeId": "612fdb8a-0d2b-458f-b1ae-37f6cc07148c"
+            "focus": "\"Bright and minimal\"",
+            "lastFacadeId": "39fe69dd-fadc-4a37-a04e-ea8196de637e"
           }
         }
       },
       {
-        "ts_ms": 4272,
+        "ts_ms": 4107,
         "type": "facade-ready",
         "data": {
           "type": "facade-ready",
           "facade": {
-            "id": "27d2d7c6-7cf8-4e4f-af3c-ebcb0ff17393",
+            "id": "4e70975c-babd-4eff-a8d4-297b1507f350",
             "agentId": "scout-02",
-            "hypothesis": "Freelancers prefer a persistent left navigation paired with card-based content layout for quick client scanning",
-            "axisTargeted": "Navigation structure + content density (sidebar vs tabs; cards vs lists)",
-            "label": "Sidebar with cards",
-            "content": "Sidebar with cards",
+            "hypothesis": "Users who hate cooking prefer persistent navigation and recipe access over tab-switching, reducing friction for quick lookups",
+            "axisTargeted": "Navigation architecture: persistent sidebar vs bottom tabs vs top navigation",
+            "label": "Sidebar with collapsible recipes",
+            "content": "Sidebar with collapsible recipes",
             "format": "word",
-            "acceptImplies": "User values persistent navigation and scannable, modular content organization — likely prefers desktop-first workflow and visual hierarchy",
-            "rejectImplies": "User may prefer tabs, full-width layouts, or list-based dense information display — possibly more linear workflow or mobile-first thinking"
+            "acceptImplies": "User values always-visible recipe list + main content area; likely wants to scan recipes while cooking without losing place",
+            "rejectImplies": "User finds sidebars cramped or distracting; prefers focused single-task views or tab-based navigation; may want recipes hidden until needed"
           }
         }
       },
       {
-        "ts_ms": 4272,
+        "ts_ms": 4107,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -428,31 +362,97 @@
             "name": "Prism",
             "role": "scout",
             "status": "waiting",
-            "focus": "\"Sidebar with cards\"",
-            "lastFacadeId": "27d2d7c6-7cf8-4e4f-af3c-ebcb0ff17393"
+            "focus": "\"Sidebar with collapsible recipes\"",
+            "lastFacadeId": "4e70975c-babd-4eff-a8d4-297b1507f350"
           }
         }
       },
       {
-        "ts_ms": 4330,
+        "ts_ms": 4209,
         "type": "facade-ready",
         "data": {
           "type": "facade-ready",
           "facade": {
-            "id": "acee88a9-4d7c-426a-b817-2f4c0d9e4474",
-            "agentId": "scout-04",
-            "hypothesis": "A CRM for freelancers benefits from warm, approachable interface elements that feel personal rather than corporate—testing if users prefer intimate, human-centered design over sterile efficiency",
-            "axisTargeted": "warm vs cool",
-            "label": "Warm sidebar",
-            "content": "Warm sidebar",
+            "id": "0ce2ed20-476c-437b-aef5-3901b72f48de",
+            "agentId": "scout-03",
+            "hypothesis": "A conversational, encouraging voice will feel less intimidating to people who hate cooking",
+            "axisTargeted": "Voice and Personality — friendly/playful vs professional/serious",
+            "label": "Chatty assistant tone",
+            "content": "Chatty assistant tone",
             "format": "word",
-            "acceptImplies": "User gravitates toward cozy, inviting UI. Likely prefers earthy tones, softer corners, human-scale interactions. CRM should feel like a trusted workspace, not a cold database.",
-            "rejectImplies": "User may prefer crisp, professional, cool-toned interfaces. Suggests CRM should feel efficient and modern rather than intimate. Possibly values clarity and minimalism over warmth."
+            "acceptImplies": "User responds well to a buddy-like guide (casual, motivational, maybe uses humor or casual language like 'Hey!' or 'Let's do this')",
+            "rejectImplies": "User prefers instruction-focused, efficient voice (no fluff, just tell me what to do — professional or neutral tone)"
           }
         }
       },
       {
-        "ts_ms": 4330,
+        "ts_ms": 4209,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-03",
+            "name": "Lumen",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Chatty assistant tone\"",
+            "lastFacadeId": "0ce2ed20-476c-437b-aef5-3901b72f48de"
+          }
+        }
+      },
+      {
+        "ts_ms": 4326,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "54eda3fc-f598-4d3a-8ca9-ddae95d3bcce",
+            "agentId": "scout-05",
+            "hypothesis": "Users cooking-averse prefer ingredient quantities as simple numerals over narrative descriptions",
+            "axisTargeted": "Dense data vs narrative — do recipe instructions favor crisp metrics or conversational guidance?",
+            "label": "Just the numbers",
+            "content": "Just the numbers",
+            "format": "word",
+            "acceptImplies": "Recipe app should lead with quantities, timing, temperatures as standalone facts—minimal prose. Users want to scan and act, not read.",
+            "rejectImplies": "Users need context and story around measurements. Recipe app should embed numbers in narrative flow, explain *why* quantities matter, make cooking feel less clinical."
+          }
+        }
+      },
+      {
+        "ts_ms": 4326,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-05",
+            "name": "Facet",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Just the numbers\"",
+            "lastFacadeId": "54eda3fc-f598-4d3a-8ca9-ddae95d3bcce"
+          }
+        }
+      },
+      {
+        "ts_ms": 4904,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "2fe884f8-2e32-4762-aea2-c7327444994c",
+            "agentId": "scout-04",
+            "hypothesis": "A 'people who hate cooking' app works better with a casual, imperfect, human-drawn aesthetic than polished UI — reducing friction by feeling low-stakes and forgiving",
+            "axisTargeted": "organic vs digital",
+            "label": "Messy handwritten notes",
+            "content": "Messy handwritten notes",
+            "format": "word",
+            "acceptImplies": "User gravitates toward warmth, humanity, and anti-perfectionism in the interface. May prefer hand-drawn elements, loose typography, or sketch-like visuals that feel approachable rather than intimidating.",
+            "rejectImplies": "User prefers clean, orderly, digital-native aesthetics. May favor minimalism, clear hierarchy, and machine-precision. Suggests the app's voice should feel more streamlined and less 'cozy chaos.'"
+          }
+        }
+      },
+      {
+        "ts_ms": 4904,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -461,61 +461,61 @@
             "name": "Aura",
             "role": "scout",
             "status": "waiting",
-            "focus": "\"Warm sidebar\"",
-            "lastFacadeId": "acee88a9-4d7c-426a-b817-2f4c0d9e4474"
+            "focus": "\"Messy handwritten notes\"",
+            "lastFacadeId": "2fe884f8-2e32-4762-aea2-c7327444994c"
           }
         }
       },
       {
-        "ts_ms": 5792,
+        "ts_ms": 5035,
         "type": "synthesis-updated",
         "data": {
           "type": "synthesis-updated",
           "synthesis": {
             "axes": [
               {
-                "label": "Whether user prefers minimal, clean aesthetics vs. rich visual hierarchy with color/imagery—reveals if they want a 'blank canvas' CRM or one with visual warmth and personality",
-                "poleA": "Clean or colorful?",
+                "label": "Whether user wants visual simplicity and minimal ingredient lists vs. rich food photography and detailed plating inspiration",
+                "poleA": "Photo-heavy or text-focused",
                 "poleB": "(unknown)",
                 "confidence": "unprobed",
                 "leaning_toward": null,
                 "evidence_basis": "intent analysis (no evidence yet)"
               },
               {
-                "label": "Whether user wants all tools visible at once vs. hidden behind menus/modals—reveals preference for dashboard density and navigation style in a tool-heavy CRM",
-                "poleA": "Everything visible or tucked away?",
+                "label": "Whether user prefers step-by-step guided workflows vs. ingredient-first browsing and flexible navigation",
+                "poleA": "Linear steps or ingredient search",
                 "poleB": "(unknown)",
                 "confidence": "unprobed",
                 "leaning_toward": null,
                 "evidence_basis": "intent analysis (no evidence yet)"
               },
               {
-                "label": "Whether user responds to professional/formal tone vs. casual/encouraging tone—reveals if they want a business-like assistant or a supportive collaborator voice",
-                "poleA": "Professional or friendly?",
+                "label": "Whether user responds to encouraging, motivational tone vs. irreverent, humorous tone that validates cooking aversion",
+                "poleA": "Cheerleader or comedian",
                 "poleB": "(unknown)",
                 "confidence": "unprobed",
                 "leaning_toward": null,
                 "evidence_basis": "intent analysis (no evidence yet)"
               },
               {
-                "label": "Whether user wants a calm, distraction-free workspace vs. energetic, motivational environment—reveals desired emotional tone while managing client work",
-                "poleA": "Calm workspace or motivating?",
+                "label": "Whether user wants a calm, low-pressure environment vs. gamified, achievement-driven experience with rewards",
+                "poleA": "Relaxed or game-like",
                 "poleB": "(unknown)",
                 "confidence": "unprobed",
                 "leaning_toward": null,
                 "evidence_basis": "intent analysis (no evidence yet)"
               },
               {
-                "label": "Whether user prefers data-heavy views with stats/charts vs. simple lists and summaries—reveals tolerance for information density in a CRM tracking invoices and clients",
-                "poleA": "Numbers and charts or simple lists?",
+                "label": "Whether user prioritizes time estimates and difficulty ratings vs. nutritional data and ingredient sourcing details",
+                "poleA": "Speed and skill or nutrition",
                 "poleB": "(unknown)",
                 "confidence": "unprobed",
                 "leaning_toward": null,
                 "evidence_basis": "intent analysis (no evidence yet)"
               },
               {
-                "label": "Whether user wants instant feedback and snappy interactions vs. smooth, deliberate animations—reveals preference for responsive urgency vs. polished, considered feel",
-                "poleA": "Quick and snappy or smooth?",
+                "label": "Whether user wants instant recipe access vs. animated transitions and progressive reveals that slow down the experience",
+                "poleA": "Instant or animated",
                 "poleB": "(unknown)",
                 "confidence": "unprobed",
                 "leaning_toward": null,
@@ -526,32 +526,32 @@
             "scout_assignments": [
               {
                 "scout": "Iris",
-                "probe_axis": "Whether user prefers minimal, clean aesthetics vs. rich visual hierarchy with color/imagery—reveals if they want a 'blank canvas' CRM or one with visual warmth and personality",
+                "probe_axis": "Whether user wants visual simplicity and minimal ingredient lists vs. rich food photography and detailed plating inspiration",
                 "reason": "Cold start: first question for Iris"
               },
               {
                 "scout": "Prism",
-                "probe_axis": "Whether user wants all tools visible at once vs. hidden behind menus/modals—reveals preference for dashboard density and navigation style in a tool-heavy CRM",
+                "probe_axis": "Whether user prefers step-by-step guided workflows vs. ingredient-first browsing and flexible navigation",
                 "reason": "Cold start: first question for Prism"
               },
               {
                 "scout": "Lumen",
-                "probe_axis": "Whether user responds to professional/formal tone vs. casual/encouraging tone—reveals if they want a business-like assistant or a supportive collaborator voice",
+                "probe_axis": "Whether user responds to encouraging, motivational tone vs. irreverent, humorous tone that validates cooking aversion",
                 "reason": "Cold start: first question for Lumen"
               },
               {
                 "scout": "Aura",
-                "probe_axis": "Whether user wants a calm, distraction-free workspace vs. energetic, motivational environment—reveals desired emotional tone while managing client work",
+                "probe_axis": "Whether user wants a calm, low-pressure environment vs. gamified, achievement-driven experience with rewards",
                 "reason": "Cold start: first question for Aura"
               },
               {
                 "scout": "Facet",
-                "probe_axis": "Whether user prefers data-heavy views with stats/charts vs. simple lists and summaries—reveals tolerance for information density in a CRM tracking invoices and clients",
+                "probe_axis": "Whether user prioritizes time estimates and difficulty ratings vs. nutritional data and ingredient sourcing details",
                 "reason": "Cold start: first question for Facet"
               },
               {
                 "scout": "Echo",
-                "probe_axis": "Whether user wants instant feedback and snappy interactions vs. smooth, deliberate animations—reveals preference for responsive urgency vs. polished, considered feel",
+                "probe_axis": "Whether user wants instant recipe access vs. animated transitions and progressive reveals that slow down the experience",
                 "reason": "Cold start: first question for Echo"
               }
             ],
@@ -560,7 +560,7 @@
         }
       },
       {
-        "ts_ms": 5793,
+        "ts_ms": 5035,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -574,40 +574,40 @@
         }
       },
       {
-        "ts_ms": 6112,
+        "ts_ms": 6649,
         "type": "facade-ready",
         "data": {
           "type": "facade-ready",
           "facade": {
-            "id": "f9e37d8d-41f0-4fe5-8d4f-d6a4425171b7",
-            "agentId": "scout-03",
-            "hypothesis": "Freelancers might prefer strictly professional CRM tone to establish credibility with clients and signal serious business operations",
-            "axisTargeted": "Friendly vs Professional",
-            "label": "All business, no jokes",
-            "content": "All business, no jokes",
+            "id": "8d6364eb-a577-4ccd-8588-5b644f871061",
+            "agentId": "scout-06",
+            "hypothesis": "Users feel less overwhelmed and more in control when recipe steps appear sequentially rather than all at once, creating a guided rhythm that matches their cooking pace",
+            "axisTargeted": "Motion timing and sequencing — gradual reveal vs instant full display",
+            "label": "Steps slide in one by one",
+            "content": "Steps slide in one by one",
             "format": "word",
-            "acceptImplies": "User values professional polish and wants CRM to reinforce their credibility; messaging should minimize humor and personality",
-            "rejectImplies": "User confirms preference for warmth over formality; friendly tone is a core value, not just a nice-to-have"
+            "acceptImplies": "Stagger all instructional content (steps, timers, ingredient swaps) with subtle entrance animations to create a calming, step-by-step guidance system",
+            "rejectImplies": "Show all recipe information at once in static, instant layouts; focus on snappy instant-load performance over animated transitions"
           }
         }
       },
       {
-        "ts_ms": 6112,
+        "ts_ms": 6649,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
           "agent": {
-            "id": "scout-03",
-            "name": "Lumen",
+            "id": "scout-06",
+            "name": "Echo",
             "role": "scout",
             "status": "waiting",
-            "focus": "\"All business, no jokes\"",
-            "lastFacadeId": "f9e37d8d-41f0-4fe5-8d4f-d6a4425171b7"
+            "focus": "\"Steps slide in one by one\"",
+            "lastFacadeId": "8d6364eb-a577-4ccd-8588-5b644f871061"
           }
         }
       },
       {
-        "ts_ms": 12188,
+        "ts_ms": 10986,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -621,7 +621,7 @@
         }
       },
       {
-        "ts_ms": 12188,
+        "ts_ms": 10986,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -630,7 +630,7 @@
             "name": "Meridian",
             "role": "builder",
             "status": "thinking",
-            "focus": "analyzing accept on \"Warm and conversational\""
+            "focus": "analyzing accept on \"Ingredients fade in\""
           }
         }
       }
@@ -638,8 +638,8 @@
   },
   "stream_2": {
     "attempted": true,
-    "opened_at_ms": 13345,
-    "elapsed_ms": 803,
+    "opened_at_ms": 13338,
+    "elapsed_ms": 804,
     "event_counts": {
       "synthesis-updated": 1,
       "draft-updated": 1,
@@ -665,60 +665,60 @@
     "error_message_present_count": 0,
     "agent_status_valid_count": 8,
     "stage_changed_swipe_count_valid_count": 1,
-    "first_event_ms_after_open": 2,
+    "first_event_ms_after_open": 3,
     "last_event_ms_after_open": 3,
-    "replay_span_ms": 1,
+    "replay_span_ms": 0,
     "events": [
       {
-        "ts_ms": 13347,
+        "ts_ms": 13341,
         "type": "synthesis-updated",
         "data": {
           "type": "synthesis-updated",
           "synthesis": {
             "axes": [
               {
-                "label": "Whether user prefers minimal, clean aesthetics vs. rich visual hierarchy with color/imagery—reveals if they want a 'blank canvas' CRM or one with visual warmth and personality",
-                "poleA": "Clean or colorful?",
+                "label": "Whether user wants visual simplicity and minimal ingredient lists vs. rich food photography and detailed plating inspiration",
+                "poleA": "Photo-heavy or text-focused",
                 "poleB": "(unknown)",
                 "confidence": "unprobed",
                 "leaning_toward": null,
                 "evidence_basis": "intent analysis (no evidence yet)"
               },
               {
-                "label": "Whether user wants all tools visible at once vs. hidden behind menus/modals—reveals preference for dashboard density and navigation style in a tool-heavy CRM",
-                "poleA": "Everything visible or tucked away?",
+                "label": "Whether user prefers step-by-step guided workflows vs. ingredient-first browsing and flexible navigation",
+                "poleA": "Linear steps or ingredient search",
                 "poleB": "(unknown)",
                 "confidence": "unprobed",
                 "leaning_toward": null,
                 "evidence_basis": "intent analysis (no evidence yet)"
               },
               {
-                "label": "Whether user responds to professional/formal tone vs. casual/encouraging tone—reveals if they want a business-like assistant or a supportive collaborator voice",
-                "poleA": "Professional or friendly?",
+                "label": "Whether user responds to encouraging, motivational tone vs. irreverent, humorous tone that validates cooking aversion",
+                "poleA": "Cheerleader or comedian",
                 "poleB": "(unknown)",
                 "confidence": "unprobed",
                 "leaning_toward": null,
                 "evidence_basis": "intent analysis (no evidence yet)"
               },
               {
-                "label": "Whether user wants a calm, distraction-free workspace vs. energetic, motivational environment—reveals desired emotional tone while managing client work",
-                "poleA": "Calm workspace or motivating?",
+                "label": "Whether user wants a calm, low-pressure environment vs. gamified, achievement-driven experience with rewards",
+                "poleA": "Relaxed or game-like",
                 "poleB": "(unknown)",
                 "confidence": "unprobed",
                 "leaning_toward": null,
                 "evidence_basis": "intent analysis (no evidence yet)"
               },
               {
-                "label": "Whether user prefers data-heavy views with stats/charts vs. simple lists and summaries—reveals tolerance for information density in a CRM tracking invoices and clients",
-                "poleA": "Numbers and charts or simple lists?",
+                "label": "Whether user prioritizes time estimates and difficulty ratings vs. nutritional data and ingredient sourcing details",
+                "poleA": "Speed and skill or nutrition",
                 "poleB": "(unknown)",
                 "confidence": "unprobed",
                 "leaning_toward": null,
                 "evidence_basis": "intent analysis (no evidence yet)"
               },
               {
-                "label": "Whether user wants instant feedback and snappy interactions vs. smooth, deliberate animations—reveals preference for responsive urgency vs. polished, considered feel",
-                "poleA": "Quick and snappy or smooth?",
+                "label": "Whether user wants instant recipe access vs. animated transitions and progressive reveals that slow down the experience",
+                "poleA": "Instant or animated",
                 "poleB": "(unknown)",
                 "confidence": "unprobed",
                 "leaning_toward": null,
@@ -729,32 +729,32 @@
             "scout_assignments": [
               {
                 "scout": "Iris",
-                "probe_axis": "Whether user prefers minimal, clean aesthetics vs. rich visual hierarchy with color/imagery—reveals if they want a 'blank canvas' CRM or one with visual warmth and personality",
+                "probe_axis": "Whether user wants visual simplicity and minimal ingredient lists vs. rich food photography and detailed plating inspiration",
                 "reason": "Cold start: first question for Iris"
               },
               {
                 "scout": "Prism",
-                "probe_axis": "Whether user wants all tools visible at once vs. hidden behind menus/modals—reveals preference for dashboard density and navigation style in a tool-heavy CRM",
+                "probe_axis": "Whether user prefers step-by-step guided workflows vs. ingredient-first browsing and flexible navigation",
                 "reason": "Cold start: first question for Prism"
               },
               {
                 "scout": "Lumen",
-                "probe_axis": "Whether user responds to professional/formal tone vs. casual/encouraging tone—reveals if they want a business-like assistant or a supportive collaborator voice",
+                "probe_axis": "Whether user responds to encouraging, motivational tone vs. irreverent, humorous tone that validates cooking aversion",
                 "reason": "Cold start: first question for Lumen"
               },
               {
                 "scout": "Aura",
-                "probe_axis": "Whether user wants a calm, distraction-free workspace vs. energetic, motivational environment—reveals desired emotional tone while managing client work",
+                "probe_axis": "Whether user wants a calm, low-pressure environment vs. gamified, achievement-driven experience with rewards",
                 "reason": "Cold start: first question for Aura"
               },
               {
                 "scout": "Facet",
-                "probe_axis": "Whether user prefers data-heavy views with stats/charts vs. simple lists and summaries—reveals tolerance for information density in a CRM tracking invoices and clients",
+                "probe_axis": "Whether user prioritizes time estimates and difficulty ratings vs. nutritional data and ingredient sourcing details",
                 "reason": "Cold start: first question for Facet"
               },
               {
                 "scout": "Echo",
-                "probe_axis": "Whether user wants instant feedback and snappy interactions vs. smooth, deliberate animations—reveals preference for responsive urgency vs. polished, considered feel",
+                "probe_axis": "Whether user wants instant recipe access vs. animated transitions and progressive reveals that slow down the experience",
                 "reason": "Cold start: first question for Echo"
               }
             ],
@@ -763,40 +763,40 @@
         }
       },
       {
-        "ts_ms": 13347,
+        "ts_ms": 13341,
         "type": "draft-updated",
         "data": {
           "type": "draft-updated",
           "draft": {
-            "title": "a CRM for freelancers",
+            "title": "recipe app for people who hate cooking",
             "summary": "Drafting your prototype from the swipes…",
-            "html": "<div style=\"padding:2rem;text-align:center;color:var(--muted,#8a7f78);opacity:0.75\"><h2 style=\"margin:0 0 1rem;font-weight:400\">a CRM for freelancers</h2><p style=\"margin:0\">Building your first draft…</p></div>",
+            "html": "<div style=\"padding:2rem;text-align:center;color:var(--muted,#8a7f78);opacity:0.75\"><h2 style=\"margin:0 0 1rem;font-weight:400\">recipe app for people who hate cooking</h2><p style=\"margin:0\">Building your first draft…</p></div>",
             "acceptedPatterns": [],
             "rejectedPatterns": []
           }
         }
       },
       {
-        "ts_ms": 13347,
+        "ts_ms": 13341,
         "type": "evidence-updated",
         "data": {
           "type": "evidence-updated",
           "evidence": [
             {
-              "facadeId": "a768b5eb-011b-4735-abb4-a6dc87394969",
-              "content": "Warm and conversational",
-              "hypothesis": "Freelancers respond better to CRM copy that feels like a helpful friend rather than corporate software",
+              "facadeId": "7e987b3c-7ccf-4eba-be17-62dce447733b",
+              "content": "Ingredients fade in",
+              "hypothesis": "Users feel less cooking anxiety when ingredients appear gradually rather than all at once",
               "decision": "accept",
               "latencySignal": "slow",
               "format": "word",
-              "implication": "User prefers approachable, human tone in product messaging and UI microcopy"
+              "implication": "Use staggered animations for recipe steps and ingredient lists to reduce cognitive load and create a gentler, less overwhelming experience"
             }
           ],
           "antiPatterns": []
         }
       },
       {
-        "ts_ms": 13347,
+        "ts_ms": 13341,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -805,12 +805,12 @@
             "name": "Meridian",
             "role": "builder",
             "status": "thinking",
-            "focus": "analyzing accept on \"Warm and conversational\""
+            "focus": "analyzing accept on \"Ingredients fade in\""
           }
         }
       },
       {
-        "ts_ms": 13347,
+        "ts_ms": 13341,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -824,7 +824,7 @@
         }
       },
       {
-        "ts_ms": 13347,
+        "ts_ms": 13341,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -833,13 +833,13 @@
             "name": "Iris",
             "role": "scout",
             "status": "waiting",
-            "focus": "\"Soft rounded cards\"",
-            "lastFacadeId": "612fdb8a-0d2b-458f-b1ae-37f6cc07148c"
+            "focus": "\"Bright and minimal\"",
+            "lastFacadeId": "39fe69dd-fadc-4a37-a04e-ea8196de637e"
           }
         }
       },
       {
-        "ts_ms": 13347,
+        "ts_ms": 13341,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -848,13 +848,13 @@
             "name": "Prism",
             "role": "scout",
             "status": "waiting",
-            "focus": "\"Sidebar with cards\"",
-            "lastFacadeId": "27d2d7c6-7cf8-4e4f-af3c-ebcb0ff17393"
+            "focus": "\"Sidebar with collapsible recipes\"",
+            "lastFacadeId": "4e70975c-babd-4eff-a8d4-297b1507f350"
           }
         }
       },
       {
-        "ts_ms": 13348,
+        "ts_ms": 13341,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -863,13 +863,13 @@
             "name": "Lumen",
             "role": "scout",
             "status": "waiting",
-            "focus": "\"All business, no jokes\"",
-            "lastFacadeId": "f9e37d8d-41f0-4fe5-8d4f-d6a4425171b7"
+            "focus": "\"Chatty assistant tone\"",
+            "lastFacadeId": "0ce2ed20-476c-437b-aef5-3901b72f48de"
           }
         }
       },
       {
-        "ts_ms": 13348,
+        "ts_ms": 13341,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -878,13 +878,13 @@
             "name": "Aura",
             "role": "scout",
             "status": "waiting",
-            "focus": "\"Warm sidebar\"",
-            "lastFacadeId": "acee88a9-4d7c-426a-b817-2f4c0d9e4474"
+            "focus": "\"Messy handwritten notes\"",
+            "lastFacadeId": "2fe884f8-2e32-4762-aea2-c7327444994c"
           }
         }
       },
       {
-        "ts_ms": 13348,
+        "ts_ms": 13341,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -893,13 +893,13 @@
             "name": "Facet",
             "role": "scout",
             "status": "waiting",
-            "focus": "\"Client list as cards\"",
-            "lastFacadeId": "0715aa35-97bf-478c-8ece-cea008348e88"
+            "focus": "\"Just the numbers\"",
+            "lastFacadeId": "54eda3fc-f598-4d3a-8ca9-ddae95d3bcce"
           }
         }
       },
       {
-        "ts_ms": 13348,
+        "ts_ms": 13341,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -908,121 +908,121 @@
             "name": "Echo",
             "role": "scout",
             "status": "waiting",
-            "focus": "\"Snappy pops\"",
-            "lastFacadeId": "85fe2248-afcb-40cb-a6b6-211cbbd8755f"
+            "focus": "\"Steps slide in one by one\"",
+            "lastFacadeId": "8d6364eb-a577-4ccd-8588-5b644f871061"
           }
         }
       },
       {
-        "ts_ms": 13348,
+        "ts_ms": 13341,
         "type": "facade-ready",
         "data": {
           "type": "facade-ready",
           "facade": {
-            "id": "85fe2248-afcb-40cb-a6b6-211cbbd8755f",
-            "agentId": "scout-06",
-            "hypothesis": "Freelancers prefer instant feedback over smooth transitions — clicks should feel responsive and punchy rather than elegant and fluid",
-            "axisTargeted": "Motion language: snappy/responsive vs smooth/fluid",
-            "label": "Snappy pops",
-            "content": "Snappy pops",
-            "format": "word",
-            "acceptImplies": "Build with instant state changes, brief haptic/sound cues, minimal motion frames. Prioritize responsiveness over polish in micro-interactions.",
-            "rejectImplies": "Explore fluid, eased motion instead. Transitions matter. Users want breathing room and elegance in the interface flow, not snappy clicks."
-          }
-        }
-      },
-      {
-        "ts_ms": 13348,
-        "type": "facade-ready",
-        "data": {
-          "type": "facade-ready",
-          "facade": {
-            "id": "0715aa35-97bf-478c-8ece-cea008348e88",
-            "agentId": "scout-05",
-            "hypothesis": "Freelancers prefer visual scanning of active clients over dense tabular data",
-            "axisTargeted": "dense data vs key metrics",
-            "label": "Client list as cards",
-            "content": "Client list as cards",
-            "format": "word",
-            "acceptImplies": "CRM should prioritize scannable card-based layouts for client overview, showing 3-5 key metrics per client (status, last contact, next milestone) rather than full spreadsheet rows",
-            "rejectImplies": "Freelancers need comprehensive data density and tabular structure for client management; card formats waste horizontal space and hide important details"
-          }
-        }
-      },
-      {
-        "ts_ms": 13348,
-        "type": "facade-ready",
-        "data": {
-          "type": "facade-ready",
-          "facade": {
-            "id": "612fdb8a-0d2b-458f-b1ae-37f6cc07148c",
+            "id": "39fe69dd-fadc-4a37-a04e-ea8196de637e",
             "agentId": "scout-01",
-            "hypothesis": "Freelancers prefer approachable, non-corporate UI that feels less intimidating than traditional CRM tools",
-            "axisTargeted": "Roundedness vs. sharpness",
-            "label": "Soft rounded cards",
-            "content": "Soft rounded cards",
+            "hypothesis": "Users who hate cooking prefer clean, uncluttered interfaces that feel approachable rather than intimidating",
+            "axisTargeted": "Visual complexity vs. simplicity",
+            "label": "Bright and minimal",
+            "content": "Bright and minimal",
             "format": "word",
-            "acceptImplies": "Design system favors curves, generous border-radius, friendly aesthetic; likely appeals to solo/small-team freelancers who want human-centered tools",
-            "rejectImplies": "User may prefer crisp, professional, minimalist look; traditional grid-based layout; or perceives rounded elements as less serious/trustworthy for business data"
+            "acceptImplies": "Design should use plenty of whitespace, high contrast, simple iconography, and a light color palette to reduce cognitive load",
+            "rejectImplies": "Users may prefer warmer tones, more visual texture, darker backgrounds, or denser information layouts to feel less sterile"
           }
         }
       },
       {
-        "ts_ms": 13348,
+        "ts_ms": 13341,
         "type": "facade-ready",
         "data": {
           "type": "facade-ready",
           "facade": {
-            "id": "27d2d7c6-7cf8-4e4f-af3c-ebcb0ff17393",
+            "id": "4e70975c-babd-4eff-a8d4-297b1507f350",
             "agentId": "scout-02",
-            "hypothesis": "Freelancers prefer a persistent left navigation paired with card-based content layout for quick client scanning",
-            "axisTargeted": "Navigation structure + content density (sidebar vs tabs; cards vs lists)",
-            "label": "Sidebar with cards",
-            "content": "Sidebar with cards",
+            "hypothesis": "Users who hate cooking prefer persistent navigation and recipe access over tab-switching, reducing friction for quick lookups",
+            "axisTargeted": "Navigation architecture: persistent sidebar vs bottom tabs vs top navigation",
+            "label": "Sidebar with collapsible recipes",
+            "content": "Sidebar with collapsible recipes",
             "format": "word",
-            "acceptImplies": "User values persistent navigation and scannable, modular content organization — likely prefers desktop-first workflow and visual hierarchy",
-            "rejectImplies": "User may prefer tabs, full-width layouts, or list-based dense information display — possibly more linear workflow or mobile-first thinking"
+            "acceptImplies": "User values always-visible recipe list + main content area; likely wants to scan recipes while cooking without losing place",
+            "rejectImplies": "User finds sidebars cramped or distracting; prefers focused single-task views or tab-based navigation; may want recipes hidden until needed"
           }
         }
       },
       {
-        "ts_ms": 13348,
+        "ts_ms": 13341,
         "type": "facade-ready",
         "data": {
           "type": "facade-ready",
           "facade": {
-            "id": "acee88a9-4d7c-426a-b817-2f4c0d9e4474",
-            "agentId": "scout-04",
-            "hypothesis": "A CRM for freelancers benefits from warm, approachable interface elements that feel personal rather than corporate—testing if users prefer intimate, human-centered design over sterile efficiency",
-            "axisTargeted": "warm vs cool",
-            "label": "Warm sidebar",
-            "content": "Warm sidebar",
-            "format": "word",
-            "acceptImplies": "User gravitates toward cozy, inviting UI. Likely prefers earthy tones, softer corners, human-scale interactions. CRM should feel like a trusted workspace, not a cold database.",
-            "rejectImplies": "User may prefer crisp, professional, cool-toned interfaces. Suggests CRM should feel efficient and modern rather than intimate. Possibly values clarity and minimalism over warmth."
-          }
-        }
-      },
-      {
-        "ts_ms": 13348,
-        "type": "facade-ready",
-        "data": {
-          "type": "facade-ready",
-          "facade": {
-            "id": "f9e37d8d-41f0-4fe5-8d4f-d6a4425171b7",
+            "id": "0ce2ed20-476c-437b-aef5-3901b72f48de",
             "agentId": "scout-03",
-            "hypothesis": "Freelancers might prefer strictly professional CRM tone to establish credibility with clients and signal serious business operations",
-            "axisTargeted": "Friendly vs Professional",
-            "label": "All business, no jokes",
-            "content": "All business, no jokes",
+            "hypothesis": "A conversational, encouraging voice will feel less intimidating to people who hate cooking",
+            "axisTargeted": "Voice and Personality — friendly/playful vs professional/serious",
+            "label": "Chatty assistant tone",
+            "content": "Chatty assistant tone",
             "format": "word",
-            "acceptImplies": "User values professional polish and wants CRM to reinforce their credibility; messaging should minimize humor and personality",
-            "rejectImplies": "User confirms preference for warmth over formality; friendly tone is a core value, not just a nice-to-have"
+            "acceptImplies": "User responds well to a buddy-like guide (casual, motivational, maybe uses humor or casual language like 'Hey!' or 'Let's do this')",
+            "rejectImplies": "User prefers instruction-focused, efficient voice (no fluff, just tell me what to do — professional or neutral tone)"
           }
         }
       },
       {
-        "ts_ms": 13348,
+        "ts_ms": 13341,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "54eda3fc-f598-4d3a-8ca9-ddae95d3bcce",
+            "agentId": "scout-05",
+            "hypothesis": "Users cooking-averse prefer ingredient quantities as simple numerals over narrative descriptions",
+            "axisTargeted": "Dense data vs narrative — do recipe instructions favor crisp metrics or conversational guidance?",
+            "label": "Just the numbers",
+            "content": "Just the numbers",
+            "format": "word",
+            "acceptImplies": "Recipe app should lead with quantities, timing, temperatures as standalone facts—minimal prose. Users want to scan and act, not read.",
+            "rejectImplies": "Users need context and story around measurements. Recipe app should embed numbers in narrative flow, explain *why* quantities matter, make cooking feel less clinical."
+          }
+        }
+      },
+      {
+        "ts_ms": 13341,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "2fe884f8-2e32-4762-aea2-c7327444994c",
+            "agentId": "scout-04",
+            "hypothesis": "A 'people who hate cooking' app works better with a casual, imperfect, human-drawn aesthetic than polished UI — reducing friction by feeling low-stakes and forgiving",
+            "axisTargeted": "organic vs digital",
+            "label": "Messy handwritten notes",
+            "content": "Messy handwritten notes",
+            "format": "word",
+            "acceptImplies": "User gravitates toward warmth, humanity, and anti-perfectionism in the interface. May prefer hand-drawn elements, loose typography, or sketch-like visuals that feel approachable rather than intimidating.",
+            "rejectImplies": "User prefers clean, orderly, digital-native aesthetics. May favor minimalism, clear hierarchy, and machine-precision. Suggests the app's voice should feel more streamlined and less 'cozy chaos.'"
+          }
+        }
+      },
+      {
+        "ts_ms": 13341,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "8d6364eb-a577-4ccd-8588-5b644f871061",
+            "agentId": "scout-06",
+            "hypothesis": "Users feel less overwhelmed and more in control when recipe steps appear sequentially rather than all at once, creating a guided rhythm that matches their cooking pace",
+            "axisTargeted": "Motion timing and sequencing — gradual reveal vs instant full display",
+            "label": "Steps slide in one by one",
+            "content": "Steps slide in one by one",
+            "format": "word",
+            "acceptImplies": "Stagger all instructional content (steps, timers, ingredient swaps) with subtle entrance animations to create a calming, step-by-step guidance system",
+            "rejectImplies": "Show all recipe information at once in static, instant layouts; focus on snappy instant-load performance over animated transitions"
+          }
+        }
+      },
+      {
+        "ts_ms": 13341,
         "type": "stage-changed",
         "data": {
           "type": "stage-changed",
@@ -1037,13 +1037,13 @@
     "attempted": true,
     "status": 200,
     "error": null,
-    "rtt_ms": 4
+    "rtt_ms": 3
   },
   "swipe": {
     "attempted": true,
-    "facadeId": "a768b5eb-011b-4735-abb4-a6dc87394969",
-    "facade_ready_at_ms": 3609,
-    "posted_at_ms": 3763,
+    "facadeId": "7e987b3c-7ccf-4eba-be17-62dce447733b",
+    "facade_ready_at_ms": 3686,
+    "posted_at_ms": 3757,
     "rtt_ms": 4,
     "status": 200,
     "body": {
@@ -1054,14 +1054,14 @@
     "error": null
   },
   "metrics": {
-    "time_to_first_facade_ms": 3609,
-    "time_to_first_draft_ms": 1350,
-    "time_to_first_synthesis_ms": 5792,
+    "time_to_first_facade_ms": 3686,
+    "time_to_first_draft_ms": 1343,
+    "time_to_first_synthesis_ms": 5035,
     "time_to_first_draft_after_swipe_ms": null,
-    "time_to_first_evidence_after_swipe_ms": 5,
-    "time_to_session_ready_ms": 1350,
+    "time_to_first_evidence_after_swipe_ms": 4,
+    "time_to_session_ready_ms": 1343,
     "time_to_first_error_ms": null,
-    "time_from_session_to_first_facade_ms": 2259,
+    "time_from_session_to_first_facade_ms": 2343,
     "time_from_session_to_first_draft_ms": 0,
     "time_from_session_to_first_error_ms": null,
     "facade_ready_count": 7,
@@ -1089,8 +1089,8 @@
     "agent_status_builder_count": 4,
     "agent_error_signal_count": 0,
     "scout_started_count": 6,
-    "first_scout_started_ms": 1350,
-    "last_scout_started_ms": 1350,
+    "first_scout_started_ms": 1343,
+    "last_scout_started_ms": 1343,
     "scout_start_spread_ms": 0,
     "first_error_event_ms": null,
     "last_error_event_ms": null,
@@ -1118,30 +1118,30 @@
     "stream_2_draft_updated_count": 1,
     "stream_2_draft_placeholder_count": 1,
     "stream_2_draft_refined_count": 0,
-    "stream_2_first_event_ms_after_open": 2,
-    "stream_2_replay_span_ms": 1,
+    "stream_2_first_event_ms_after_open": 3,
+    "stream_2_replay_span_ms": 0,
     "stage_changed_event_count": 1,
-    "time_to_first_stage_changed_ms": 839,
+    "time_to_first_stage_changed_ms": 831,
     "stage_changed_before_session_ready": 1,
     "stage_valid_count": 1,
     "error_source_valid_count": 0,
     "error_code_valid_count": 0,
     "agent_status_valid_count": 21,
     "stage_changed_swipe_count_valid_count": 1,
-    "oracle_cold_start_latency_ms": 4443,
+    "oracle_cold_start_latency_ms": 3692,
     "oracle_synthesis_latency_ms": null,
     "oracle_reveal_build_latency_ms": null,
     "oracle_cold_start_count": 1,
     "oracle_synthesis_count": 0,
     "oracle_reveal_build_count": 0,
-    "scout_probe_latency_ms_p50": 2773,
-    "scout_probe_latency_ms_max": 2980,
+    "scout_probe_latency_ms_p50": 2866,
+    "scout_probe_latency_ms_max": 3561,
     "scout_probe_count": 7,
-    "builder_scaffold_latency_ms": 10838,
+    "builder_scaffold_latency_ms": 9643,
     "builder_scaffold_count": 1
   },
   "error_event_samples": [],
   "provider_error_samples": [],
   "stderr_tail": "",
-  "artifact_path": "/Users/provi/Development/_projs/the-eye-loop-gnhf-worktrees/you-are-running-an-e-2c98fb/scripts/findings/validate-2026-04-23T23-18-49-807Z.json"
+  "artifact_path": "/Users/provi/Development/_projs/the-eye-loop-gnhf-worktrees/you-are-running-an-e-2c98fb/scripts/findings/validate-2026-04-23T23-18-20-863Z.json"
 }

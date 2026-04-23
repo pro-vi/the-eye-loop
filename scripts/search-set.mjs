@@ -150,6 +150,9 @@ function extractMetrics(artifact) {
 		stream_2_agent_status_valid_count: m.stream_2_agent_status_valid_count ?? 0,
 		stage_changed_swipe_count_valid_count: m.stage_changed_swipe_count_valid_count ?? 0,
 		stream_2_stage_changed_swipe_count_valid_count: m.stream_2_stage_changed_swipe_count_valid_count ?? 0,
+		stream_2_draft_updated_count: m.stream_2_draft_updated_count ?? 0,
+		stream_2_draft_placeholder_count: m.stream_2_draft_placeholder_count ?? 0,
+		stream_2_draft_refined_count: m.stream_2_draft_refined_count ?? 0,
 		session_ready_intent_present_count: m.session_ready_intent_present_count ?? 0,
 		oracle_cold_start_latency_ms: m.oracle_cold_start_latency_ms ?? null,
 		oracle_synthesis_latency_ms: m.oracle_synthesis_latency_ms ?? null,
@@ -778,6 +781,48 @@ async function main() {
 							(p) => p.metrics.stream_2_stage_changed_swipe_count_valid_count ?? 0
 						)
 					)
+				: 0,
+			// iter-65 stream_2 draft-replay rollups — mirror iter-64's primary-
+			// stream draft_placeholder/draft_refined split onto the /api/stream
+			// replay path. Under iter-61's healthy-auth regime with iter-63's
+			// synchronous placeholder at session-ready, context.draft.html is
+			// reliably set before stream_2 opens, so the replay block at
+			// +server.ts:27-29 emits exactly one draft-updated per stream_2
+			// connect. Expected baseline under 14s-window healthy auth:
+			//   stream_2_draft_updated_count_sum=5 _min=1 (one replay per intent)
+			//   stream_2_draft_placeholder_count_sum=5 _min=1 (scaffold rarely
+			//     completes before stream_2 opens at ~13s)
+			//   stream_2_draft_refined_count_sum=0 _min=0 (forward-deploy: flips
+			//     positive when scaffold latency improves OR stream_2 opens
+			//     later than rebuild completion)
+			// Identity invariant (per intent, per aggregate):
+			//   stream_2_draft_placeholder_count + stream_2_draft_refined_count
+			//     === stream_2_draft_updated_count
+			// Regression classes:
+			//   - iter-63 placeholder revert: all three probes drop to 0 (context.
+			//     draft.html not set at session-ready, replay block's gate falsy)
+			//   - /api/stream replay gate broken (+server.ts:27 condition): all
+			//     three probes drop to 0 while primary iter-64 probes stay intact
+			//   - payload corruption (context.draft mutated between set and
+			//     replay): _updated stays at 1 but _placeholder AND _refined
+			//     both drop to 0 (neither filter matches), exposing the identity
+			//     violation that primary-only probes cannot see
+			// Orthogonal to iter-64's primary-stream split: primary tests
+			// event-emission integrity on the live bus; stream_2 tests snapshot-
+			// replay integrity at connect time. A regression that fires draft-
+			// updated live but drops it from replay would leave iter-64 intact
+			// while collapsing these three probes.
+			stream_2_draft_updated_count_sum: sumMetric('stream_2_draft_updated_count'),
+			stream_2_draft_updated_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.stream_2_draft_updated_count ?? 0))
+				: 0,
+			stream_2_draft_placeholder_count_sum: sumMetric('stream_2_draft_placeholder_count'),
+			stream_2_draft_placeholder_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.stream_2_draft_placeholder_count ?? 0))
+				: 0,
+			stream_2_draft_refined_count_sum: sumMetric('stream_2_draft_refined_count'),
+			stream_2_draft_refined_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.stream_2_draft_refined_count ?? 0))
 				: 0,
 			time_to_first_stage_changed_ms_p50: percentile(
 				perIntent.map((p) => p.metrics.time_to_first_stage_changed_ms),
