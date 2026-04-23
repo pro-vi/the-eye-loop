@@ -121,6 +121,8 @@ function extractMetrics(artifact) {
 		stream_2_agent_status_count: m.stream_2_agent_status_count ?? 0,
 		stream_2_stage_changed_count: m.stream_2_stage_changed_count ?? 0,
 		stream_2_diagnostic_preserved_count: m.stream_2_diagnostic_preserved_count ?? 0,
+		stream_2_first_event_ms_after_open: m.stream_2_first_event_ms_after_open ?? null,
+		stream_2_replay_span_ms: m.stream_2_replay_span_ms ?? null,
 		stage_changed_event_count: m.stage_changed_event_count ?? 0,
 		time_to_first_stage_changed_ms: m.time_to_first_stage_changed_ms ?? null,
 		stage_changed_before_session_ready: m.stage_changed_before_session_ready ?? 0
@@ -424,7 +426,50 @@ async function main() {
 			time_to_first_stage_changed_ms_p90: percentile(
 				perIntent.map((p) => p.metrics.time_to_first_stage_changed_ms),
 				90
-			)
+			),
+			// iter-37 stream-replay tightness probe — promotes the synchronous-
+			// emission discipline of /api/stream's start() block into a cross-
+			// intent invariant. Under the baseline:
+			//   stream_2_first_event_ms_after_open — HTTP connect + first-read
+			//     overhead, expected ~3-5ms across all intents (local CPU-bound,
+			//     tighter than Anthropic 401 RTT's ~180ms). p90/max act as
+			//     upper-bound detectors: a regression that pushes replay into
+			//     a setTimeout or awaits something before emit would blow this
+			//     from ~3ms to the async boundary cost (tens to hundreds of ms).
+			//   stream_2_replay_span_ms — time between first and last replayed
+			//     event, expected 0-1ms (all replay events emit in the same
+			//     synchronous tick). A regression that scatters replay across
+			//     multiple ticks (async/setTimeout inside start()) widens span
+			//     while leaving count/content intact — a regression class the
+			//     iter-26/27/29 count + iter-29 content probes cannot see.
+			stream_2_first_event_ms_after_open_p50: percentile(
+				perIntent.map((p) => p.metrics.stream_2_first_event_ms_after_open),
+				50
+			),
+			stream_2_first_event_ms_after_open_p90: percentile(
+				perIntent.map((p) => p.metrics.stream_2_first_event_ms_after_open),
+				90
+			),
+			stream_2_first_event_ms_after_open_max: (() => {
+				const vals = perIntent
+					.map((p) => p.metrics.stream_2_first_event_ms_after_open)
+					.filter((v) => typeof v === 'number' && Number.isFinite(v));
+				return vals.length ? Math.max(...vals) : null;
+			})(),
+			stream_2_replay_span_ms_p50: percentile(
+				perIntent.map((p) => p.metrics.stream_2_replay_span_ms),
+				50
+			),
+			stream_2_replay_span_ms_p90: percentile(
+				perIntent.map((p) => p.metrics.stream_2_replay_span_ms),
+				90
+			),
+			stream_2_replay_span_ms_max: (() => {
+				const vals = perIntent
+					.map((p) => p.metrics.stream_2_replay_span_ms)
+					.filter((v) => typeof v === 'number' && Number.isFinite(v));
+				return vals.length ? Math.max(...vals) : null;
+			})()
 		},
 		per_intent: perIntent
 	};

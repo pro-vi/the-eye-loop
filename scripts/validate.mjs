@@ -382,6 +382,9 @@ async function main() {
 		agent_status_count: 0,
 		stage_changed_count: 0,
 		diagnostic_preserved_count: 0,
+		first_event_ms_after_open: null,
+		last_event_ms_after_open: null,
+		replay_span_ms: null,
 		events: [],
 		error: null
 	};
@@ -447,6 +450,28 @@ async function main() {
 		stream2.diagnostic_preserved_count = stream2.events.filter(
 			(e) => e.type === 'agent-status' && e.data?.agent?.focus === 'provider auth failed'
 		).length;
+		// Replay-tightness probe — closes iter-34's explicitly-deferred "assert
+		// p90-p50<20ms as an additional stability invariant" opportunity, but
+		// generalized: the /api/stream start() block emits ALL replay events
+		// synchronously in a single tick, so the SPAN between first and last
+		// replay event is dominated by JS event-loop granularity (~0-1ms) and
+		// the TIME-TO-FIRST-EVENT is dominated by HTTP connect + first-read
+		// (~3-5ms). A regression that moves any replay emit into a setTimeout,
+		// an await, or a deferred subscription would blow up replay_span_ms
+		// from 0 to >10ms and first_event_ms_after_open from ~3ms to whatever
+		// the async boundary costs. This is a distinct class of bug from the
+		// stream_2 count/content probes (iter-26/27/29): count can stay right,
+		// content can stay right, but ordering-within-replay and synchronous-
+		// emission-discipline can regress silently. Captured per-run here;
+		// promoted to aggregate in search-set.mjs for cross-intent p50/p90/max.
+		if (stream2.events.length > 0) {
+			const tsList = stream2.events.map((e) => e.ts_ms);
+			const firstTs = Math.min(...tsList);
+			const lastTs = Math.max(...tsList);
+			stream2.first_event_ms_after_open = firstTs - stream2.opened_at_ms;
+			stream2.last_event_ms_after_open = lastTs - stream2.opened_at_ms;
+			stream2.replay_span_ms = lastTs - firstTs;
+		}
 	}
 
 	streamController.abort();
@@ -783,6 +808,8 @@ async function main() {
 			stream_2_agent_status_count: stream2.agent_status_count,
 			stream_2_stage_changed_count: stream2.stage_changed_count,
 			stream_2_diagnostic_preserved_count: stream2.diagnostic_preserved_count,
+			stream_2_first_event_ms_after_open: stream2.first_event_ms_after_open,
+			stream_2_replay_span_ms: stream2.replay_span_ms,
 			stage_changed_event_count: stageChangedEventCount,
 			time_to_first_stage_changed_ms: timeToFirstStageChangedMs,
 			stage_changed_before_session_ready: stageChangedBeforeSessionReady
@@ -809,7 +836,8 @@ async function main() {
 		`sse_err=${errorEventCount} auth_err=${agentErrorLines.length} ` +
 		`agent_status=${agentStatusEventCount} ` +
 		`stage_changed=${stageChangedEventCount} stage_before_ready=${stageChangedBeforeSessionReady} ` +
-		`s2_err=${stream2.error_event_count} s2_agents=${stream2.agent_status_count} s2_stage=${stream2.stage_changed_count} s2_diag=${stream2.diagnostic_preserved_count}`
+		`s2_err=${stream2.error_event_count} s2_agents=${stream2.agent_status_count} s2_stage=${stream2.stage_changed_count} s2_diag=${stream2.diagnostic_preserved_count} ` +
+		`s2_first=${stream2.first_event_ms_after_open}ms s2_span=${stream2.replay_span_ms}ms`
 	);
 	process.exit(pass ? 0 : 1);
 }
