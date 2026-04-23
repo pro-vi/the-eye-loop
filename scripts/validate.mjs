@@ -236,7 +236,20 @@ async function main() {
 	const facadeReadyCount = eventCounts['facade-ready'] ?? 0;
 	const draftUpdatedCount = eventCounts['draft-updated'] ?? 0;
 	const synthesisUpdatedCount = eventCounts['synthesis-updated'] ?? 0;
+	const errorEventCount = eventCounts['error'] ?? 0;
 	const agentErrorLines = stderrLines.filter((l) => ERROR_SIGNAL_RE.test(l.text));
+
+	// Typed classification from bus-level error events (preferred over stderr regex).
+	const errorEvents = events.filter((e) => e.type === 'error');
+	const errorCodeCounts = {};
+	const errorSourceCounts = {};
+	for (const e of errorEvents) {
+		const code = e.data?.code ?? 'unknown';
+		const src = e.data?.source ?? 'unknown';
+		errorCodeCounts[code] = (errorCodeCounts[code] ?? 0) + 1;
+		errorSourceCounts[src] = (errorSourceCounts[src] ?? 0) + 1;
+	}
+	const providerAuthFailureCount = errorCodeCounts['provider_auth_failure'] ?? 0;
 
 	const sessionOk = sessionStatus >= 200 && sessionStatus < 300;
 	const pass = sessionOk && facadeReadyCount > 0 && draftUpdatedCount > 0;
@@ -244,6 +257,7 @@ async function main() {
 	let reason;
 	if (pass) reason = 'facade_and_draft_observed';
 	else if (!sessionOk) reason = 'session_post_not_2xx';
+	else if (facadeReadyCount === 0 && providerAuthFailureCount > 0) reason = 'provider_auth_failure';
 	else if (facadeReadyCount === 0 && agentErrorLines.length > 0) reason = 'provider_auth_failure';
 	else if (facadeReadyCount === 0) reason = 'no_facade_ready';
 	else reason = 'no_draft_updated';
@@ -280,8 +294,19 @@ async function main() {
 			facade_ready_count: facadeReadyCount,
 			draft_updated_count: draftUpdatedCount,
 			synthesis_updated_count: synthesisUpdatedCount,
+			error_event_count: errorEventCount,
+			error_code_counts: errorCodeCounts,
+			error_source_counts: errorSourceCounts,
+			provider_auth_failure_count: providerAuthFailureCount,
 			agent_error_signal_count: agentErrorLines.length
 		},
+		error_event_samples: errorEvents.slice(0, 8).map((e) => ({
+			ts_ms: e.ts_ms,
+			source: e.data?.source,
+			code: e.data?.code,
+			agentId: e.data?.agentId,
+			message: e.data?.message
+		})),
 		provider_error_samples: agentErrorLines.slice(0, 8),
 		stderr_tail: stderrBuf.slice(-2000)
 	};
@@ -290,7 +315,7 @@ async function main() {
 	console.log(
 		`[validate] result=${artifact.result} reason=${reason} ` +
 		`session=${sessionStatus} facades=${facadeReadyCount} drafts=${draftUpdatedCount} ` +
-		`synth=${synthesisUpdatedCount} auth_err=${agentErrorLines.length}`
+		`synth=${synthesisUpdatedCount} sse_err=${errorEventCount} auth_err=${agentErrorLines.length}`
 	);
 	process.exit(pass ? 0 : 1);
 }

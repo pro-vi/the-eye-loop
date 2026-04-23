@@ -6,6 +6,8 @@ import {
 	emitSessionReady,
 	emitStageChanged,
 	emitSynthesisUpdated,
+	emitError,
+	classifyErrorCode,
 	onSwipeResult
 } from '$lib/server/bus';
 import { stopAllScouts } from './scout';
@@ -216,6 +218,12 @@ async function runSynthesis() {
 	} catch (err) {
 		debugLog('Oracle', 'synthesis-error', { error: String(err) });
 		console.error('[oracle] synthesis failed:', err);
+		emitError({
+			source: 'oracle',
+			code: classifyErrorCode(err),
+			agentId: ORACLE_AGENT_ID,
+			message: err instanceof Error ? err.message : String(err)
+		});
 	} finally {
 		// Only clear the gate if this run still owns it
 		if (synthesisRunId === myRunId) {
@@ -297,6 +305,12 @@ async function runColdStart(intent: string, capturedSessionId: string) {
 		}
 	} catch (err) {
 		console.error('[oracle] cold-start failed, scouts will self-assign:', err);
+		emitError({
+			source: 'oracle',
+			code: classifyErrorCode(err),
+			agentId: ORACLE_AGENT_ID,
+			message: err instanceof Error ? err.message : String(err)
+		});
 	}
 	if (context.sessionId === capturedSessionId) {
 		setOracleStatus('idle', 'monitoring');

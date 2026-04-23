@@ -54,6 +54,31 @@ export const emitSynthesisUpdated: (p: SSEEventMap['synthesis-updated']) => void
 export const emitSessionReady: (p: SSEEventMap['session-ready']) => void =
 	(p) => emit('session-ready', p);
 
+// Suppress repeat error spam: same (source, code, agentId) within the window
+// is dropped. 401 loops across 6 scouts would otherwise dominate the bus.
+const ERROR_EMIT_DEDUP_MS = 5_000;
+const lastErrorEmit = new Map<string, number>();
+
+export const emitError: (p: SSEEventMap['error']) => void = (p) => {
+	const key = `${p.source}:${p.code}:${p.agentId ?? ''}`;
+	const now = Date.now();
+	const last = lastErrorEmit.get(key) ?? 0;
+	if (now - last < ERROR_EMIT_DEDUP_MS) return;
+	lastErrorEmit.set(key, now);
+	emit('error', p);
+};
+
+export function classifyErrorCode(err: unknown): SSEEventMap['error']['code'] {
+	const s = err instanceof Error ? `${err.message}` : String(err);
+	if (/401|Invalid bearer|authentication_error|x-api-key/i.test(s)) {
+		return 'provider_auth_failure';
+	}
+	if (/AI_APICall|fetch failed|ECONNREFUSED|timeout/i.test(s)) {
+		return 'provider_error';
+	}
+	return 'generation_error';
+}
+
 // ── Listen helpers ────────────────────────────────────────────────────
 
 export const onSwipeResult = (cb: (p: SSEEventMap['swipe-result']) => void) =>
@@ -125,7 +150,8 @@ const SSE_EVENTS: SSEEventType[] = [
 	'stage-changed',
 	'draft-updated',
 	'synthesis-updated',
-	'session-ready'
+	'session-ready',
+	'error'
 ];
 
 export function onAny(cb: <K extends SSEEventType>(event: K, payload: SSEEventMap[K]) => void) {

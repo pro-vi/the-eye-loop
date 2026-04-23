@@ -87,7 +87,13 @@ export type SSEEvent =
 	| { type: 'stage-changed'; stage: Stage; swipeCount: number }
 	| { type: 'synthesis-updated'; synthesis: TasteSynthesis }
 	| { type: 'session-ready'; intent: string }
-	| { type: 'error'; message: string };
+	| {
+			type: 'error';
+			source: 'scout' | 'oracle' | 'builder';
+			code: 'provider_auth_failure' | 'provider_error' | 'generation_error';
+			agentId?: string;
+			message: string;
+	  };
 
 // Derive event map from SSEEvent — bus helpers and SSE forwarding use this
 // to stay aligned with the union above at compile time.

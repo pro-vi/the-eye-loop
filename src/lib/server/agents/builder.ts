@@ -8,7 +8,9 @@ import {
 	emitDraftUpdated,
 	emitBuilderHint,
 	emitEvidenceUpdated,
-	emitAgentStatus
+	emitAgentStatus,
+	emitError,
+	classifyErrorCode
 } from '$lib/server/bus';
 import type { AgentState, Facade, SwipeRecord } from '$lib/context/types';
 import { debugLog } from '$lib/server/debug-log';
@@ -329,6 +331,12 @@ async function rebuild(facade: Facade, record: SwipeRecord) {
 		}
 	} catch (err) {
 		console.error('[builder] rebuild failed:', err);
+		emitError({
+			source: 'builder',
+			code: classifyErrorCode(err),
+			agentId: BUILDER_ID,
+			message: err instanceof Error ? err.message : String(err)
+		});
 	} finally {
 		setStatus('idle', 'watching for swipes');
 		busy = false;
@@ -374,6 +382,12 @@ export function startBuilder(): void {
 				}
 			} catch (err) {
 				console.error('[builder] scaffold failed:', err);
+				emitError({
+					source: 'builder',
+					code: classifyErrorCode(err),
+					agentId: BUILDER_ID,
+					message: err instanceof Error ? err.message : String(err)
+				});
 			} finally {
 				setStatus('idle', 'watching for swipes');
 				busy = false;
@@ -501,6 +515,12 @@ OUTPUT: final title, summary, html (complete, polished, rich), changeNote, patte
 		console.log(`[builder] final reveal: "${result.output.title}" (${result.output.html.length} chars)`);
 	} catch (err) {
 		console.error('[builder] final reveal build failed:', err);
+		emitError({
+			source: 'builder',
+			code: classifyErrorCode(err),
+			agentId: BUILDER_ID,
+			message: err instanceof Error ? err.message : String(err)
+		});
 	} finally {
 		setStatus('idle', 'reveal complete');
 	}

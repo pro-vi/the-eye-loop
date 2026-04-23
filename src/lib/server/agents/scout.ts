@@ -1,7 +1,13 @@
 import { generateText, Output } from 'ai';
 import { z } from 'zod';
 import { context } from '$lib/server/context';
-import { awaitFacadeSwipe, emitFacadeStale, emitAgentStatus } from '$lib/server/bus';
+import {
+	awaitFacadeSwipe,
+	emitFacadeStale,
+	emitAgentStatus,
+	emitError,
+	classifyErrorCode
+} from '$lib/server/bus';
 import type { Facade, AgentState } from '$lib/context/types';
 import { debugLog } from '$lib/server/debug-log';
 import { HTML_QUALITY_RULES } from '$lib/server/prompts';
@@ -418,6 +424,12 @@ Mobile viewport 375x667. No scripts. No external resources.`;
 			} catch (err) {
 				if (!alive()) break;
 				console.error(`[scout:${agentId}]`, err);
+				emitError({
+					source: 'scout',
+					code: classifyErrorCode(err),
+					agentId,
+					message: err instanceof Error ? err.message : String(err)
+				});
 				await sleep(1000);
 			}
 		}
