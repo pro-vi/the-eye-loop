@@ -179,6 +179,13 @@ async function runSynthesis() {
 
 	setOracleStatus('thinking', 'synthesizing evidence');
 
+	// Parallel to iter-24's builder.scaffold flag-and-branch: preserve the
+	// diagnostic focus on provider_auth_failure so the finally-block doesn't
+	// overwrite 'provider auth failed' with the generic 'monitoring'. Unlike
+	// the scout IIFE-return (iter-23), finally ALWAYS runs before any return
+	// inside try/catch, so a flag is required. Only matters post-healthy-auth
+	// (runSynthesis fires every 4 swipes, unreachable under broken auth).
+	let authFailed = false;
 	try {
 		const prompt = SYNTHESIS_PROMPT
 			.replace('{intent}', context.intent)
@@ -218,9 +225,11 @@ async function runSynthesis() {
 	} catch (err) {
 		debugLog('Oracle', 'synthesis-error', { error: String(err) });
 		console.error('[oracle] synthesis failed:', err);
+		const code = classifyErrorCode(err);
+		if (code === 'provider_auth_failure') authFailed = true;
 		emitError({
 			source: 'oracle',
-			code: classifyErrorCode(err),
+			code,
 			agentId: ORACLE_AGENT_ID,
 			message: err instanceof Error ? err.message : String(err)
 		});
@@ -228,7 +237,7 @@ async function runSynthesis() {
 		// Only clear the gate if this run still owns it
 		if (synthesisRunId === myRunId) {
 			busy = false;
-			setOracleStatus('idle', 'monitoring');
+			setOracleStatus('idle', authFailed ? 'provider auth failed' : 'monitoring');
 			// Drain pending — catch up after burst of swipes
 			if (pendingSynthesis) {
 				pendingSynthesis = false;

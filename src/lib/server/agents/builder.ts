@@ -195,6 +195,12 @@ async function rebuild(facade: Facade, record: SwipeRecord) {
 	const capturedId = context.sessionId;
 	setStatus('thinking', `analyzing ${record.decision} on "${facade.label}"`);
 
+	// Parallel to iter-24's builder.scaffold flag-and-branch: preserve the
+	// diagnostic focus on provider_auth_failure so the finally-block doesn't
+	// overwrite 'provider auth failed' with the generic 'watching for swipes'.
+	// Only matters post-healthy-auth (rebuild fires on every swipe, unreachable
+	// under broken auth because no facade arrives).
+	let authFailed = false;
 	try {
 		const antiStr = context.antiPatterns.length
 			? context.antiPatterns.map((p) => `  - ${p}`).join('\n')
@@ -331,14 +337,16 @@ async function rebuild(facade: Facade, record: SwipeRecord) {
 		}
 	} catch (err) {
 		console.error('[builder] rebuild failed:', err);
+		const code = classifyErrorCode(err);
+		if (code === 'provider_auth_failure') authFailed = true;
 		emitError({
 			source: 'builder',
-			code: classifyErrorCode(err),
+			code,
 			agentId: BUILDER_ID,
 			message: err instanceof Error ? err.message : String(err)
 		});
 	} finally {
-		setStatus('idle', 'watching for swipes');
+		setStatus('idle', authFailed ? 'provider auth failed' : 'watching for swipes');
 		busy = false;
 		drainPending();
 	}
@@ -441,6 +449,13 @@ export async function buildRevealDraft(): Promise<void> {
 	const capturedId = context.sessionId;
 	setStatus('thinking', 'final prototype synthesis');
 
+	// Parallel to iter-24's builder.scaffold flag-and-branch: preserve the
+	// diagnostic focus on provider_auth_failure so the finally-block doesn't
+	// overwrite 'provider auth failed' with the generic 'reveal complete'.
+	// Only matters post-healthy-auth (buildRevealDraft fires once at stage=
+	// reveal, unreachable under broken auth because no swipes reach the
+	// REVEAL_THRESHOLD=15 evidence count).
+	let authFailed = false;
 	try {
 		const antiStr = context.antiPatterns.length
 			? context.antiPatterns.map((p) => `  - ${p}`).join('\n')
@@ -521,13 +536,15 @@ OUTPUT: final title, summary, html (complete, polished, rich), changeNote, patte
 		console.log(`[builder] final reveal: "${result.output.title}" (${result.output.html.length} chars)`);
 	} catch (err) {
 		console.error('[builder] final reveal build failed:', err);
+		const code = classifyErrorCode(err);
+		if (code === 'provider_auth_failure') authFailed = true;
 		emitError({
 			source: 'builder',
-			code: classifyErrorCode(err),
+			code,
 			agentId: BUILDER_ID,
 			message: err instanceof Error ? err.message : String(err)
 		});
 	} finally {
-		setStatus('idle', 'reveal complete');
+		setStatus('idle', authFailed ? 'provider auth failed' : 'reveal complete');
 	}
 }
