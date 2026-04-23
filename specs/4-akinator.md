@@ -152,7 +152,7 @@ The oracle's assignments are a **menu**, not a leash. Between syntheses, scouts 
 ### Oracle cadence
 
 - Every 4 swipes (validated — enough evidence per round for meaningful synthesis)
-- Uses `gemini-3.1-flash-lite-preview` at temperature 0
+- Uses FAST_MODEL (Claude Haiku 4.5, `src/lib/server/ai.ts`) at temperature 0
 - ~3s latency — runs in background between swipes, doesn't block UI
 
 ---

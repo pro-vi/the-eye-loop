@@ -2,7 +2,7 @@
 
 The system prompts ARE the product. The plumbing (SSE, queues, events) is commodity. These prompts + the evidence format determine whether facades feel intelligent or random.
 
-> Priority order: Scout (Akinator probe) > Oracle synthesis (strategic coordination) > Builder (construction-grounded) > Image SCHEMA
+> Priority order: Scout (Akinator probe) > Oracle synthesis (strategic coordination) > Builder (construction-grounded)
 
 **Source of truth for Akinator pattern:** `specs/4-akinator.md` (validated via benchmarks).
 
@@ -75,12 +75,12 @@ RULES:
 - PROHIBITIONS (anti-patterns) are hard constraints — never violate them
 
 OUTPUT (structured):
-  content: "{the word, image prompt, or HTML}"
+  content: "{the word or HTML}"
   label: "{short display label for the card}"
   hypothesis_tested: "{what accept vs reject would tell us}"
   accept_implies: "{what becomes more likely}"
   reject_implies: "{what becomes more likely, what gets added to anti-patterns}"
-  format: "word" | "image" | "mockup"
+  format: "word" | "mockup"
   axis_targeted: "{which emergent axis you probed}"
 ```
 
@@ -96,32 +96,36 @@ Scout prompts receive five injections:
 ### Format Instructions (injected by concreteness floor)
 
 - `< 4 swipes`: "This is early exploration — use a single evocative WORD or short phrase."
-- `4-7 swipes`: "Describe an IMAGE or moodboard that tests your hypothesis."
-- `8+ swipes`: "Describe a concrete MOCKUP with layout, typography, and interaction details."
+- `>= 4 swipes`: "Describe a concrete MOCKUP with layout, typography, and interaction details."
 
-The scout CHOOSES format but the oracle sets a minimum floor. Floor prevents regression (can't go back to words at swipe 10) but doesn't force escalation.
+The floor is 2-tier, matching `context.concretenessFloor` in `src/lib/server/context.ts` (returns `'word'` when evidence < 4, `'mockup'` otherwise) and `Facade.format` in `src/lib/context/types.ts` (`'word' | 'mockup'`). The scout CHOOSES format but the oracle sets a minimum floor. Floor prevents regression (can't go back to words at swipe 10) but doesn't force escalation.
 
 ### Stage Progression Example
 
 The same taste dimension gets probed at increasing fidelity across stages:
 
-| Dimension          | Word Probe                     | Image Probe                               | Mockup Probe                                  |
-|--------------------|--------------------------------|-------------------------------------------|-----------------------------------------------|
-| information stance | "Dashboard" vs "Story"         | Data-viz moodboard vs editorial layout    | Dense multi-widget vs single-scroll narrative |
-| interaction model  | "Control" vs "Flow"            | Toolbar-heavy UI vs gesture-driven        | Settings panel vs swipe-to-act                |
-| visual heritage    | "Swiss" vs "Craft"             | Grid modernism vs handmade texture        | Helvetica grid vs illustrated organic         |
-| density philosophy | "Observatory" vs "Companion"   | Full-screen data vs focused card          | Jira density vs Linear breathing room         |
-| personality        | "Invisible" vs "Expressive"    | Monochrome utility vs bold color identity | System-default chrome vs branded experience   |
+| Dimension          | Word Probe                     | Mockup Probe                                  |
+|--------------------|--------------------------------|-----------------------------------------------|
+| information stance | "Dashboard" vs "Story"         | Dense multi-widget vs single-scroll narrative |
+| interaction model  | "Control" vs "Flow"            | Settings panel vs swipe-to-act                |
+| visual heritage    | "Swiss" vs "Craft"             | Helvetica grid vs illustrated organic         |
+| density philosophy | "Observatory" vs "Companion"   | Jira density vs Linear breathing room         |
+| personality        | "Invisible" vs "Expressive"    | System-default chrome vs branded experience   |
 
-Later-stage probes build on earlier evidence. If the user accepted "Dashboard" in words and a data-viz moodboard in images, the mockup should test WITHIN that resolved region.
+Later-stage probes build on earlier evidence. If the user accepted "Dashboard" in words, the mockup should test WITHIN that resolved region.
 
 ### Diversity Constraint
 
 Inject last 3 probe hypotheses into the prompt. Without this, scouts fall into hypothesis ruts (validated finding from `specs/4-akinator.md`).
 
-### IMAGE SCHEMA (for image-format facades)
+<details>
+<summary>Appendix: historical image-format scout (cut from V0)</summary>
 
-When scout chooses `format: "image"`, the content field is a structured image prompt:
+The V0 Akinator pattern collapsed scout formats to a 2-tier progression (`word` → `mockup`). The image-format scout below was the Gemini-era middle tier; it is preserved here as research/pattern context for any future image-capable tier, but it is NOT part of the current Anthropic runtime. `Facade.format` in `src/lib/context/types.ts` is `'word' | 'mockup'` and `context.concretenessFloor` is 2-tier.
+
+### IMAGE SCHEMA (for image-format facades — NOT in V0)
+
+When scout chose `format: "image"`, the content field was a structured image prompt:
 
 ```
 SUBJECT: {from hypothesis}
@@ -133,14 +137,16 @@ MANDATORY (3-5): {properties that MUST appear — from accepted evidence}
 PROHIBITIONS (3-5): {properties that MUST NOT appear — from anti-patterns}
 ```
 
-Rules for image prompts:
+Rules for image prompts (Gemini Nano Banana, historical):
 - Prohibitions outperform positive mandates (94% vs 91% compliance) `.research/synthesis-prompt-patterns`
 - Use quantified specs: "color temperature 3200K" not "cool tones"
 - Use photographic/cinematic language: "85mm portrait lens" not "close-up"
 - After 3 iterative edits on same reference, rebuild prompt from scratch (drift) `.research/synthesis-gemini-projects`
-- **CRITICAL:** Must pass `providerOptions.google.responseModalities: ['TEXT', 'IMAGE']`
+- Must pass `providerOptions.google.responseModalities: ['TEXT', 'IMAGE']` (Gemini-specific — Anthropic has no image-generation surface in this SDK)
 - Image config: `imageConfig: { aspectRatio: '3:2', imageSize: '1K' }`
 - Reference images go FIRST in parts array, text prompt LAST `.research/synthesis-gemini-projects`
+
+</details>
 
 ---
 
@@ -285,14 +291,16 @@ interface TasteSynthesis {
 
 ## Structured Output Constraints
 
-All structured output uses Vercel AI SDK `Output.object()` with Zod schemas.
+All structured output uses Vercel AI SDK `Output.object()` with Zod schemas against Anthropic Claude (FAST_MODEL = Haiku 4.5, QUALITY_MODEL = Sonnet 4.6) via `src/lib/server/ai.ts`.
 
-**Gemini limitation:** Uses OpenAPI 3.0 subset. Avoid:
-- `z.union()` — not supported
-- `z.record()` — not supported
-- Deeply nested optionals
+Keep schemas flat. Use string enums over unions. If a field is sometimes absent, use `.nullable()` not `.optional()` with union types — Claude's tool-use schema conversion handles flat, JSON-Schema-shaped Zod objects reliably, and flat shapes travel the fewest SDK conversion layers.
 
-Keep schemas flat. Use string enums over unions. If a field is sometimes absent, use `.nullable()` not `.optional()` with union types.
+<details>
+<summary>Appendix: historical Gemini-era limitations (NOT in V0)</summary>
+
+Gemini used an OpenAPI 3.0 subset which disallowed `z.union()`, `z.record()`, and deeply nested optionals. These constraints drove the original "keep schemas flat" rule; the rule survived the Anthropic migration because flat schemas remain the safest cross-provider shape.
+
+</details>
 
 ---
 

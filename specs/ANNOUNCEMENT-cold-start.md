@@ -26,7 +26,7 @@ export async function seedSession(intent: string): Promise<{ sessionId: string }
 
   // NEW: cold-start intent analysis
   const result = await generateText({
-    model: google('gemini-3.1-flash-lite-preview'),  // Flash Lite, not Pro — speed matters
+    model: FAST_MODEL,  // Claude Haiku 4.5 via src/lib/server/ai.ts — speed matters
     temperature: 0,
     output: Output.object({ schema: coldStartSchema }),
     prompt: COLD_START_PROMPT.replace('{INTENT}', intent),
