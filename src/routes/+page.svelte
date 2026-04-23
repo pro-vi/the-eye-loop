@@ -192,15 +192,39 @@
 		// Cross-session state clear for an already-connected stream. Parallels
 		// iter-21's server-side bus.lastError clear on session-ready and iter-42's
 		// conditional stage-changed emit for existing subscribers. startSession()
-		// already resets sessionError in the same tab that initiated the fetch;
-		// this handler closes the analogous gap for a second tab (or any stream
-		// that held a connection across a session boundary it did not initiate),
-		// where session 1's provider_auth_failure banner would otherwise persist
-		// in the UI until session 2's first error event arrives ~180ms later
-		// (under the current broken-auth baseline) or indefinitely (under a
-		// healthy-auth session where no error ever fires).
+		// already resets all of these fields in the same tab that initiated the
+		// fetch; this handler closes the analogous gap for a second tab (or any
+		// stream that held a connection across a session boundary it did not
+		// initiate), where session 1's facades / evidence / synthesis / draft /
+		// agents / stage / sessionError would otherwise persist in the UI
+		// indefinitely (under broken-auth where new-session events never land to
+		// overwrite) or until specific new events arrive piecemeal (under
+		// healthy-auth). iter-57 closed the sessionError half; this iteration
+		// extends to the full set of SSE-driven state clauses mirrored from
+		// startSession() so the non-initiating tab's view state matches the
+		// initiating tab's fresh-session view state.
 		es.addEventListener('session-ready', () => {
 			sessionError = null;
+			facades = [];
+			evidence = [];
+			synthesis = null;
+			antiPatterns = [];
+			agents = [];
+			draft = {
+				title: '',
+				summary: '',
+				html: '',
+				acceptedPatterns: [],
+				rejectedPatterns: []
+			};
+			stage = 'words';
+			// mode = 'swiping' returns a non-initiating tab stuck in 'reveal' (from
+			// a prior session that reached reveal) back to the active-session UI,
+			// matching startSession()'s post-fetch mode assignment. iter-42's
+			// conditional stage-changed emit will additionally fire stage='words'
+			// under healthy-auth multi-session flows where previousStage differed,
+			// but it does not force a mode transition — this does.
+			mode = 'swiping';
 		});
 
 		es.onerror = (e) => {
