@@ -635,6 +635,22 @@ async function main() {
 	const distinctErrorAgentCount = Object.keys(errorAgentCounts).length;
 	const providerAuthFailureCount = errorCodeCounts['provider_auth_failure'] ?? 0;
 
+	// Primary-stream error role-cardinality. iter-14 promoted distinct
+	// (source, agentId) tuple count to aggregate; this surfaces the parallel
+	// ROLE-level breakdown (collapsing scout-01..06 into a single bucket)
+	// from the LIVE error-emission path. Parallel to iter-40's stream_2
+	// per-role probe but orthogonal: iter-40 reads context.agents.values()
+	// in the replay block (roster state at reconnect), this reads the bus
+	// emissions from scout/oracle/builder catch sites (live emission per
+	// session). A regression where scout-07 enters the emission path with
+	// role='oracle' would keep distinct_error_agent_count=8 (or 9) while
+	// flipping these role counters from {scout:6, oracle:1, builder:1} to
+	// an imbalanced shape. Under broken-auth baseline the expected values
+	// are scout=6, oracle=1, builder=1 per intent.
+	const errorSourceScoutCount = errorSourceCounts['scout'] ?? 0;
+	const errorSourceOracleCount = errorSourceCounts['oracle'] ?? 0;
+	const errorSourceBuilderCount = errorSourceCounts['builder'] ?? 0;
+
 	// Diagnostic-focus preservation probe — promotes iter-23/24's roster-wide
 	// focus-preservation pattern (scout.ts IIFE-return + oracle.runColdStart
 	// early-return + builder.scaffold finally-block flag) into a machine-
@@ -865,6 +881,9 @@ async function main() {
 			error_source_counts: errorSourceCounts,
 			error_agent_counts: errorAgentCounts,
 			distinct_error_agent_count: distinctErrorAgentCount,
+			error_source_scout_count: errorSourceScoutCount,
+			error_source_oracle_count: errorSourceOracleCount,
+			error_source_builder_count: errorSourceBuilderCount,
 			provider_auth_failure_count: providerAuthFailureCount,
 			auth_diagnostic_preserved_count: authDiagnosticPreservedCount,
 			agent_status_event_count: agentStatusEventCount,
@@ -917,6 +936,7 @@ async function main() {
 		`${sessionSummary} facades=${facadeReadyCount} drafts=${draftUpdatedCount} ` +
 		`synth=${synthesisUpdatedCount} swipe=${swipe.attempted ? swipe.status : 'skipped'} ` +
 		`sse_err=${errorEventCount} auth_err=${agentErrorLines.length} ` +
+		`s1_roles=s${errorSourceScoutCount}/o${errorSourceOracleCount}/b${errorSourceBuilderCount} ` +
 		`agent_status=${agentStatusEventCount} ` +
 		`stage_changed=${stageChangedEventCount} stage_before_ready=${stageChangedBeforeSessionReady} ` +
 		`s2_err=${stream2.error_event_count} s2_agents=${stream2.agent_status_count} s2_stage=${stream2.stage_changed_count} s2_diag=${stream2.diagnostic_preserved_count} s2_err_auth=${stream2.error_provider_auth_count} ` +

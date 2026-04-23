@@ -110,6 +110,9 @@ function extractMetrics(artifact) {
 		reveal_reached: m.reveal_reached ?? false,
 		error_event_count: m.error_event_count ?? 0,
 		distinct_error_agent_count: m.distinct_error_agent_count ?? 0,
+		error_source_scout_count: m.error_source_scout_count ?? 0,
+		error_source_oracle_count: m.error_source_oracle_count ?? 0,
+		error_source_builder_count: m.error_source_builder_count ?? 0,
 		provider_auth_failure_count: m.provider_auth_failure_count ?? 0,
 		auth_diagnostic_preserved_count: m.auth_diagnostic_preserved_count ?? 0,
 		agent_status_event_count: m.agent_status_event_count ?? 0,
@@ -346,6 +349,29 @@ async function main() {
 			provider_auth_failure_count_sum: authFailureSum,
 			distinct_error_agent_count_sum: distinctErrorAgentCountSum,
 			distinct_error_agent_count_min: distinctErrorAgentCountMin,
+			// Primary-stream error role-cardinality rollup (iter-14 distinct-
+			// agent probe promoted to role-level at aggregate). Parallel to
+			// iter-40's stream_2 per-role breakdown but for the LIVE error-
+			// emission path instead of the replay roster. Under broken-auth
+			// baseline the expected invariants are scout_sum=30 _min=6 (6 scouts
+			// × 5 intents), oracle_sum=5 _min=1, builder_sum=5 _min=1. A
+			// regression where a scout mis-identifies its role at emission
+			// time would drop scout_min below 6 while leaving
+			// distinct_error_agent_count_min intact at 8 (agent identity
+			// unchanged, role mis-attributed). Complementary to iter-40's
+			// stream_2 per-role probe which reads the replay side.
+			error_source_scout_count_sum: sumMetric('error_source_scout_count'),
+			error_source_scout_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.error_source_scout_count ?? 0))
+				: 0,
+			error_source_oracle_count_sum: sumMetric('error_source_oracle_count'),
+			error_source_oracle_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.error_source_oracle_count ?? 0))
+				: 0,
+			error_source_builder_count_sum: sumMetric('error_source_builder_count'),
+			error_source_builder_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.error_source_builder_count ?? 0))
+				: 0,
 			auth_diagnostic_preserved_count_sum: authDiagnosticPreservedCountSum,
 			auth_diagnostic_preserved_count_min: authDiagnosticPreservedCountMin,
 			scout_started_count_sum: scoutStartedCountSum,
