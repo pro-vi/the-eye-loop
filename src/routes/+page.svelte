@@ -21,6 +21,11 @@
 	let loading = $state(false);
 	let error = $state('');
 	let sessionId = $state<string | null>(null);
+	let sessionError = $state<{
+		code: 'provider_auth_failure' | 'provider_error' | 'generation_error';
+		source: 'scout' | 'oracle' | 'builder';
+		message: string;
+	} | null>(null);
 
 	// ── SSE-driven state ─────────────────────────────────────────────
 	let facades = $state<Facade[]>([]);
@@ -73,6 +78,7 @@
 		if (!intentText.trim() || loading) return;
 		loading = true;
 		error = '';
+		sessionError = null;
 		facades = [];
 		evidence = [];
 		synthesis = null;
@@ -164,7 +170,29 @@
 			if (data.stage === 'reveal') mode = 'reveal';
 		});
 
-		es.onerror = () => {
+		// Structured provider failures from scout/oracle/builder. Named 'error'
+		// collides with EventSource's native connection-error event, so gate on
+		// MessageEvent (SSE frames carry .data; native connection errors do not).
+		es.addEventListener('error', (e) => {
+			if (!(e instanceof MessageEvent) || typeof e.data !== 'string' || !e.data) return;
+			try {
+				const payload = JSON.parse(e.data);
+				if (typeof payload?.code === 'string' && typeof payload?.source === 'string') {
+					sessionError = {
+						code: payload.code,
+						source: payload.source,
+						message: typeof payload?.message === 'string' ? payload.message : ''
+					};
+				}
+			} catch {
+				// fall through — unparseable error frame
+			}
+		});
+
+		es.onerror = (e) => {
+			// SSE-typed 'error' messages also hit onerror in some runtimes;
+			// the MessageEvent variant is handled above.
+			if (e instanceof MessageEvent) return;
 			console.error('[sse] connection error');
 		};
 
@@ -354,6 +382,31 @@
 				</div>
 			</div>
 		</header>
+
+		{#if sessionError}
+			<div
+				class="mx-4 mt-3 rounded-lg px-4 py-3 shrink-0"
+				style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.28);"
+				role="alert"
+				data-testid="session-error-banner"
+			>
+				<p
+					class="text-[10px] uppercase tracking-[0.18em] font-semibold"
+					style="color: #f87171; font-family: var(--font-family-display);"
+				>
+					{sessionError.source} · {sessionError.code.replace(/_/g, ' ')}
+				</p>
+				<p class="text-sm mt-1 leading-relaxed" style="color: #fecaca;">
+					{#if sessionError.code === 'provider_auth_failure'}
+						The model rejected our credentials. Check <code class="text-xs" style="color: #fca5a5;">CLAUDE_CODE_OAUTH_TOKEN</code> and refresh to retry.
+					{:else if sessionError.code === 'provider_error'}
+						Provider is unreachable. {sessionError.message || 'Network or API issue.'}
+					{:else}
+						{sessionError.message || 'Generation failed.'}
+					{/if}
+				</p>
+			</div>
+		{/if}
 
 		<!-- Main grid -->
 		<div
