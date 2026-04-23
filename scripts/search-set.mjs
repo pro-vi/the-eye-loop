@@ -114,6 +114,7 @@ function extractMetrics(artifact) {
 		error_source_oracle_count: m.error_source_oracle_count ?? 0,
 		error_source_builder_count: m.error_source_builder_count ?? 0,
 		provider_auth_failure_count: m.provider_auth_failure_count ?? 0,
+		error_message_present_count: m.error_message_present_count ?? 0,
 		auth_diagnostic_preserved_count: m.auth_diagnostic_preserved_count ?? 0,
 		agent_status_event_count: m.agent_status_event_count ?? 0,
 		agent_status_scout_count: m.agent_status_scout_count ?? 0,
@@ -133,6 +134,7 @@ function extractMetrics(artifact) {
 		stream_2_agent_status_builder_count: m.stream_2_agent_status_builder_count ?? 0,
 		stream_2_stage_valid_count: m.stream_2_stage_valid_count ?? 0,
 		stream_2_error_source_valid_count: m.stream_2_error_source_valid_count ?? 0,
+		stream_2_error_message_present_count: m.stream_2_error_message_present_count ?? 0,
 		stream_2_first_event_ms_after_open: m.stream_2_first_event_ms_after_open ?? null,
 		stream_2_replay_span_ms: m.stream_2_replay_span_ms ?? null,
 		stage_changed_event_count: m.stage_changed_event_count ?? 0,
@@ -495,6 +497,33 @@ async function main() {
 			stream_2_error_source_valid_count_sum: sumMetric('stream_2_error_source_valid_count'),
 			stream_2_error_source_valid_count_min: perIntent.length
 				? Math.min(...perIntent.map((p) => p.metrics.stream_2_error_source_valid_count ?? 0))
+				: 0,
+			// iter-54 message-field presence rollups — closes the last unprobed
+			// field on the iter-3 'error' SSEEvent across BOTH primary and
+			// stream_2, completing the {primary, stream_2} × {source, code,
+			// agentId, message} error-event field-validity matrix. Sibling
+			// rollups: source valid (iter-41 stream_2, implicit per-role iter-44
+			// primary); code valid (iter-39 stream_2, iter-3 primary via
+			// provider_auth_failure_count); agentId via iter-14 distinct-agent.
+			// Under broken-auth baseline: primary fires 8 per intent (all 8
+			// provider_auth_failure errors carry message="Invalid bearer token"
+			// from errorToDiagnostic), stream_2 fires 1 per intent (the lone
+			// replayed error from bus.lastError); so the invariants are
+			//   error_message_present_count_sum=40 _min=8 (primary)
+			//   stream_2_error_message_present_count_sum=5 _min=1 (stream_2)
+			// A regression that strips the message field in SSE serialization
+			// (leaving source/code/agentId intact) drops BOTH _min values to 0
+			// while every iter-14/iter-39/iter-40/iter-41/iter-44 probe stays
+			// at baseline — a genuinely orthogonal regression class covering
+			// the iter-8 client banner's actionable detail (the human-readable
+			// reason text rendered under the code-keyed title).
+			error_message_present_count_sum: sumMetric('error_message_present_count'),
+			error_message_present_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.error_message_present_count ?? 0))
+				: 0,
+			stream_2_error_message_present_count_sum: sumMetric('stream_2_error_message_present_count'),
+			stream_2_error_message_present_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.stream_2_error_message_present_count ?? 0))
 				: 0,
 			// iter-31 primary-stream lifecycle volume. Complementary to
 			// scout_started_count_sum (counts distinct scouts that reached

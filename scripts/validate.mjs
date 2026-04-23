@@ -388,6 +388,7 @@ async function main() {
 		agent_status_builder_count: 0,
 		stage_valid_count: 0,
 		error_source_valid_count: 0,
+		error_message_present_count: 0,
 		first_event_ms_after_open: null,
 		last_event_ms_after_open: null,
 		replay_span_ms: null,
@@ -526,6 +527,27 @@ async function main() {
 		).length;
 		stream2.error_source_valid_count = stream2.events.filter(
 			(e) => e.type === 'error' && VALID_ERROR_SOURCES.includes(e.data?.source)
+		).length;
+		// iter-54 message-field presence probe — closes the last unprobed field
+		// on the iter-3 'error' SSEEvent (message), completing the {source, code,
+		// agentId, message} field-validity matrix. Sibling probes:
+		//   source:   stream_2_error_source_valid_count (iter-40 above)
+		//   code:     stream_2_error_provider_auth_count (iter-39)
+		//   agentId:  implicitly via distinct_error_agent_count (iter-14, primary
+		//             only — if agentId is dropped, the errorAgentCounts map
+		//             collapses from 8 to 3 distinct keys)
+		//   message:  THIS — closes the last named cell
+		// Under broken-auth baseline, the lone replayed error carries
+		// message="Invalid bearer token" (from errorToDiagnostic of the Anthropic
+		// 401), so the baseline invariant is stream_2_error_message_present_count=1
+		// matching stream_2_error_event_count. Regression class: SSE serializer
+		// drops the message field, emitError passes undefined/empty, wire-format
+		// rename, payload truncation. Orthogonal to code/source probes — a
+		// payload-shape bug that strips JUST the message would leave code and
+		// source intact, catching only the iter-8 banner's actionable detail
+		// (the human-readable reason text under the code-keyed title).
+		stream2.error_message_present_count = stream2.events.filter(
+			(e) => e.type === 'error' && typeof e.data?.message === 'string' && e.data.message.length > 0
 		).length;
 		// Replay-tightness probe — closes iter-34's explicitly-deferred "assert
 		// p90-p50<20ms as an additional stability invariant" opportunity, but
@@ -681,6 +703,25 @@ async function main() {
 	const errorSourceScoutCount = errorSourceCounts['scout'] ?? 0;
 	const errorSourceOracleCount = errorSourceCounts['oracle'] ?? 0;
 	const errorSourceBuilderCount = errorSourceCounts['builder'] ?? 0;
+
+	// iter-54 primary-stream message-field presence probe — symmetric to
+	// stream_2.error_message_present_count above, closing the primary side of
+	// the {primary, stream_2} × {source, code, agentId, message} error-event
+	// field-validity matrix. Under broken-auth baseline all 8 provider_auth_
+	// failure errors carry message="Invalid bearer token" (errorToDiagnostic
+	// of the Anthropic 401), so the invariant is error_message_present_count
+	// = error_event_count = 8. Regression class is orthogonal to iter-44 per-
+	// role source probes and iter-14 distinct-agent probes: a serializer bug
+	// that strips message ONLY (leaving source/code/agentId intact) would
+	// drop this count to 0 while every other error-event probe stays at
+	// baseline. Symmetric to iter-25's auth_diagnostic_preserved_count (which
+	// probes the agent-status event's focus field for the SAME human-readable
+	// reason text) — together the two probes verify that the iter-8 client
+	// banner has BOTH the code-keyed title and the human-readable detail
+	// preserved end-to-end, via the two disjoint event types that carry it.
+	const errorMessagePresentCount = errorEvents.filter(
+		(e) => typeof e.data?.message === 'string' && e.data.message.length > 0
+	).length;
 
 	// Diagnostic-focus preservation probe — promotes iter-23/24's roster-wide
 	// focus-preservation pattern (scout.ts IIFE-return + oracle.runColdStart
@@ -1022,6 +1063,7 @@ async function main() {
 			error_source_oracle_count: errorSourceOracleCount,
 			error_source_builder_count: errorSourceBuilderCount,
 			provider_auth_failure_count: providerAuthFailureCount,
+			error_message_present_count: errorMessagePresentCount,
 			auth_diagnostic_preserved_count: authDiagnosticPreservedCount,
 			agent_status_event_count: agentStatusEventCount,
 			agent_status_scout_count: agentStatusScoutCount,
@@ -1050,6 +1092,7 @@ async function main() {
 			stream_2_agent_status_builder_count: stream2.agent_status_builder_count,
 			stream_2_stage_valid_count: stream2.stage_valid_count,
 			stream_2_error_source_valid_count: stream2.error_source_valid_count,
+			stream_2_error_message_present_count: stream2.error_message_present_count,
 			stream_2_first_event_ms_after_open: stream2.first_event_ms_after_open,
 			stream_2_replay_span_ms: stream2.replay_span_ms,
 			stage_changed_event_count: stageChangedEventCount,
@@ -1087,13 +1130,14 @@ async function main() {
 		`${sessionSummary} facades=${facadeReadyCount} drafts=${draftUpdatedCount} ` +
 		`synth=${synthesisUpdatedCount} swipe=${swipe.attempted ? swipe.status : 'skipped'} ` +
 		`sse_err=${errorEventCount} auth_err=${agentErrorLines.length} ` +
+		`err_msg=${errorMessagePresentCount} ` +
 		`s1_roles=s${errorSourceScoutCount}/o${errorSourceOracleCount}/b${errorSourceBuilderCount} ` +
 		`agent_status=${agentStatusEventCount} ` +
 		`agent_status_roles=s${agentStatusScoutCount}/o${agentStatusOracleCount}/b${agentStatusBuilderCount} ` +
 		`stage_changed=${stageChangedEventCount} stage_before_ready=${stageChangedBeforeSessionReady} ` +
 		`s2_err=${stream2.error_event_count} s2_agents=${stream2.agent_status_count} s2_stage=${stream2.stage_changed_count} s2_diag=${stream2.diagnostic_preserved_count} s2_err_auth=${stream2.error_provider_auth_count} ` +
 		`s2_roles=s${stream2.agent_status_scout_count}/o${stream2.agent_status_oracle_count}/b${stream2.agent_status_builder_count} ` +
-		`s2_stage_valid=${stream2.stage_valid_count} s2_err_src_valid=${stream2.error_source_valid_count} ` +
+		`s2_stage_valid=${stream2.stage_valid_count} s2_err_src_valid=${stream2.error_source_valid_count} s2_err_msg=${stream2.error_message_present_count} ` +
 		`s2_first=${stream2.first_event_ms_after_open}ms s2_span=${stream2.replay_span_ms}ms ` +
 		`oracle_cs=${oracleColdStartLatencyMs === null ? '-' : oracleColdStartLatencyMs + 'ms'} ` +
 		`oracle_syn=${oracleSynthesisLatencyMs === null ? '-' : oracleSynthesisLatencyMs + 'ms'} ` +
