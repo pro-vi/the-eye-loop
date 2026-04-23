@@ -307,12 +307,20 @@ async function runColdStart(intent: string, capturedSessionId: string) {
 		}
 	} catch (err) {
 		console.error('[oracle] cold-start failed, scouts will self-assign:', err);
+		const code = classifyErrorCode(err);
 		emitError({
 			source: 'oracle',
-			code: classifyErrorCode(err),
+			code,
 			agentId: ORACLE_AGENT_ID,
 			message: err instanceof Error ? err.message : String(err)
 		});
+		// Parallel to iter-23's scout.ts auth-break path: preserve the
+		// diagnostic focus instead of falling through to the trailing
+		// setOracleStatus('idle', 'monitoring') which would overwrite it.
+		if (code === 'provider_auth_failure' && context.sessionId === capturedSessionId) {
+			setOracleStatus('idle', 'provider auth failed');
+			return;
+		}
 	}
 	if (context.sessionId === capturedSessionId) {
 		setOracleStatus('idle', 'monitoring');

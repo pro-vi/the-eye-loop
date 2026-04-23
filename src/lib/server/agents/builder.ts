@@ -363,6 +363,7 @@ export function startBuilder(): void {
 			busy = true;
 			const capturedId = context.sessionId;
 			setStatus('thinking', 'generating initial scaffold');
+			let authFailed = false;
 
 			try {
 				const result = await generateText({
@@ -382,14 +383,19 @@ export function startBuilder(): void {
 				}
 			} catch (err) {
 				console.error('[builder] scaffold failed:', err);
+				const code = classifyErrorCode(err);
+				if (code === 'provider_auth_failure') authFailed = true;
 				emitError({
 					source: 'builder',
-					code: classifyErrorCode(err),
+					code,
 					agentId: BUILDER_ID,
 					message: err instanceof Error ? err.message : String(err)
 				});
 			} finally {
-				setStatus('idle', 'watching for swipes');
+				// Parallel to iter-23's scout.ts auth-break path: preserve the
+				// diagnostic focus on auth failure so the operator-facing final
+				// agent-status isn't overwritten with the generic 'watching'.
+				setStatus('idle', authFailed ? 'provider auth failed' : 'watching for swipes');
 				busy = false;
 				drainPending();
 			}
