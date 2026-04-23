@@ -122,6 +122,9 @@ function extractMetrics(artifact) {
 		stream_2_stage_changed_count: m.stream_2_stage_changed_count ?? 0,
 		stream_2_diagnostic_preserved_count: m.stream_2_diagnostic_preserved_count ?? 0,
 		stream_2_error_provider_auth_count: m.stream_2_error_provider_auth_count ?? 0,
+		stream_2_agent_status_scout_count: m.stream_2_agent_status_scout_count ?? 0,
+		stream_2_agent_status_oracle_count: m.stream_2_agent_status_oracle_count ?? 0,
+		stream_2_agent_status_builder_count: m.stream_2_agent_status_builder_count ?? 0,
 		stream_2_first_event_ms_after_open: m.stream_2_first_event_ms_after_open ?? null,
 		stream_2_replay_span_ms: m.stream_2_replay_span_ms ?? null,
 		stage_changed_event_count: m.stage_changed_event_count ?? 0,
@@ -401,6 +404,30 @@ async function main() {
 			stream_2_error_provider_auth_count_sum: sumMetric('stream_2_error_provider_auth_count'),
 			stream_2_error_provider_auth_count_min: perIntent.length
 				? Math.min(...perIntent.map((p) => p.metrics.stream_2_error_provider_auth_count ?? 0))
+				: 0,
+			// iter-40 stream-replay roster breakdown: splits iter-26's total
+			// stream_2_agent_status_count (always 8 under broken-auth) into
+			// per-role counts. Closes the roster-cardinality regression class
+			// iter-39 explicitly named as unprobed — a bug that drops scouts
+			// from 6 to 3 but inflates oracle or builder count to match would
+			// leave stream_2_agent_status_count_min at 8 while these per-role
+			// probes drop below their expected _min (scout=6, oracle=1, builder=1).
+			// Parallel to iter-14's per-agent attribution on the primary stream,
+			// just for the /api/stream replay block's synchronous for-loop
+			// over context.agents.values(). Complementary to iter-29's focus
+			// content probe (verifies payload, not role membership) and
+			// iter-37's tightness probe (verifies timing, not payload shape).
+			stream_2_agent_status_scout_count_sum: sumMetric('stream_2_agent_status_scout_count'),
+			stream_2_agent_status_scout_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.stream_2_agent_status_scout_count ?? 0))
+				: 0,
+			stream_2_agent_status_oracle_count_sum: sumMetric('stream_2_agent_status_oracle_count'),
+			stream_2_agent_status_oracle_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.stream_2_agent_status_oracle_count ?? 0))
+				: 0,
+			stream_2_agent_status_builder_count_sum: sumMetric('stream_2_agent_status_builder_count'),
+			stream_2_agent_status_builder_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.stream_2_agent_status_builder_count ?? 0))
 				: 0,
 			// iter-31 primary-stream lifecycle volume. Complementary to
 			// scout_started_count_sum (counts distinct scouts that reached

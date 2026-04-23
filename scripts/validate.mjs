@@ -383,6 +383,9 @@ async function main() {
 		stage_changed_count: 0,
 		diagnostic_preserved_count: 0,
 		error_provider_auth_count: 0,
+		agent_status_scout_count: 0,
+		agent_status_oracle_count: 0,
+		agent_status_builder_count: 0,
 		first_event_ms_after_open: null,
 		last_event_ms_after_open: null,
 		replay_span_ms: null,
@@ -466,6 +469,27 @@ async function main() {
 		stream2.error_provider_auth_count = stream2.events.filter(
 			(e) => e.type === 'error' && e.data?.code === 'provider_auth_failure'
 		).length;
+		// Per-role roster breakdown — iter-39 explicitly named this as one of
+		// the remaining unprobed fields on stream_2. The total
+		// stream_2_agent_status_count=8 probe cannot see roster drift where
+		// scouts drop to 3 but oracle+builder inflate to 5 (net 8). Splitting
+		// the count by agent.role turns the probe from "total matches" to
+		// "each role matches", catching:
+		//   - scout roster cardinality regressions (6 scouts → ≠6)
+		//   - orchestrator roster regressions (oracle or builder missing)
+		//   - role mis-attribution in the replay loop (payload's agent.role
+		//     flipped or stripped between emission and wire format)
+		// Under the broken-auth baseline the invariant is
+		// {scout:6, oracle:1, builder:1} — parallel to iter-14's per-agent
+		// attribution pattern on the primary stream, just for the /api/stream
+		// replay block's synchronous for-loop over context.agents.values().
+		for (const e of stream2.events) {
+			if (e.type !== 'agent-status') continue;
+			const role = e.data?.agent?.role;
+			if (role === 'scout') stream2.agent_status_scout_count++;
+			else if (role === 'oracle') stream2.agent_status_oracle_count++;
+			else if (role === 'builder') stream2.agent_status_builder_count++;
+		}
 		// Replay-tightness probe — closes iter-34's explicitly-deferred "assert
 		// p90-p50<20ms as an additional stability invariant" opportunity, but
 		// generalized: the /api/stream start() block emits ALL replay events
@@ -825,6 +849,9 @@ async function main() {
 			stream_2_stage_changed_count: stream2.stage_changed_count,
 			stream_2_diagnostic_preserved_count: stream2.diagnostic_preserved_count,
 			stream_2_error_provider_auth_count: stream2.error_provider_auth_count,
+			stream_2_agent_status_scout_count: stream2.agent_status_scout_count,
+			stream_2_agent_status_oracle_count: stream2.agent_status_oracle_count,
+			stream_2_agent_status_builder_count: stream2.agent_status_builder_count,
 			stream_2_first_event_ms_after_open: stream2.first_event_ms_after_open,
 			stream_2_replay_span_ms: stream2.replay_span_ms,
 			stage_changed_event_count: stageChangedEventCount,
@@ -854,6 +881,7 @@ async function main() {
 		`agent_status=${agentStatusEventCount} ` +
 		`stage_changed=${stageChangedEventCount} stage_before_ready=${stageChangedBeforeSessionReady} ` +
 		`s2_err=${stream2.error_event_count} s2_agents=${stream2.agent_status_count} s2_stage=${stream2.stage_changed_count} s2_diag=${stream2.diagnostic_preserved_count} s2_err_auth=${stream2.error_provider_auth_count} ` +
+		`s2_roles=s${stream2.agent_status_scout_count}/o${stream2.agent_status_oracle_count}/b${stream2.agent_status_builder_count} ` +
 		`s2_first=${stream2.first_event_ms_after_open}ms s2_span=${stream2.replay_span_ms}ms`
 	);
 	process.exit(pass ? 0 : 1);

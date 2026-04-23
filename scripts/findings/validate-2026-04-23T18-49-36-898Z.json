@@ -1,17 +1,17 @@
 {
-  "started_at": "2026-04-23T18:51:07.669Z",
-  "finished_at": "2026-04-23T18:51:22.075Z",
-  "elapsed_ms": 14406,
+  "started_at": "2026-04-23T18:49:22.490Z",
+  "finished_at": "2026-04-23T18:49:36.898Z",
+  "elapsed_ms": 14408,
   "result": "FAIL",
   "reason": "provider_auth_failure",
-  "intent": "a personal dashboard for tracking long-term health experiments",
-  "dev_url": "http://localhost:36148",
+  "intent": "ai workspace",
+  "dev_url": "http://localhost:32490",
   "session": {
-    "rtt_ms": 9,
+    "rtt_ms": 10,
     "status": 200,
     "body": {
-      "intent": "a personal dashboard for tracking long-term health experiments",
-      "sessionId": "dfbf9648-e80d-45c1-8e37-b02f551ca76c"
+      "intent": "ai workspace",
+      "sessionId": "54bf25ce-120a-4d6c-9460-b2ee0954d6d6"
     },
     "error": null
   },
@@ -26,7 +26,7 @@
     "waited_ms": null
   },
   "stream": {
-    "opened_at_ms": 788,
+    "opened_at_ms": 791,
     "error": null,
     "event_counts": {
       "agent-status": 18,
@@ -35,14 +35,14 @@
       "error": 8
     },
     "first_event_ms": {
-      "agent-status": 793,
-      "stage-changed": 793,
-      "session-ready": 1305,
-      "error": 1792
+      "agent-status": 796,
+      "stage-changed": 796,
+      "session-ready": 1308,
+      "error": 1501
     },
     "events": [
       {
-        "ts_ms": 793,
+        "ts_ms": 796,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -56,7 +56,7 @@
         }
       },
       {
-        "ts_ms": 793,
+        "ts_ms": 796,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -70,7 +70,7 @@
         }
       },
       {
-        "ts_ms": 793,
+        "ts_ms": 796,
         "type": "stage-changed",
         "data": {
           "type": "stage-changed",
@@ -79,7 +79,7 @@
         }
       },
       {
-        "ts_ms": 1305,
+        "ts_ms": 1308,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -93,15 +93,15 @@
         }
       },
       {
-        "ts_ms": 1305,
+        "ts_ms": 1308,
         "type": "session-ready",
         "data": {
           "type": "session-ready",
-          "intent": "a personal dashboard for tracking long-term health experiments"
+          "intent": "ai workspace"
         }
       },
       {
-        "ts_ms": 1305,
+        "ts_ms": 1308,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -115,7 +115,7 @@
         }
       },
       {
-        "ts_ms": 1305,
+        "ts_ms": 1308,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -129,7 +129,7 @@
         }
       },
       {
-        "ts_ms": 1305,
+        "ts_ms": 1308,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -143,7 +143,7 @@
         }
       },
       {
-        "ts_ms": 1305,
+        "ts_ms": 1308,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -157,7 +157,7 @@
         }
       },
       {
-        "ts_ms": 1305,
+        "ts_ms": 1308,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -171,7 +171,7 @@
         }
       },
       {
-        "ts_ms": 1305,
+        "ts_ms": 1308,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -185,7 +185,7 @@
         }
       },
       {
-        "ts_ms": 1305,
+        "ts_ms": 1308,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -199,32 +199,32 @@
         }
       },
       {
-        "ts_ms": 1792,
+        "ts_ms": 1501,
         "type": "error",
         "data": {
           "type": "error",
-          "source": "builder",
+          "source": "scout",
           "code": "provider_auth_failure",
-          "agentId": "builder-01",
+          "agentId": "scout-02",
           "message": "Invalid bearer token"
         }
       },
       {
-        "ts_ms": 1792,
+        "ts_ms": 1501,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
           "agent": {
-            "id": "builder-01",
-            "name": "Meridian",
-            "role": "builder",
+            "id": "scout-02",
+            "name": "Prism",
+            "role": "scout",
             "status": "idle",
             "focus": "provider auth failed"
           }
         }
       },
       {
-        "ts_ms": 1793,
+        "ts_ms": 1501,
         "type": "error",
         "data": {
           "type": "error",
@@ -235,7 +235,7 @@
         }
       },
       {
-        "ts_ms": 1793,
+        "ts_ms": 1501,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -249,7 +249,32 @@
         }
       },
       {
-        "ts_ms": 1908,
+        "ts_ms": 1502,
+        "type": "error",
+        "data": {
+          "type": "error",
+          "source": "scout",
+          "code": "provider_auth_failure",
+          "agentId": "scout-06",
+          "message": "Invalid bearer token"
+        }
+      },
+      {
+        "ts_ms": 1502,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-06",
+            "name": "Echo",
+            "role": "scout",
+            "status": "idle",
+            "focus": "provider auth failed"
+          }
+        }
+      },
+      {
+        "ts_ms": 1521,
         "type": "error",
         "data": {
           "type": "error",
@@ -260,7 +285,7 @@
         }
       },
       {
-        "ts_ms": 1908,
+        "ts_ms": 1521,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -274,7 +299,7 @@
         }
       },
       {
-        "ts_ms": 1998,
+        "ts_ms": 1521,
         "type": "error",
         "data": {
           "type": "error",
@@ -285,7 +310,7 @@
         }
       },
       {
-        "ts_ms": 1998,
+        "ts_ms": 1521,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -299,32 +324,7 @@
         }
       },
       {
-        "ts_ms": 2019,
-        "type": "error",
-        "data": {
-          "type": "error",
-          "source": "scout",
-          "code": "provider_auth_failure",
-          "agentId": "scout-06",
-          "message": "Invalid bearer token"
-        }
-      },
-      {
-        "ts_ms": 2019,
-        "type": "agent-status",
-        "data": {
-          "type": "agent-status",
-          "agent": {
-            "id": "scout-06",
-            "name": "Echo",
-            "role": "scout",
-            "status": "idle",
-            "focus": "provider auth failed"
-          }
-        }
-      },
-      {
-        "ts_ms": 2062,
+        "ts_ms": 1567,
         "type": "error",
         "data": {
           "type": "error",
@@ -335,7 +335,7 @@
         }
       },
       {
-        "ts_ms": 2062,
+        "ts_ms": 1567,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -349,32 +349,7 @@
         }
       },
       {
-        "ts_ms": 4921,
-        "type": "error",
-        "data": {
-          "type": "error",
-          "source": "scout",
-          "code": "provider_auth_failure",
-          "agentId": "scout-02",
-          "message": "Invalid bearer token"
-        }
-      },
-      {
-        "ts_ms": 4921,
-        "type": "agent-status",
-        "data": {
-          "type": "agent-status",
-          "agent": {
-            "id": "scout-02",
-            "name": "Prism",
-            "role": "scout",
-            "status": "idle",
-            "focus": "provider auth failed"
-          }
-        }
-      },
-      {
-        "ts_ms": 4921,
+        "ts_ms": 1569,
         "type": "error",
         "data": {
           "type": "error",
@@ -385,7 +360,7 @@
         }
       },
       {
-        "ts_ms": 4921,
+        "ts_ms": 1569,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -397,12 +372,37 @@
             "focus": "provider auth failed"
           }
         }
+      },
+      {
+        "ts_ms": 1583,
+        "type": "error",
+        "data": {
+          "type": "error",
+          "source": "builder",
+          "code": "provider_auth_failure",
+          "agentId": "builder-01",
+          "message": "Invalid bearer token"
+        }
+      },
+      {
+        "ts_ms": 1583,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "idle",
+            "focus": "provider auth failed"
+          }
+        }
       }
     ]
   },
   "stream_2": {
     "attempted": true,
-    "opened_at_ms": 13300,
+    "opened_at_ms": 13302,
     "elapsed_ms": 803,
     "event_counts": {
       "agent-status": 8,
@@ -422,7 +422,7 @@
     "replay_span_ms": 0,
     "events": [
       {
-        "ts_ms": 13303,
+        "ts_ms": 13305,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -436,7 +436,7 @@
         }
       },
       {
-        "ts_ms": 13303,
+        "ts_ms": 13305,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -450,7 +450,7 @@
         }
       },
       {
-        "ts_ms": 13303,
+        "ts_ms": 13305,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -464,7 +464,7 @@
         }
       },
       {
-        "ts_ms": 13303,
+        "ts_ms": 13305,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -478,7 +478,7 @@
         }
       },
       {
-        "ts_ms": 13303,
+        "ts_ms": 13305,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -492,7 +492,7 @@
         }
       },
       {
-        "ts_ms": 13303,
+        "ts_ms": 13305,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -506,7 +506,7 @@
         }
       },
       {
-        "ts_ms": 13303,
+        "ts_ms": 13305,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -520,7 +520,7 @@
         }
       },
       {
-        "ts_ms": 13303,
+        "ts_ms": 13305,
         "type": "agent-status",
         "data": {
           "type": "agent-status",
@@ -534,18 +534,18 @@
         }
       },
       {
-        "ts_ms": 13303,
+        "ts_ms": 13305,
         "type": "error",
         "data": {
           "type": "error",
-          "source": "scout",
+          "source": "builder",
           "code": "provider_auth_failure",
-          "agentId": "scout-03",
+          "agentId": "builder-01",
           "message": "Invalid bearer token"
         }
       },
       {
-        "ts_ms": 13303,
+        "ts_ms": 13305,
         "type": "stage-changed",
         "data": {
           "type": "stage-changed",
@@ -578,11 +578,11 @@
     "time_to_first_synthesis_ms": null,
     "time_to_first_draft_after_swipe_ms": null,
     "time_to_first_evidence_after_swipe_ms": null,
-    "time_to_session_ready_ms": 1305,
-    "time_to_first_error_ms": 1792,
+    "time_to_session_ready_ms": 1308,
+    "time_to_first_error_ms": 1501,
     "time_from_session_to_first_facade_ms": null,
     "time_from_session_to_first_draft_ms": null,
-    "time_from_session_to_first_error_ms": 487,
+    "time_from_session_to_first_error_ms": 193,
     "facade_ready_count": 0,
     "draft_updated_count": 0,
     "synthesis_updated_count": 0,
@@ -594,19 +594,19 @@
       "provider_auth_failure": 8
     },
     "error_source_counts": {
-      "builder": 1,
       "scout": 6,
-      "oracle": 1
+      "oracle": 1,
+      "builder": 1
     },
     "error_agent_counts": {
-      "builder:builder-01": 1,
+      "scout:scout-02": 1,
       "scout:scout-01": 1,
+      "scout:scout-06": 1,
       "oracle:oracle": 1,
       "scout:scout-04": 1,
-      "scout:scout-06": 1,
       "scout:scout-05": 1,
-      "scout:scout-02": 1,
-      "scout:scout-03": 1
+      "scout:scout-03": 1,
+      "builder:builder-01": 1
     },
     "distinct_error_agent_count": 8,
     "provider_auth_failure_count": 8,
@@ -614,12 +614,12 @@
     "agent_status_event_count": 18,
     "agent_error_signal_count": 40,
     "scout_started_count": 6,
-    "first_scout_started_ms": 1305,
-    "last_scout_started_ms": 1305,
+    "first_scout_started_ms": 1308,
+    "last_scout_started_ms": 1308,
     "scout_start_spread_ms": 0,
-    "first_error_event_ms": 1792,
-    "last_error_event_ms": 4921,
-    "error_event_spread_ms": 3129,
+    "first_error_event_ms": 1501,
+    "last_error_event_ms": 1583,
+    "error_event_spread_ms": 82,
     "session_ready_count": 1,
     "distinct_session_ready_intent_count": 1,
     "error_event_count_before_session_2": null,
@@ -636,101 +636,101 @@
     "stream_2_first_event_ms_after_open": 3,
     "stream_2_replay_span_ms": 0,
     "stage_changed_event_count": 1,
-    "time_to_first_stage_changed_ms": 793,
+    "time_to_first_stage_changed_ms": 796,
     "stage_changed_before_session_ready": 1
   },
   "error_event_samples": [
     {
-      "ts_ms": 1792,
-      "source": "builder",
-      "code": "provider_auth_failure",
-      "agentId": "builder-01",
-      "message": "Invalid bearer token"
-    },
-    {
-      "ts_ms": 1793,
-      "source": "scout",
-      "code": "provider_auth_failure",
-      "agentId": "scout-01",
-      "message": "Invalid bearer token"
-    },
-    {
-      "ts_ms": 1908,
-      "source": "oracle",
-      "code": "provider_auth_failure",
-      "agentId": "oracle",
-      "message": "Invalid bearer token"
-    },
-    {
-      "ts_ms": 1998,
-      "source": "scout",
-      "code": "provider_auth_failure",
-      "agentId": "scout-04",
-      "message": "Invalid bearer token"
-    },
-    {
-      "ts_ms": 2019,
-      "source": "scout",
-      "code": "provider_auth_failure",
-      "agentId": "scout-06",
-      "message": "Invalid bearer token"
-    },
-    {
-      "ts_ms": 2062,
-      "source": "scout",
-      "code": "provider_auth_failure",
-      "agentId": "scout-05",
-      "message": "Invalid bearer token"
-    },
-    {
-      "ts_ms": 4921,
+      "ts_ms": 1501,
       "source": "scout",
       "code": "provider_auth_failure",
       "agentId": "scout-02",
       "message": "Invalid bearer token"
     },
     {
-      "ts_ms": 4921,
+      "ts_ms": 1501,
+      "source": "scout",
+      "code": "provider_auth_failure",
+      "agentId": "scout-01",
+      "message": "Invalid bearer token"
+    },
+    {
+      "ts_ms": 1502,
+      "source": "scout",
+      "code": "provider_auth_failure",
+      "agentId": "scout-06",
+      "message": "Invalid bearer token"
+    },
+    {
+      "ts_ms": 1521,
+      "source": "oracle",
+      "code": "provider_auth_failure",
+      "agentId": "oracle",
+      "message": "Invalid bearer token"
+    },
+    {
+      "ts_ms": 1521,
+      "source": "scout",
+      "code": "provider_auth_failure",
+      "agentId": "scout-04",
+      "message": "Invalid bearer token"
+    },
+    {
+      "ts_ms": 1567,
+      "source": "scout",
+      "code": "provider_auth_failure",
+      "agentId": "scout-05",
+      "message": "Invalid bearer token"
+    },
+    {
+      "ts_ms": 1569,
       "source": "scout",
       "code": "provider_auth_failure",
       "agentId": "scout-03",
+      "message": "Invalid bearer token"
+    },
+    {
+      "ts_ms": 1583,
+      "source": "builder",
+      "code": "provider_auth_failure",
+      "agentId": "builder-01",
       "message": "Invalid bearer token"
     }
   ],
   "provider_error_samples": [
     {
-      "ts_ms": 1792,
-      "text": "[builder] scaffold failed: APICallError [AI_APICallError]: Invalid bearer token"
+      "ts_ms": 1501,
+      "text": "[scout:scout-02] APICallError [AI_APICallError]: Invalid bearer token"
     },
     {
-      "ts_ms": 1792,
+      "ts_ms": 1501,
       "text": "  statusCode: 401,"
     },
     {
-      "ts_ms": 1792,
-      "text": "  responseBody: '{\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"Invalid bearer token\"},\"request_id\":\"req_011CaMCuebGdjPNzryoJegR1\"}',"
+      "ts_ms": 1501,
+      "text": "  responseBody: '{\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"Invalid bearer token\"},\"request_id\":\"req_011CaMCmskpJtSvPP4UjLYKp\"}',"
     },
     {
-      "ts_ms": 1792,
+      "ts_ms": 1501,
       "text": "    error: { type: 'authentication_error', message: 'Invalid bearer token' }"
     },
     {
-      "ts_ms": 1792,
+      "ts_ms": 1501,
       "text": "  Symbol(vercel.ai.error.AI_APICallError): true"
     },
     {
-      "ts_ms": 1793,
+      "ts_ms": 1501,
       "text": "[scout:scout-01] APICallError [AI_APICallError]: Invalid bearer token"
     },
     {
-      "ts_ms": 1793,
+      "ts_ms": 1501,
       "text": "  statusCode: 401,"
     },
     {
-      "ts_ms": 1793,
-      "text": "  responseBody: '{\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"Invalid bearer token\"},\"request_id\":\"req_011CaMCueZ3T7haE6G1CMdRv\"}',"
+      "ts_ms": 1501,
+      "text": "  responseBody: '{\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"Invalid bearer token\"},\"request_id\":\"req_011CaMCmsmK3eRW45825aBWY\"}',"
     }
   ],
-  "stderr_tail": "fb/node_modules/.pnpm/ai@6.0.134_zod@3.25.76/node_modules/ai/dist/index.mjs:2258:24\n    at async generateText (file:///Users/provi/Development/_projs/the-eye-loop-gnhf-worktrees/you-are-running-an-e-2c98fb/node_modules/.pnpm/ai@6.0.134_zod@3.25.76/node_modules/ai/dist/index.mjs:4102:12) {\n  cause: undefined,\n  url: 'https://api.anthropic.com/v1/messages',\n  requestBodyValues: {\n    model: 'claude-haiku-4-5-20251001',\n    max_tokens: 64000,\n    temperature: 1,\n    top_k: undefined,\n    top_p: undefined,\n    stop_sequences: undefined,\n    output_config: { format: [Object] },\n    system: [ [Object] ],\n    messages: [ [Object] ],\n    tools: undefined,\n    tool_choice: undefined,\n    stream: undefined\n  },\n  statusCode: 401,\n  responseHeaders: {\n    'cf-cache-status': 'DYNAMIC',\n    'cf-ray': '9f0f0eea5ff2df5d-SJC',\n    connection: 'keep-alive',\n    'content-encoding': 'gzip',\n    'content-security-policy': \"default-src 'none'; frame-ancestors 'none'\",\n    'content-type': 'application/json',\n    date: 'Thu, 23 Apr 2026 18:51:12 GMT',\n    'request-id': 'req_011CaMCusNif27EXjKrnyot1',\n    server: 'cloudflare',\n    'server-timing': 'x-originResponse;dur=10',\n    'set-cookie': '_cfuvid=dNbR5xjmOiSpqcFSmba2ePS4.mCb7SP05CBx_nGj0f8-1776970272.3749099-1.0.1.1-yi0WQ7tQWeroG9SjbcprY2EnPFCeReTdkspoqmejQmk; HttpOnly; SameSite=None; Secure; Path=/; Domain=api.anthropic.com',\n    'strict-transport-security': 'max-age=31536000; includeSubDomains; preload',\n    'transfer-encoding': 'chunked',\n    vary: 'Accept-Encoding',\n    'x-envoy-upstream-service-time': '7',\n    'x-robots-tag': 'none',\n    'x-should-retry': 'false'\n  },\n  responseBody: '{\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"Invalid bearer token\"},\"request_id\":\"req_011CaMCusNif27EXjKrnyot1\"}',\n  isRetryable: false,\n  data: {\n    type: 'error',\n    error: { type: 'authentication_error', message: 'Invalid bearer token' }\n  },\n  Symbol(vercel.ai.error): true,\n  Symbol(vercel.ai.error.AI_APICallError): true\n}\n",
-  "artifact_path": "/Users/provi/Development/_projs/the-eye-loop-gnhf-worktrees/you-are-running-an-e-2c98fb/scripts/findings/validate-2026-04-23T18-51-22-075Z.json"
+  "stderr_tail": "node_modules/.pnpm/ai@6.0.134_zod@3.25.76/node_modules/ai/dist/index.mjs:2258:24\n    at async generateText (file:///Users/provi/Development/_projs/the-eye-loop-gnhf-worktrees/you-are-running-an-e-2c98fb/node_modules/.pnpm/ai@6.0.134_zod@3.25.76/node_modules/ai/dist/index.mjs:4102:12) {\n  cause: undefined,\n  url: 'https://api.anthropic.com/v1/messages',\n  requestBodyValues: {\n    model: 'claude-haiku-4-5-20251001',\n    max_tokens: 64000,\n    temperature: 0,\n    top_k: undefined,\n    top_p: undefined,\n    stop_sequences: undefined,\n    output_config: { format: [Object] },\n    system: [ [Object] ],\n    messages: [ [Object] ],\n    tools: undefined,\n    tool_choice: undefined,\n    stream: undefined\n  },\n  statusCode: 401,\n  responseHeaders: {\n    'cf-cache-status': 'DYNAMIC',\n    'cf-ray': '9f0f0c44895ceb2a-SJC',\n    connection: 'keep-alive',\n    'content-encoding': 'gzip',\n    'content-security-policy': \"default-src 'none'; frame-ancestors 'none'\",\n    'content-type': 'application/json',\n    date: 'Thu, 23 Apr 2026 18:49:24 GMT',\n    'request-id': 'req_011CaMCmt5ANc3sQor54DUpJ',\n    server: 'cloudflare',\n    'server-timing': 'x-originResponse;dur=113',\n    'set-cookie': '_cfuvid=E3M2gcAnOcvC55EIXTHFdzdPGIHa25eMrBzqVO0N858-1776970163.9269166-1.0.1.1-hplbJDF3BoIQZGsFkVy.3lbe_vjuV2ySdjLWCeHM80Y; HttpOnly; SameSite=None; Secure; Path=/; Domain=api.anthropic.com',\n    'strict-transport-security': 'max-age=31536000; includeSubDomains; preload',\n    'transfer-encoding': 'chunked',\n    vary: 'Accept-Encoding',\n    'x-envoy-upstream-service-time': '111',\n    'x-robots-tag': 'none',\n    'x-should-retry': 'false'\n  },\n  responseBody: '{\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"Invalid bearer token\"},\"request_id\":\"req_011CaMCmt5ANc3sQor54DUpJ\"}',\n  isRetryable: false,\n  data: {\n    type: 'error',\n    error: { type: 'authentication_error', message: 'Invalid bearer token' }\n  },\n  Symbol(vercel.ai.error): true,\n  Symbol(vercel.ai.error.AI_APICallError): true\n}\n",
+  "artifact_path": "/Users/provi/Development/_projs/the-eye-loop-gnhf-worktrees/you-are-running-an-e-2c98fb/scripts/findings/validate-2026-04-23T18-49-36-898Z.json"
 }
