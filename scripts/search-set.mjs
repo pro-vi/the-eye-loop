@@ -115,7 +115,9 @@ function extractMetrics(artifact) {
 		agent_error_signal_count: m.agent_error_signal_count ?? 0,
 		scout_started_count: m.scout_started_count ?? 0,
 		scout_start_spread_ms: m.scout_start_spread_ms ?? null,
-		error_event_spread_ms: m.error_event_spread_ms ?? null
+		error_event_spread_ms: m.error_event_spread_ms ?? null,
+		stream_2_error_event_count: m.stream_2_error_event_count ?? 0,
+		stream_2_agent_status_count: m.stream_2_agent_status_count ?? 0
 	};
 }
 
@@ -338,7 +340,21 @@ async function main() {
 			scout_start_spread_ms_max: scoutStartSpreadMax,
 			error_event_spread_ms_p50: errorSpreadP50,
 			error_event_spread_ms_p90: errorSpreadP90,
-			error_event_spread_ms_max: errorSpreadMax
+			error_event_spread_ms_max: errorSpreadMax,
+			// iter-26 stream-replay probe. Each intent opens a second /api/stream
+			// mid-run; the bus/getLastError + stream replay fix means lastError
+			// is resent to late-connecting clients, so a healthy baseline yields
+			// _sum = intent_count and _min = 1. A regression that reverts the
+			// replay drops _min to 0, which search-set will surface at aggregate
+			// level without needing to walk per_intent.
+			stream_2_error_event_count_sum: sumMetric('stream_2_error_event_count'),
+			stream_2_error_event_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.stream_2_error_event_count ?? 0))
+				: 0,
+			stream_2_agent_status_count_sum: sumMetric('stream_2_agent_status_count'),
+			stream_2_agent_status_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.stream_2_agent_status_count ?? 0))
+				: 0
 		},
 		per_intent: perIntent
 	};

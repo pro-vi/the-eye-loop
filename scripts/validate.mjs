@@ -362,6 +362,70 @@ async function main() {
 
 	// 6. Hold stream for the observation window.
 	await sleep(RUN_TIMEOUT_MS);
+
+	// 6b. Stream-replay probe: open a SECOND /api/stream connection briefly
+	// while stream 1 is still live. /api/stream's start() replays the current
+	// context state to every new client (agent-status, facades, etc.). Under
+	// the broken-auth baseline, the error events that fired during session 1
+	// are the banner-surfacing signal for the iter-8 client; without bus.ts
+	// preserving lastError across emissions and /api/stream replaying it to
+	// reconnecting clients, a late-connecting stream sees agent-status with
+	// focus="provider auth failed" but no structured error frame. The probe
+	// turns this into a discriminative metric: stream_2_error_event_count=1
+	// when replay is wired, 0 when it is not.
+	const stream2 = {
+		attempted: true,
+		opened_at_ms: Date.now() - t0,
+		elapsed_ms: null,
+		event_counts: {},
+		error_event_count: 0,
+		agent_status_count: 0,
+		error: null
+	};
+	{
+		const ctrl2 = new AbortController();
+		const tS2 = Date.now();
+		try {
+			const r2 = await fetch(detectedUrl + '/api/stream', {
+				headers: { accept: 'text/event-stream' },
+				signal: ctrl2.signal
+			});
+			if (!r2.ok || !r2.body) {
+				stream2.error = `status ${r2.status}`;
+			} else {
+				const reader = r2.body.getReader();
+				const decoder = new TextDecoder();
+				let buf = '';
+				const deadline = Date.now() + 800;
+				while (Date.now() < deadline) {
+					const remaining = deadline - Date.now();
+					if (remaining <= 0) break;
+					const timed = new Promise((resolve) =>
+						setTimeout(() => resolve({ done: true, value: undefined }), remaining)
+					);
+					const chunk = await Promise.race([reader.read(), timed]);
+					if (!chunk || chunk.done) break;
+					buf += decoder.decode(chunk.value, { stream: true });
+					let sep;
+					while ((sep = buf.indexOf('\n\n')) !== -1) {
+						const frame = buf.slice(0, sep);
+						buf = buf.slice(sep + 2);
+						const parsed = parseSSEFrame(frame);
+						if (!parsed) continue;
+						stream2.event_counts[parsed.type] =
+							(stream2.event_counts[parsed.type] ?? 0) + 1;
+						if (parsed.type === 'error') stream2.error_event_count++;
+						if (parsed.type === 'agent-status') stream2.agent_status_count++;
+					}
+				}
+				try { ctrl2.abort(); } catch {}
+			}
+		} catch (e) {
+			if (e?.name !== 'AbortError') stream2.error = String(e?.message ?? e);
+		}
+		stream2.elapsed_ms = Date.now() - tS2;
+	}
+
 	streamController.abort();
 	await Promise.all([streamTask, swipeWatcher, secondSessionWatcher]);
 
@@ -606,6 +670,7 @@ async function main() {
 			first_event_ms: firsts,
 			events
 		},
+		stream_2: stream2,
 		facade_visible: facadeVisible,
 		swipe,
 		metrics: {
@@ -644,7 +709,9 @@ async function main() {
 			distinct_session_ready_intent_count: distinctSessionReadyIntentCount,
 			error_event_count_before_session_2: errorEventCountBeforeSession2,
 			error_event_count_after_session_2: errorEventCountAfterSession2,
-			time_from_session_2_to_first_error_ms: timeFromSession2ToFirstErrorMs
+			time_from_session_2_to_first_error_ms: timeFromSession2ToFirstErrorMs,
+			stream_2_error_event_count: stream2.error_event_count,
+			stream_2_agent_status_count: stream2.agent_status_count
 		},
 		error_event_samples: errorEvents.slice(0, 8).map((e) => ({
 			ts_ms: e.ts_ms,
@@ -665,7 +732,8 @@ async function main() {
 		`[validate] result=${artifact.result} reason=${reason} ` +
 		`${sessionSummary} facades=${facadeReadyCount} drafts=${draftUpdatedCount} ` +
 		`synth=${synthesisUpdatedCount} swipe=${swipe.attempted ? swipe.status : 'skipped'} ` +
-		`sse_err=${errorEventCount} auth_err=${agentErrorLines.length}`
+		`sse_err=${errorEventCount} auth_err=${agentErrorLines.length} ` +
+		`s2_err=${stream2.error_event_count} s2_agents=${stream2.agent_status_count}`
 	);
 	process.exit(pass ? 0 : 1);
 }

@@ -1,4 +1,4 @@
-import { onAny } from '$lib/server/bus';
+import { onAny, getLastError } from '$lib/server/bus';
 import { context } from '$lib/server/context';
 import type { SSEEventType, SSEEventMap } from '$lib/context/types';
 
@@ -36,6 +36,15 @@ export function GET() {
 			for (const facade of context.facades) {
 				send('facade-ready', { facade });
 			}
+			// Replay the last structured error so a reconnecting client (e.g.
+			// EventSource auto-reconnect after Vercel maxDuration=300s cutoff,
+			// tab suspend/resume, or transient network blip) re-surfaces the
+			// iter-8 banner. Agent-status focus "provider auth failed" already
+			// replays via the agents loop above; this closes the parallel gap
+			// for the structured error code/source/message the client uses to
+			// pick the right CLAUDE_CODE_OAUTH_TOKEN copy.
+			const replayErr = getLastError();
+			if (replayErr) send('error', replayErr);
 
 			const cleanupBus = onAny(<K extends SSEEventType>(event: K, payload: SSEEventMap[K]) => {
 				send(event, payload);

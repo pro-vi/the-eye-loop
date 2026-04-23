@@ -62,12 +62,27 @@ export const emitSessionReady: (p: SSEEventMap['session-ready']) => void =
 const ERROR_EMIT_DEDUP_MS = 5_000;
 const lastErrorEmit = new Map<string, number>();
 
+// Last structured error emitted on the bus — exposed via getLastError() so
+// /api/stream can replay it to late-connecting clients. EventSource auto-
+// reconnects (network blip, Vercel maxDuration=300s stream cutoff, tab
+// resume) re-run the replay loop on a fresh GET /api/stream; without this,
+// the iter-8 client banner disappears even though agent-status focus
+// "provider auth failed" (iter-23/24) still replays correctly. Cleared on
+// session-ready alongside lastErrorEmit so a fresh session does not replay
+// stale cross-session errors.
+let lastError: SSEEventMap['error'] | null = null;
+
+export function getLastError(): SSEEventMap['error'] | null {
+	return lastError;
+}
+
 export const emitError: (p: SSEEventMap['error']) => void = (p) => {
 	const key = `${p.source}:${p.code}:${p.agentId ?? ''}`;
 	const now = Date.now();
 	const last = lastErrorEmit.get(key) ?? 0;
 	if (now - last < ERROR_EMIT_DEDUP_MS) return;
 	lastErrorEmit.set(key, now);
+	lastError = p;
 	emit('error', p);
 };
 
@@ -76,7 +91,10 @@ export const emitError: (p: SSEEventMap['error']) => void = (p) => {
 // ERROR_EMIT_DEDUP_MS window. Registered at module load so it runs before
 // any agent's session-ready subscriber — bus clears, then agents' async
 // generateText fires, then 401 emits land on an empty map.
-emitter.on('session-ready', () => lastErrorEmit.clear());
+emitter.on('session-ready', () => {
+	lastErrorEmit.clear();
+	lastError = null;
+});
 
 export function classifyErrorCode(err: unknown): SSEEventMap['error']['code'] {
 	const s = err instanceof Error ? `${err.message}` : String(err);
