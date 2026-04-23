@@ -351,11 +351,23 @@ async function main() {
 	const sessionOk = sessionStatus >= 200 && sessionStatus < 300;
 	const pass = sessionOk && facadeReadyCount > 0 && draftUpdatedCount > 0;
 
+	// Prefer SSE-derived classification: bus.ts:classifyErrorCode already
+	// disambiguates auth / network / generation failures, so the most-frequent
+	// emitted code is the true failure mode. Fall back to a stricter stderr
+	// regex only if SSE emission was absent (server crashed pre-emit).
+	const dominantErrorCode = Object.entries(errorCodeCounts)
+		.sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
+	const AUTH_STDERR_RE = /401|Invalid bearer|authentication_error|x-api-key/i;
+	const stderrHasAuth = agentErrorLines.some((l) => AUTH_STDERR_RE.test(l.text));
+
 	let reason;
 	if (pass) reason = 'facade_and_draft_observed';
 	else if (!sessionOk) reason = 'session_post_not_2xx';
-	else if (facadeReadyCount === 0 && providerAuthFailureCount > 0) reason = 'provider_auth_failure';
-	else if (facadeReadyCount === 0 && agentErrorLines.length > 0) reason = 'provider_auth_failure';
+	else if (facadeReadyCount === 0 && dominantErrorCode === 'provider_auth_failure') reason = 'provider_auth_failure';
+	else if (facadeReadyCount === 0 && dominantErrorCode === 'provider_error') reason = 'provider_error';
+	else if (facadeReadyCount === 0 && dominantErrorCode === 'generation_error') reason = 'generation_error';
+	else if (facadeReadyCount === 0 && stderrHasAuth) reason = 'provider_auth_failure';
+	else if (facadeReadyCount === 0 && agentErrorLines.length > 0) reason = 'provider_error';
 	else if (facadeReadyCount === 0) reason = 'no_facade_ready';
 	else reason = 'no_draft_updated';
 
