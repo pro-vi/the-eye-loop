@@ -649,6 +649,33 @@ async function main() {
 			? timeToFirstErrorMs - timeToSessionReadyMs
 			: null;
 
+	// Primary-stream stage-changed probe — closes iter-27's explicitly-
+	// deferred ordering invariant ("assert stream 1 sees stage-changed
+	// exactly once at t < time_to_session_ready_ms"). Under the broken-auth
+	// baseline the expected values are:
+	//   stage_changed_event_count = 1 (replay fires at connect; context
+	//     never advances past 'words' under no facade-ready)
+	//   time_to_first_stage_changed_ms ~ 800ms (connect time, before the
+	//     validator's 500ms pre-POST sleep + POST /api/session RTT)
+	//   stage_changed_before_session_ready = 1 (replay fires AT connect,
+	//     session-ready fires AFTER POST /api/session)
+	// Complementary to iter-27's stream_2_stage_changed_count probe:
+	// stream_2 opens late in the observation window (after session is live)
+	// and tests the replay on the SECOND connection; this probe tests the
+	// FIRST connection's replay at its natural connect timing. A regression
+	// where stage-changed is emitted AFTER session-ready (e.g. moved into
+	// the onSessionReady subscriber) would flip stage_changed_before_session_ready
+	// to 0 while leaving the count intact - catches a class of bug stream_2
+	// cannot see because stream_2 opens after the session-ready boundary.
+	const stageChangedEventCount = eventCounts['stage-changed'] ?? 0;
+	const timeToFirstStageChangedMs = firsts['stage-changed'] ?? null;
+	const stageChangedBeforeSessionReady =
+		timeToFirstStageChangedMs !== null &&
+		timeToSessionReadyMs !== null &&
+		timeToFirstStageChangedMs < timeToSessionReadyMs
+			? 1
+			: 0;
+
 	// Multi-session probe — always computed, but only populated when
 	// VALIDATE_SECOND_INTENT is set. session-ready events carry the intent in
 	// their data, so we can count distinct sessions and distinct intents
@@ -755,7 +782,10 @@ async function main() {
 			stream_2_error_event_count: stream2.error_event_count,
 			stream_2_agent_status_count: stream2.agent_status_count,
 			stream_2_stage_changed_count: stream2.stage_changed_count,
-			stream_2_diagnostic_preserved_count: stream2.diagnostic_preserved_count
+			stream_2_diagnostic_preserved_count: stream2.diagnostic_preserved_count,
+			stage_changed_event_count: stageChangedEventCount,
+			time_to_first_stage_changed_ms: timeToFirstStageChangedMs,
+			stage_changed_before_session_ready: stageChangedBeforeSessionReady
 		},
 		error_event_samples: errorEvents.slice(0, 8).map((e) => ({
 			ts_ms: e.ts_ms,
@@ -778,6 +808,7 @@ async function main() {
 		`synth=${synthesisUpdatedCount} swipe=${swipe.attempted ? swipe.status : 'skipped'} ` +
 		`sse_err=${errorEventCount} auth_err=${agentErrorLines.length} ` +
 		`agent_status=${agentStatusEventCount} ` +
+		`stage_changed=${stageChangedEventCount} stage_before_ready=${stageChangedBeforeSessionReady} ` +
 		`s2_err=${stream2.error_event_count} s2_agents=${stream2.agent_status_count} s2_stage=${stream2.stage_changed_count} s2_diag=${stream2.diagnostic_preserved_count}`
 	);
 	process.exit(pass ? 0 : 1);

@@ -120,7 +120,10 @@ function extractMetrics(artifact) {
 		stream_2_error_event_count: m.stream_2_error_event_count ?? 0,
 		stream_2_agent_status_count: m.stream_2_agent_status_count ?? 0,
 		stream_2_stage_changed_count: m.stream_2_stage_changed_count ?? 0,
-		stream_2_diagnostic_preserved_count: m.stream_2_diagnostic_preserved_count ?? 0
+		stream_2_diagnostic_preserved_count: m.stream_2_diagnostic_preserved_count ?? 0,
+		stage_changed_event_count: m.stage_changed_event_count ?? 0,
+		time_to_first_stage_changed_ms: m.time_to_first_stage_changed_ms ?? null,
+		stage_changed_before_session_ready: m.stage_changed_before_session_ready ?? 0
 	};
 }
 
@@ -394,7 +397,34 @@ async function main() {
 			agent_status_event_count_sum: sumMetric('agent_status_event_count'),
 			agent_status_event_count_min: perIntent.length
 				? Math.min(...perIntent.map((p) => p.metrics.agent_status_event_count ?? 0))
-				: 0
+				: 0,
+			// iter-34 primary-stream stage-changed probe. Closes iter-27's
+			// explicitly-deferred ordering invariant: under the broken-auth
+			// baseline context.stage never advances (no facade -> no swipe ->
+			// no stage change), so the only stage-changed on the primary stream
+			// is the replay at connect time. Expected values: _sum=5 _min=1 for
+			// count (exactly one replay per intent), and
+			// stage_changed_before_session_ready_min=1 (replay always fires
+			// before POST /api/session completes). A regression that moves the
+			// replay into onSessionReady would drop _before_session_ready_min
+			// to 0 while leaving the count intact; a regression that removes
+			// the replay from +server.ts's start() block drops both to 0.
+			stage_changed_event_count_sum: sumMetric('stage_changed_event_count'),
+			stage_changed_event_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.stage_changed_event_count ?? 0))
+				: 0,
+			stage_changed_before_session_ready_sum: sumMetric('stage_changed_before_session_ready'),
+			stage_changed_before_session_ready_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.stage_changed_before_session_ready ?? 0))
+				: 0,
+			time_to_first_stage_changed_ms_p50: percentile(
+				perIntent.map((p) => p.metrics.time_to_first_stage_changed_ms),
+				50
+			),
+			time_to_first_stage_changed_ms_p90: percentile(
+				perIntent.map((p) => p.metrics.time_to_first_stage_changed_ms),
+				90
+			)
 		},
 		per_intent: perIntent
 	};
