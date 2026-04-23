@@ -121,6 +121,7 @@ function extractMetrics(artifact) {
 		stream_2_agent_status_count: m.stream_2_agent_status_count ?? 0,
 		stream_2_stage_changed_count: m.stream_2_stage_changed_count ?? 0,
 		stream_2_diagnostic_preserved_count: m.stream_2_diagnostic_preserved_count ?? 0,
+		stream_2_error_provider_auth_count: m.stream_2_error_provider_auth_count ?? 0,
 		stream_2_first_event_ms_after_open: m.stream_2_first_event_ms_after_open ?? null,
 		stream_2_replay_span_ms: m.stream_2_replay_span_ms ?? null,
 		stage_changed_event_count: m.stage_changed_event_count ?? 0,
@@ -383,6 +384,23 @@ async function main() {
 			stream_2_diagnostic_preserved_count_sum: sumMetric('stream_2_diagnostic_preserved_count'),
 			stream_2_diagnostic_preserved_count_min: perIntent.length
 				? Math.min(...perIntent.map((p) => p.metrics.stream_2_diagnostic_preserved_count ?? 0))
+				: 0,
+			// iter-39 structured error replay content probe. Parallel to the
+			// diagnostic_preserved probe above but for the iter-3 'error'
+			// SSEEvent's code field rather than agent-status focus. Under the
+			// broken-auth baseline the lone replayed error (bus.lastError wired
+			// by iter-26) should carry code='provider_auth_failure', so _sum=5
+			// _min=1 across 5 intents. A regression that flips the code field
+			// (broken classifyErrorCode return, stale lastError from a previous
+			// generation_error failure, payload mutation in /api/stream's
+			// replay block) drops _min to 0 while stream_2_error_event_count_min
+			// stays at 1 — orthogonal signal that catches UX-degradation bugs
+			// where the iter-8 client banner would render wrong code-specific
+			// copy. Complementary to iter-29's agent-status content probe: the
+			// two probes verify two different replayed payload shapes.
+			stream_2_error_provider_auth_count_sum: sumMetric('stream_2_error_provider_auth_count'),
+			stream_2_error_provider_auth_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.stream_2_error_provider_auth_count ?? 0))
 				: 0,
 			// iter-31 primary-stream lifecycle volume. Complementary to
 			// scout_started_count_sum (counts distinct scouts that reached

@@ -382,6 +382,7 @@ async function main() {
 		agent_status_count: 0,
 		stage_changed_count: 0,
 		diagnostic_preserved_count: 0,
+		error_provider_auth_count: 0,
 		first_event_ms_after_open: null,
 		last_event_ms_after_open: null,
 		replay_span_ms: null,
@@ -449,6 +450,21 @@ async function main() {
 		// leaving auth_diagnostic_preserved_count intact.
 		stream2.diagnostic_preserved_count = stream2.events.filter(
 			(e) => e.type === 'agent-status' && e.data?.agent?.focus === 'provider auth failed'
+		).length;
+		// Content-level replay probe for the structured error event — parallel
+		// to diagnostic_preserved_count but for the iter-3 'error' SSEEvent's
+		// code field rather than agent-status focus. Under broken-auth, the
+		// lone replayed error (from bus.ts:lastError, wired by iter-26) should
+		// carry code='provider_auth_failure' matching the iter-3 classifyErrorCode
+		// taxonomy. This closes a specific UX-regression class: the iter-8
+		// client banner renders code-specific copy (provider_auth_failure shows
+		// CLAUDE_CODE_OAUTH_TOKEN guidance), so a replay that flips the code
+		// to 'provider_error' / 'generation_error' would silently degrade the
+		// banner's actionability. Count-based stream_2_error_event_count (iter-26)
+		// stays at 1, diagnostic_preserved_count (iter-29) stays at 8 for the
+		// agent-status probe, but this counter drops to 0 — orthogonal signal.
+		stream2.error_provider_auth_count = stream2.events.filter(
+			(e) => e.type === 'error' && e.data?.code === 'provider_auth_failure'
 		).length;
 		// Replay-tightness probe — closes iter-34's explicitly-deferred "assert
 		// p90-p50<20ms as an additional stability invariant" opportunity, but
@@ -808,6 +824,7 @@ async function main() {
 			stream_2_agent_status_count: stream2.agent_status_count,
 			stream_2_stage_changed_count: stream2.stage_changed_count,
 			stream_2_diagnostic_preserved_count: stream2.diagnostic_preserved_count,
+			stream_2_error_provider_auth_count: stream2.error_provider_auth_count,
 			stream_2_first_event_ms_after_open: stream2.first_event_ms_after_open,
 			stream_2_replay_span_ms: stream2.replay_span_ms,
 			stage_changed_event_count: stageChangedEventCount,
@@ -836,7 +853,7 @@ async function main() {
 		`sse_err=${errorEventCount} auth_err=${agentErrorLines.length} ` +
 		`agent_status=${agentStatusEventCount} ` +
 		`stage_changed=${stageChangedEventCount} stage_before_ready=${stageChangedBeforeSessionReady} ` +
-		`s2_err=${stream2.error_event_count} s2_agents=${stream2.agent_status_count} s2_stage=${stream2.stage_changed_count} s2_diag=${stream2.diagnostic_preserved_count} ` +
+		`s2_err=${stream2.error_event_count} s2_agents=${stream2.agent_status_count} s2_stage=${stream2.stage_changed_count} s2_diag=${stream2.diagnostic_preserved_count} s2_err_auth=${stream2.error_provider_auth_count} ` +
 		`s2_first=${stream2.first_event_ms_after_open}ms s2_span=${stream2.replay_span_ms}ms`
 	);
 	process.exit(pass ? 0 : 1);
