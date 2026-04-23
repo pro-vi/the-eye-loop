@@ -220,24 +220,117 @@ async function main() {
 	}
 	const sessionRttMs = Date.now() - tPost;
 
-	// 5. Hold stream for the observation window.
+	// 5. Swipe watcher — on first facade-ready, mark visible + POST one swipe.
+	// This extends the validator to cover the expensive outer channel target
+	// (`POST /api/session -> GET /api/stream -> first facade-ready -> one swipe
+	// -> draft/synthesis update`). Under current provider_auth_failure no
+	// facade arrives so this is a no-op; under healthy auth it exercises the
+	// swipe + post-swipe reaction path.
+	const swipe = {
+		attempted: false,
+		facadeId: null,
+		facade_ready_at_ms: null,
+		posted_at_ms: null,
+		rtt_ms: null,
+		status: null,
+		body: null,
+		error: null
+	};
+	const facadeVisible = {
+		attempted: false,
+		status: null,
+		error: null,
+		rtt_ms: null
+	};
+
+	const swipeWatcher = (async () => {
+		const deadline = Date.now() + RUN_TIMEOUT_MS;
+		let facadeEvent = null;
+		while (Date.now() < deadline && !streamController.signal.aborted) {
+			facadeEvent = events.find((e) => e.type === 'facade-ready');
+			if (facadeEvent) break;
+			await sleep(150);
+		}
+		if (!facadeEvent) return;
+		const facadeId = facadeEvent?.data?.facade?.id;
+		if (typeof facadeId !== 'string') return;
+		swipe.facadeId = facadeId;
+		swipe.facade_ready_at_ms = facadeEvent.ts_ms;
+
+		const tVis = Date.now();
+		facadeVisible.attempted = true;
+		try {
+			const vr = await fetch(detectedUrl + '/api/facade-visible', {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify({ facadeId })
+			});
+			facadeVisible.status = vr.status;
+		} catch (e) {
+			facadeVisible.error = String(e?.message ?? e);
+		}
+		facadeVisible.rtt_ms = Date.now() - tVis;
+
+		const tSwipe = Date.now();
+		swipe.attempted = true;
+		swipe.posted_at_ms = tSwipe - t0;
+		try {
+			const r = await fetch(detectedUrl + '/api/swipe', {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify({ facadeId, decision: 'accept', latencyMs: 600 })
+			});
+			swipe.status = r.status;
+			swipe.body = await r.json().catch(() => null);
+		} catch (e) {
+			swipe.error = String(e?.message ?? e);
+		}
+		swipe.rtt_ms = Date.now() - tSwipe;
+	})();
+
+	// 6. Hold stream for the observation window.
 	await sleep(RUN_TIMEOUT_MS);
 	streamController.abort();
-	await streamTask;
+	await Promise.all([streamTask, swipeWatcher]);
 
-	// 6. Teardown dev server.
+	// 7. Teardown dev server.
 	teardown();
 	await sleep(300);
 
-	// 7. Summarize.
+	// 8. Summarize.
 	const eventCounts = {};
 	for (const e of events) eventCounts[e.type] = (eventCounts[e.type] ?? 0) + 1;
 
 	const facadeReadyCount = eventCounts['facade-ready'] ?? 0;
 	const draftUpdatedCount = eventCounts['draft-updated'] ?? 0;
 	const synthesisUpdatedCount = eventCounts['synthesis-updated'] ?? 0;
+	const swipeResultCount = eventCounts['swipe-result'] ?? 0;
+	const evidenceUpdatedCount = eventCounts['evidence-updated'] ?? 0;
 	const errorEventCount = eventCounts['error'] ?? 0;
 	const agentErrorLines = stderrLines.filter((l) => ERROR_SIGNAL_RE.test(l.text));
+
+	// Reveal reachability — any stage-changed event with stage==='reveal'.
+	const revealReached = events.some(
+		(e) => e.type === 'stage-changed' && e.data?.stage === 'reveal'
+	);
+
+	// Post-swipe latency derivations — only meaningful if we posted a swipe.
+	const firstDraftAfterSwipe = swipe.posted_at_ms === null
+		? null
+		: events.find((e) => e.type === 'draft-updated' && e.ts_ms >= swipe.posted_at_ms)
+			?.ts_ms ?? null;
+	const firstEvidenceAfterSwipe = swipe.posted_at_ms === null
+		? null
+		: events.find((e) => e.type === 'evidence-updated' && e.ts_ms >= swipe.posted_at_ms)
+			?.ts_ms ?? null;
+	const timeToFirstDraftAfterSwipeMs =
+		firstDraftAfterSwipe !== null && swipe.posted_at_ms !== null
+			? firstDraftAfterSwipe - swipe.posted_at_ms
+			: null;
+	const timeToFirstEvidenceAfterSwipeMs =
+		firstEvidenceAfterSwipe !== null && swipe.posted_at_ms !== null
+			? firstEvidenceAfterSwipe - swipe.posted_at_ms
+			: null;
 
 	// Typed classification from bus-level error events (preferred over stderr regex).
 	const errorEvents = events.filter((e) => e.type === 'error');
@@ -287,13 +380,20 @@ async function main() {
 			first_event_ms: firsts,
 			events
 		},
+		facade_visible: facadeVisible,
+		swipe,
 		metrics: {
 			time_to_first_facade_ms: timeToFirstFacadeMs,
 			time_to_first_draft_ms: timeToFirstDraftMs,
 			time_to_first_synthesis_ms: timeToFirstSynthesisMs,
+			time_to_first_draft_after_swipe_ms: timeToFirstDraftAfterSwipeMs,
+			time_to_first_evidence_after_swipe_ms: timeToFirstEvidenceAfterSwipeMs,
 			facade_ready_count: facadeReadyCount,
 			draft_updated_count: draftUpdatedCount,
 			synthesis_updated_count: synthesisUpdatedCount,
+			swipe_result_count: swipeResultCount,
+			evidence_updated_count: evidenceUpdatedCount,
+			reveal_reached: revealReached,
 			error_event_count: errorEventCount,
 			error_code_counts: errorCodeCounts,
 			error_source_counts: errorSourceCounts,
@@ -315,7 +415,8 @@ async function main() {
 	console.log(
 		`[validate] result=${artifact.result} reason=${reason} ` +
 		`session=${sessionStatus} facades=${facadeReadyCount} drafts=${draftUpdatedCount} ` +
-		`synth=${synthesisUpdatedCount} sse_err=${errorEventCount} auth_err=${agentErrorLines.length}`
+		`synth=${synthesisUpdatedCount} swipe=${swipe.attempted ? swipe.status : 'skipped'} ` +
+		`sse_err=${errorEventCount} auth_err=${agentErrorLines.length}`
 	);
 	process.exit(pass ? 0 : 1);
 }
