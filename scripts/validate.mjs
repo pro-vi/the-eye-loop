@@ -383,6 +383,22 @@ async function main() {
 			: null;
 	const scoutStartedCount = scoutStartTimes.length;
 
+	// Error event spread — first-to-last structured error SSE frame. Under
+	// iter-13's zero-retry-on-auth regime and the broken-auth baseline,
+	// 8 parallel API calls fail together and emit within a ~10-30ms window
+	// (JS event loop + per-call Anthropic RTT jitter). A regression that
+	// reintroduces retries or serializes provider calls would widen this
+	// spread visibly — complementary to scout_start_spread_ms which measures
+	// parallel fan-out on the START side, while error_event_spread_ms
+	// measures parallel fan-out on the FAIL side.
+	const errorEventTimes = errorEvents.map((e) => e.ts_ms);
+	const firstErrorEventMs = errorEventTimes.length ? Math.min(...errorEventTimes) : null;
+	const lastErrorEventMs = errorEventTimes.length ? Math.max(...errorEventTimes) : null;
+	const errorEventSpreadMs =
+		firstErrorEventMs !== null && lastErrorEventMs !== null
+			? lastErrorEventMs - firstErrorEventMs
+			: null;
+
 	const sessionOk = sessionStatus >= 200 && sessionStatus < 300;
 	const pass = sessionOk && facadeReadyCount > 0 && draftUpdatedCount > 0;
 
@@ -409,6 +425,29 @@ async function main() {
 	const timeToFirstFacadeMs = firsts['facade-ready'] ?? null;
 	const timeToFirstDraftMs = firsts['draft-updated'] ?? null;
 	const timeToFirstSynthesisMs = firsts['synthesis-updated'] ?? null;
+
+	// Session-relative latencies. Absolute run-start times include the
+	// validator's 500ms pre-POST sleep + stream-open overhead, so they are
+	// not directly comparable to a human-initiated session. Subtracting
+	// time_to_session_ready_ms gives the product-relevant "how fast after
+	// POST /api/session did X happen?" — under broken auth,
+	// time_from_session_to_first_error_ms ≈ 200-300ms (Anthropic 401 RTT);
+	// under healthy auth, time_from_session_to_first_facade_ms would be the
+	// Haiku generation latency (~1-2s) and is the V0 demo row 1 target.
+	const timeToSessionReadyMs = firsts['session-ready'] ?? null;
+	const timeToFirstErrorMs = firstErrorEventMs;
+	const timeFromSessionToFirstFacadeMs =
+		timeToFirstFacadeMs !== null && timeToSessionReadyMs !== null
+			? timeToFirstFacadeMs - timeToSessionReadyMs
+			: null;
+	const timeFromSessionToFirstDraftMs =
+		timeToFirstDraftMs !== null && timeToSessionReadyMs !== null
+			? timeToFirstDraftMs - timeToSessionReadyMs
+			: null;
+	const timeFromSessionToFirstErrorMs =
+		timeToFirstErrorMs !== null && timeToSessionReadyMs !== null
+			? timeToFirstErrorMs - timeToSessionReadyMs
+			: null;
 
 	const artifact = {
 		started_at: startedAt,
@@ -439,6 +478,11 @@ async function main() {
 			time_to_first_synthesis_ms: timeToFirstSynthesisMs,
 			time_to_first_draft_after_swipe_ms: timeToFirstDraftAfterSwipeMs,
 			time_to_first_evidence_after_swipe_ms: timeToFirstEvidenceAfterSwipeMs,
+			time_to_session_ready_ms: timeToSessionReadyMs,
+			time_to_first_error_ms: timeToFirstErrorMs,
+			time_from_session_to_first_facade_ms: timeFromSessionToFirstFacadeMs,
+			time_from_session_to_first_draft_ms: timeFromSessionToFirstDraftMs,
+			time_from_session_to_first_error_ms: timeFromSessionToFirstErrorMs,
 			facade_ready_count: facadeReadyCount,
 			draft_updated_count: draftUpdatedCount,
 			synthesis_updated_count: synthesisUpdatedCount,
@@ -455,7 +499,10 @@ async function main() {
 			scout_started_count: scoutStartedCount,
 			first_scout_started_ms: firstScoutStartedMs,
 			last_scout_started_ms: lastScoutStartedMs,
-			scout_start_spread_ms: scoutStartSpreadMs
+			scout_start_spread_ms: scoutStartSpreadMs,
+			first_error_event_ms: firstErrorEventMs,
+			last_error_event_ms: lastErrorEventMs,
+			error_event_spread_ms: errorEventSpreadMs
 		},
 		error_event_samples: errorEvents.slice(0, 8).map((e) => ({
 			ts_ms: e.ts_ms,

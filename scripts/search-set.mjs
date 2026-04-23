@@ -97,6 +97,11 @@ function extractMetrics(artifact) {
 		time_to_first_draft_ms: m.time_to_first_draft_ms ?? null,
 		time_to_first_synthesis_ms: m.time_to_first_synthesis_ms ?? null,
 		time_to_first_draft_after_swipe_ms: m.time_to_first_draft_after_swipe_ms ?? null,
+		time_to_session_ready_ms: m.time_to_session_ready_ms ?? null,
+		time_to_first_error_ms: m.time_to_first_error_ms ?? null,
+		time_from_session_to_first_facade_ms: m.time_from_session_to_first_facade_ms ?? null,
+		time_from_session_to_first_draft_ms: m.time_from_session_to_first_draft_ms ?? null,
+		time_from_session_to_first_error_ms: m.time_from_session_to_first_error_ms ?? null,
 		facade_ready_count: m.facade_ready_count ?? 0,
 		draft_updated_count: m.draft_updated_count ?? 0,
 		synthesis_updated_count: m.synthesis_updated_count ?? 0,
@@ -108,7 +113,8 @@ function extractMetrics(artifact) {
 		provider_auth_failure_count: m.provider_auth_failure_count ?? 0,
 		agent_error_signal_count: m.agent_error_signal_count ?? 0,
 		scout_started_count: m.scout_started_count ?? 0,
-		scout_start_spread_ms: m.scout_start_spread_ms ?? null
+		scout_start_spread_ms: m.scout_start_spread_ms ?? null,
+		error_event_spread_ms: m.error_event_spread_ms ?? null
 	};
 }
 
@@ -237,6 +243,38 @@ async function main() {
 		: null;
 	const scoutStartedCountSum = sumMetric('scout_started_count');
 
+	// Error event spread — parallel-fail fan-out. Under iter-13's
+	// zero-retry-on-auth regime, all 8 agents hit Anthropic in parallel and
+	// fail within a narrow window. p90 across intents is the regression probe:
+	// a regression that reintroduces retries or serializes provider calls
+	// would push p90 significantly higher.
+	const errorSpreadValues = perIntent
+		.map((p) => p.metrics.error_event_spread_ms)
+		.filter((v) => typeof v === 'number' && Number.isFinite(v));
+	const errorSpreadP50 = percentile(errorSpreadValues, 50);
+	const errorSpreadP90 = percentile(errorSpreadValues, 90);
+	const errorSpreadMax = errorSpreadValues.length
+		? Math.max(...errorSpreadValues)
+		: null;
+
+	// Session-relative latencies — the product-facing view of "how fast
+	// after POST /api/session did X happen?". Under broken auth, facade/draft
+	// are null and the error value captures Anthropic 401 RTT (~200-300ms).
+	// Under healthy auth, facade/draft would populate with Haiku latency
+	// (~1-2s) and error would be null — directly aligned with the V0 demo
+	// row 1 "get first facades quickly" product frontier anchor.
+	const sessionToFacadeValues = perIntent.map(
+		(p) => p.metrics.time_from_session_to_first_facade_ms
+	);
+	const sessionToDraftValues = perIntent.map(
+		(p) => p.metrics.time_from_session_to_first_draft_ms
+	);
+	const sessionToErrorValues = perIntent.map(
+		(p) => p.metrics.time_from_session_to_first_error_ms
+	);
+	const sessionReadyValues = perIntent.map((p) => p.metrics.time_to_session_ready_ms);
+	const firstErrorAbsValues = perIntent.map((p) => p.metrics.time_to_first_error_ms);
+
 	const aggregate = {
 		started_at: startedAt,
 		finished_at: nowIso(),
@@ -258,6 +296,16 @@ async function main() {
 			time_to_first_draft_ms_p90: percentile(firstDraftValues, 90),
 			time_to_first_synthesis_ms_p50: percentile(firstSynthesisValues, 50),
 			time_to_first_synthesis_ms_p90: percentile(firstSynthesisValues, 90),
+			time_to_session_ready_ms_p50: percentile(sessionReadyValues, 50),
+			time_to_session_ready_ms_p90: percentile(sessionReadyValues, 90),
+			time_to_first_error_ms_p50: percentile(firstErrorAbsValues, 50),
+			time_to_first_error_ms_p90: percentile(firstErrorAbsValues, 90),
+			time_from_session_to_first_facade_ms_p50: percentile(sessionToFacadeValues, 50),
+			time_from_session_to_first_facade_ms_p90: percentile(sessionToFacadeValues, 90),
+			time_from_session_to_first_draft_ms_p50: percentile(sessionToDraftValues, 50),
+			time_from_session_to_first_draft_ms_p90: percentile(sessionToDraftValues, 90),
+			time_from_session_to_first_error_ms_p50: percentile(sessionToErrorValues, 50),
+			time_from_session_to_first_error_ms_p90: percentile(sessionToErrorValues, 90),
 			reveal_reached_count: revealReachedCount,
 			reveal_reach_rate: revealReachRate,
 			facade_ready_count_sum: facadeReadyCountSum,
@@ -271,7 +319,10 @@ async function main() {
 			scout_started_count_sum: scoutStartedCountSum,
 			scout_start_spread_ms_p50: scoutStartSpreadP50,
 			scout_start_spread_ms_p90: scoutStartSpreadP90,
-			scout_start_spread_ms_max: scoutStartSpreadMax
+			scout_start_spread_ms_max: scoutStartSpreadMax,
+			error_event_spread_ms_p50: errorSpreadP50,
+			error_event_spread_ms_p90: errorSpreadP90,
+			error_event_spread_ms_max: errorSpreadMax
 		},
 		per_intent: perIntent
 	};
