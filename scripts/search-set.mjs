@@ -146,6 +146,7 @@ function extractMetrics(artifact) {
 		error_code_valid_count: m.error_code_valid_count ?? 0,
 		agent_status_valid_count: m.agent_status_valid_count ?? 0,
 		stream_2_agent_status_valid_count: m.stream_2_agent_status_valid_count ?? 0,
+		session_ready_intent_present_count: m.session_ready_intent_present_count ?? 0,
 		oracle_cold_start_latency_ms: m.oracle_cold_start_latency_ms ?? null,
 		oracle_synthesis_latency_ms: m.oracle_synthesis_latency_ms ?? null,
 		oracle_reveal_build_latency_ms: m.oracle_reveal_build_latency_ms ?? null,
@@ -688,6 +689,26 @@ async function main() {
 			stream_2_agent_status_valid_count_sum: sumMetric('stream_2_agent_status_valid_count'),
 			stream_2_agent_status_valid_count_min: perIntent.length
 				? Math.min(...perIntent.map((p) => p.metrics.stream_2_agent_status_valid_count ?? 0))
+				: 0,
+			// iter-60 session-ready.intent content-presence rollup. Closes the
+			// last unprobed content field across all SSE event types — iter-20
+			// added the count probe + distinct-intent multi-session identity,
+			// but never validated each session-ready event's intent was a non-
+			// empty string. Under broken-auth baseline: _sum=5 _min=1 across
+			// the 5-intent search-set (identity with iter-20's per-intent
+			// session_ready_count=1, because POST /api/session rejects empty
+			// intents at the endpoint level and seedSession forwards
+			// trimmedIntent to emitSessionReady without mutation). A
+			// regression where seedSession drops or mutates the intent field
+			// to undefined/null/empty — invisible to every iter-20 through
+			// iter-59 probe (count stays intact; distinct_intent could still
+			// register 1 with a shared empty string) — would drop _min below
+			// 1 while session_ready_count stays at its baseline. Under multi-
+			// session mode the probe doubles from 1 to 2 per intent,
+			// confirming both session-ready emissions carry valid intents.
+			session_ready_intent_present_count_sum: sumMetric('session_ready_intent_present_count'),
+			session_ready_intent_present_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.session_ready_intent_present_count ?? 0))
 				: 0,
 			time_to_first_stage_changed_ms_p50: percentile(
 				perIntent.map((p) => p.metrics.time_to_first_stage_changed_ms),

@@ -1083,6 +1083,23 @@ async function main() {
 		.filter((v) => typeof v === 'string');
 	const distinctSessionReadyIntents = [...new Set(sessionReadyIntents)];
 	const distinctSessionReadyIntentCount = distinctSessionReadyIntents.length;
+	// iter-60: session-ready.intent content-presence probe. iter-20 landed
+	// session_ready_count + distinct_session_ready_intent_count (identity
+	// probe across multi-session boundaries), but never validated each
+	// event's intent was a non-empty string — a regression where seedSession
+	// emits session-ready with intent undefined/null/empty would keep
+	// session_ready_count intact but silently drop this probe. Parallel to
+	// iter-54's error_message_present_count pattern (typeof === 'string' &&
+	// length > 0) on a distinct event type: session-ready had ZERO
+	// content probes before this iteration, unlike agent-status (iter-29/
+	// 31/52/58), error (iter-14/39/40/44/54/56) and stage-changed (iter-27/
+	// 34/41/55). Under broken-auth baseline: equals session_ready_count
+	// (identity invariant — POST /api/session rejects empty intents at the
+	// endpoint level and seedSession forwards trimmedIntent to
+	// emitSessionReady without mutation).
+	const sessionReadyIntentPresentCount = sessionReadyEvents.filter(
+		(e) => typeof e.data?.intent === 'string' && e.data.intent.length > 0
+	).length;
 	const errorEventCountBeforeSession2 =
 		session2.posted_at_ms === null
 			? null
@@ -1172,6 +1189,7 @@ async function main() {
 			error_event_spread_ms: errorEventSpreadMs,
 			session_ready_count: sessionReadyCount,
 			distinct_session_ready_intent_count: distinctSessionReadyIntentCount,
+			session_ready_intent_present_count: sessionReadyIntentPresentCount,
 			error_event_count_before_session_2: errorEventCountBeforeSession2,
 			error_event_count_after_session_2: errorEventCountAfterSession2,
 			time_from_session_2_to_first_error_ms: timeFromSession2ToFirstErrorMs,
