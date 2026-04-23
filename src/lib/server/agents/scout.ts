@@ -18,10 +18,12 @@ import { FAST_MODEL } from '$lib/server/ai';
 // Visibility signal sent by client via POST /api/facade-visible.
 const SWIPE_TIMEOUT_MS = 30_000;
 const MAX_HISTORY = 8;
-// Retry backoff under provider failure: 1s, 2s, 4s, 8s, 16s (cap).
-// Under a persistent 401, 6 scouts at 1s constant would burn 72 calls/12s;
-// with backoff that drops to ~24 calls/12s while keeping first-retry latency
-// unchanged for transient errors.
+// Retry strategy under provider failure:
+// - provider_auth_failure: zero retries (401 never recovers mid-session; a
+//   token rotation needs a server restart). Scout exits cleanly and the
+//   iter-8 client banner surfaces the env var to the user.
+// - provider_error / generation_error: exponential backoff 1s→2s→4s→8s→16s
+//   cap preserves first-retry latency for transient network/schema errors.
 const RETRY_BASE_MS = 1_000;
 const RETRY_MAX_MS = 16_000;
 const RETRY_EXP_CAP = 4; // shift cap: 2^4 = 16
@@ -433,12 +435,17 @@ Mobile viewport 375x667. No scripts. No external resources.`;
 			} catch (err) {
 				if (!alive()) break;
 				console.error(`[scout:${agentId}]`, err);
+				const code = classifyErrorCode(err);
 				emitError({
 					source: 'scout',
-					code: classifyErrorCode(err),
+					code,
 					agentId,
 					message: err instanceof Error ? err.message : String(err)
 				});
+				if (code === 'provider_auth_failure') {
+					setStatus(agent, 'idle', 'provider auth failed');
+					break;
+				}
 				consecutiveFailures++;
 				const backoffMs = Math.min(
 					RETRY_BASE_MS * 2 ** Math.min(consecutiveFailures - 1, RETRY_EXP_CAP),
