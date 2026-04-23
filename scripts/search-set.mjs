@@ -111,6 +111,7 @@ function extractMetrics(artifact) {
 		error_event_count: m.error_event_count ?? 0,
 		distinct_error_agent_count: m.distinct_error_agent_count ?? 0,
 		provider_auth_failure_count: m.provider_auth_failure_count ?? 0,
+		auth_diagnostic_preserved_count: m.auth_diagnostic_preserved_count ?? 0,
 		agent_error_signal_count: m.agent_error_signal_count ?? 0,
 		scout_started_count: m.scout_started_count ?? 0,
 		scout_start_spread_ms: m.scout_start_spread_ms ?? null,
@@ -224,6 +225,19 @@ async function main() {
 	const distinctErrorAgentCountMin = distinctErrorAgentCountValues.length
 		? Math.min(...distinctErrorAgentCountValues)
 		: 0;
+	// Diagnostic-focus preservation roll-up (iter-23/24 roster-wide invariant).
+	// Under the broken-auth baseline, auth_diagnostic_preserved_count_min
+	// should equal distinct_error_agent_count_min (both 8): every agent that
+	// emitted a provider_auth_failure keeps 'provider auth failed' as its
+	// final focus. A regression that drops _min below distinct_error_agent_count_min
+	// directly flags the post-loop focus-overwrite bug iter-23/24 closed.
+	const authDiagnosticPreservedCountSum = sumMetric('auth_diagnostic_preserved_count');
+	const authDiagnosticPreservedCountValues = perIntent.map(
+		(p) => p.metrics.auth_diagnostic_preserved_count ?? 0
+	);
+	const authDiagnosticPreservedCountMin = authDiagnosticPreservedCountValues.length
+		? Math.min(...authDiagnosticPreservedCountValues)
+		: 0;
 	const revealReachedCount = perIntent.reduce(
 		(acc, p) => acc + (p.metrics.reveal_reached ? 1 : 0),
 		0
@@ -316,6 +330,8 @@ async function main() {
 			provider_auth_failure_count_sum: authFailureSum,
 			distinct_error_agent_count_sum: distinctErrorAgentCountSum,
 			distinct_error_agent_count_min: distinctErrorAgentCountMin,
+			auth_diagnostic_preserved_count_sum: authDiagnosticPreservedCountSum,
+			auth_diagnostic_preserved_count_min: authDiagnosticPreservedCountMin,
 			scout_started_count_sum: scoutStartedCountSum,
 			scout_start_spread_ms_p50: scoutStartSpreadP50,
 			scout_start_spread_ms_p90: scoutStartSpreadP90,

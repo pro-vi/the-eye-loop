@@ -428,6 +428,33 @@ async function main() {
 	const distinctErrorAgentCount = Object.keys(errorAgentCounts).length;
 	const providerAuthFailureCount = errorCodeCounts['provider_auth_failure'] ?? 0;
 
+	// Diagnostic-focus preservation probe — promotes iter-23/24's roster-wide
+	// focus-preservation pattern (scout.ts IIFE-return + oracle.runColdStart
+	// early-return + builder.scaffold finally-block flag) into a machine-
+	// verifiable aggregate invariant. For each agent that emitted a
+	// provider_auth_failure error event, check whether its FINAL agent-status
+	// focus still reads the diagnostic string 'provider auth failed'. A
+	// revert of iter-23 (scouts break through cleanup) drops this from 8 to
+	// 2; a revert of iter-24 (oracle/builder tail overwrites) drops to 6; a
+	// full revert to pre-iter-23 drops to 0. Under the iter-24 baseline the
+	// invariant is auth_diagnostic_preserved_count == distinct_error_agent_count.
+	const AUTH_DIAGNOSTIC_FOCUS = 'provider auth failed';
+	const finalFocusByAgentKey = {};
+	for (const e of events) {
+		if (e.type !== 'agent-status') continue;
+		const agent = e.data?.agent;
+		if (!agent?.id || !agent?.role) continue;
+		finalFocusByAgentKey[`${agent.role}:${agent.id}`] = agent.focus ?? '';
+	}
+	const authFailureAgentKeys = new Set(
+		errorEvents
+			.filter((e) => e.data?.code === 'provider_auth_failure')
+			.map((e) => `${e.data?.source ?? 'unknown'}:${e.data?.agentId ?? ''}`)
+	);
+	const authDiagnosticPreservedCount = [...authFailureAgentKeys].filter(
+		(key) => finalFocusByAgentKey[key] === AUTH_DIAGNOSTIC_FOCUS
+	).length;
+
 	// Scout start fan-out — first agent-status `thinking/generating probe` per
 	// scout agentId. iter-16 removed the 500ms inter-scout stagger, so the
 	// spread between first and last scout start should now be ~10-50ms (JS
@@ -604,6 +631,7 @@ async function main() {
 			error_agent_counts: errorAgentCounts,
 			distinct_error_agent_count: distinctErrorAgentCount,
 			provider_auth_failure_count: providerAuthFailureCount,
+			auth_diagnostic_preserved_count: authDiagnosticPreservedCount,
 			agent_error_signal_count: agentErrorLines.length,
 			scout_started_count: scoutStartedCount,
 			first_scout_started_ms: firstScoutStartedMs,
