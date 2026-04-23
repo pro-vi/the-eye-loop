@@ -464,21 +464,19 @@ Mobile viewport 375x667. No scripts. No external resources.`;
 	return stop;
 }
 
-const pendingTimers: ReturnType<typeof setTimeout>[] = [];
-
+// Scout starts are simultaneous. The historical 500ms inter-scout stagger
+// (specs/ANNOUNCEMENT-scout-dedup.md) assumed LLM-probe latency < 500ms so
+// scout-N's prompt would read scout-(N-1)'s just-pushed facade; that premise
+// no longer holds with Claude Haiku at ~1-2s per call. The real dedup is the
+// post-generateText axis-targeted isDuplicate check at line ~292, reinforced
+// by distinct SCOUT_LENSES biasing each scout toward a different probe axis.
+// Starting all 6 scouts at session-ready compresses scout-06's start by
+// ~2.5s, directly improving the V0 "first facades quickly" demo row.
 export function startAllScouts(): void {
-	SCOUT_ROSTER.forEach(({ id, name }, i) => {
-		if (i === 0) {
-			startScout(id, name);
-		} else {
-			pendingTimers.push(setTimeout(() => startScout(id, name), i * 500));
-		}
-	});
+	for (const { id, name } of SCOUT_ROSTER) startScout(id, name);
 }
 
 export function stopAllScouts() {
-	for (const t of pendingTimers) clearTimeout(t);
-	pendingTimers.length = 0;
 	for (const stop of activeRuns.values()) stop();
 	activeRuns.clear();
 }

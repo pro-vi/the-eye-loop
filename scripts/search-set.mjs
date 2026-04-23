@@ -106,7 +106,9 @@ function extractMetrics(artifact) {
 		error_event_count: m.error_event_count ?? 0,
 		distinct_error_agent_count: m.distinct_error_agent_count ?? 0,
 		provider_auth_failure_count: m.provider_auth_failure_count ?? 0,
-		agent_error_signal_count: m.agent_error_signal_count ?? 0
+		agent_error_signal_count: m.agent_error_signal_count ?? 0,
+		scout_started_count: m.scout_started_count ?? 0,
+		scout_start_spread_ms: m.scout_start_spread_ms ?? null
 	};
 }
 
@@ -222,6 +224,19 @@ async function main() {
 	);
 	const revealReachRate = perIntent.length > 0 ? revealReachedCount / perIntent.length : 0;
 
+	// Scout start fan-out — iter-16 removed the 500ms inter-scout stagger.
+	// p90 across intents is the most robust regression probe: a regression
+	// where any single intent runs with the stagger pushes p90 to ~2500ms.
+	const scoutStartSpreadValues = perIntent
+		.map((p) => p.metrics.scout_start_spread_ms)
+		.filter((v) => typeof v === 'number' && Number.isFinite(v));
+	const scoutStartSpreadP50 = percentile(scoutStartSpreadValues, 50);
+	const scoutStartSpreadP90 = percentile(scoutStartSpreadValues, 90);
+	const scoutStartSpreadMax = scoutStartSpreadValues.length
+		? Math.max(...scoutStartSpreadValues)
+		: null;
+	const scoutStartedCountSum = sumMetric('scout_started_count');
+
 	const aggregate = {
 		started_at: startedAt,
 		finished_at: nowIso(),
@@ -252,7 +267,11 @@ async function main() {
 			error_event_count_sum: errorEventSum,
 			provider_auth_failure_count_sum: authFailureSum,
 			distinct_error_agent_count_sum: distinctErrorAgentCountSum,
-			distinct_error_agent_count_min: distinctErrorAgentCountMin
+			distinct_error_agent_count_min: distinctErrorAgentCountMin,
+			scout_started_count_sum: scoutStartedCountSum,
+			scout_start_spread_ms_p50: scoutStartSpreadP50,
+			scout_start_spread_ms_p90: scoutStartSpreadP90,
+			scout_start_spread_ms_max: scoutStartSpreadMax
 		},
 		per_intent: perIntent
 	};

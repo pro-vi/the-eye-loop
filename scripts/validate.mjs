@@ -360,6 +360,29 @@ async function main() {
 	const distinctErrorAgentCount = Object.keys(errorAgentCounts).length;
 	const providerAuthFailureCount = errorCodeCounts['provider_auth_failure'] ?? 0;
 
+	// Scout start fan-out — first agent-status `thinking/generating probe` per
+	// scout agentId. iter-16 removed the 500ms inter-scout stagger, so the
+	// spread between first and last scout start should now be ~10-50ms (JS
+	// event-loop tick) instead of ~2500ms. A regression to >200ms would
+	// indicate the stagger was re-introduced.
+	const scoutStartMs = {};
+	for (const e of events) {
+		if (e.type !== 'agent-status') continue;
+		const agent = e.data?.agent;
+		if (agent?.role !== 'scout') continue;
+		if (agent.status !== 'thinking') continue;
+		if (scoutStartMs[agent.id] !== undefined) continue;
+		scoutStartMs[agent.id] = e.ts_ms;
+	}
+	const scoutStartTimes = Object.values(scoutStartMs);
+	const firstScoutStartedMs = scoutStartTimes.length ? Math.min(...scoutStartTimes) : null;
+	const lastScoutStartedMs = scoutStartTimes.length ? Math.max(...scoutStartTimes) : null;
+	const scoutStartSpreadMs =
+		firstScoutStartedMs !== null && lastScoutStartedMs !== null
+			? lastScoutStartedMs - firstScoutStartedMs
+			: null;
+	const scoutStartedCount = scoutStartTimes.length;
+
 	const sessionOk = sessionStatus >= 200 && sessionStatus < 300;
 	const pass = sessionOk && facadeReadyCount > 0 && draftUpdatedCount > 0;
 
@@ -428,7 +451,11 @@ async function main() {
 			error_agent_counts: errorAgentCounts,
 			distinct_error_agent_count: distinctErrorAgentCount,
 			provider_auth_failure_count: providerAuthFailureCount,
-			agent_error_signal_count: agentErrorLines.length
+			agent_error_signal_count: agentErrorLines.length,
+			scout_started_count: scoutStartedCount,
+			first_scout_started_ms: firstScoutStartedMs,
+			last_scout_started_ms: lastScoutStartedMs,
+			scout_start_spread_ms: scoutStartSpreadMs
 		},
 		error_event_samples: errorEvents.slice(0, 8).map((e) => ({
 			ts_ms: e.ts_ms,
