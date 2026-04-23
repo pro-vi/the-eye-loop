@@ -806,6 +806,73 @@ async function main() {
 	const oracleSynthesisCount = oracleSynthesisLatencies.length;
 	const oracleRevealBuildCount = oracleRevealBuildLatencies.length;
 
+	// iter-51: Stage 8 per-agent-class latency siblings for scout + builder,
+	// parallel to iter-50's oracle latency primitive but with one structural
+	// variant: scouts have 6 distinct ids (scout-01..06) so latencies are
+	// derived per-scout-agent and then aggregated within this run (p50/max);
+	// builder is a singleton (builder-01) so the derivation matches oracle's
+	// single-agent entry/exit pairing. Focus strings are emitted from:
+	//   scout.ts:234  setStatus(agent, 'thinking', 'generating probe')
+	//   builder.ts:405 setStatus('thinking', 'generating initial scaffold')
+	// and their idle transitions happen under the iter-23 (scout IIFE-return)
+	// and iter-24 (builder finally-flag) focus-preservation cleanups. Unlike
+	// iter-50's synthesis/reveal siblings (which stay null under broken auth
+	// because their paths require evidence > 0 or >= REVEAL_THRESHOLD), BOTH
+	// scout_probe_latency_ms and builder_scaffold_latency_ms light up under
+	// the current baseline — every scout fires exactly one probe on session-
+	// ready, fails in ~180ms with 401, and transitions to idle with the
+	// diagnostic focus. That makes scout_probe_count a discriminative roster-
+	// cardinality probe (equals 6 on healthy fan-out, drops below on roster
+	// regressions) and scout_probe_latency_ms_p50/max direct Anthropic RTT
+	// observability from the scout-fanout path specifically, complementary
+	// to iter-50's oracle cold-start RTT from the oracle path.
+	function computeScoutProbeLatencies() {
+		const pairs = [];
+		const pendingByAgent = {};
+		for (const e of events) {
+			if (e.type !== 'agent-status') continue;
+			const agent = e.data?.agent;
+			if (agent?.role !== 'scout' || !agent.id) continue;
+			if (agent.status === 'thinking' && agent.focus === 'generating probe') {
+				if (pendingByAgent[agent.id] === undefined) pendingByAgent[agent.id] = e.ts_ms;
+			} else if (pendingByAgent[agent.id] !== undefined && agent.status !== 'thinking') {
+				pairs.push(e.ts_ms - pendingByAgent[agent.id]);
+				delete pendingByAgent[agent.id];
+			}
+		}
+		return pairs;
+	}
+	function computeBuilderScaffoldLatencies() {
+		const pairs = [];
+		let lastEntry = null;
+		for (const e of events) {
+			if (e.type !== 'agent-status') continue;
+			const agent = e.data?.agent;
+			if (agent?.id !== 'builder-01') continue;
+			if (agent.status === 'thinking' && agent.focus === 'generating initial scaffold') {
+				lastEntry = e.ts_ms;
+			} else if (lastEntry !== null && agent.status === 'idle') {
+				pairs.push(e.ts_ms - lastEntry);
+				lastEntry = null;
+			}
+		}
+		return pairs;
+	}
+	function pctInline(values, p) {
+		const cleaned = values.filter((v) => typeof v === 'number' && Number.isFinite(v));
+		if (cleaned.length === 0) return null;
+		const sorted = [...cleaned].sort((a, b) => a - b);
+		const idx = Math.min(sorted.length - 1, Math.max(0, Math.floor((p / 100) * sorted.length)));
+		return sorted[idx];
+	}
+	const scoutProbeLatencies = computeScoutProbeLatencies();
+	const scoutProbeLatencyMsP50 = pctInline(scoutProbeLatencies, 50);
+	const scoutProbeLatencyMsMax = scoutProbeLatencies.length ? Math.max(...scoutProbeLatencies) : null;
+	const scoutProbeCount = scoutProbeLatencies.length;
+	const builderScaffoldLatencies = computeBuilderScaffoldLatencies();
+	const builderScaffoldLatencyMs = builderScaffoldLatencies[0] ?? null;
+	const builderScaffoldCount = builderScaffoldLatencies.length;
+
 	// Primary-stream stage-changed probe — closes iter-27's explicitly-
 	// deferred ordering invariant ("assert stream 1 sees stage-changed
 	// exactly once at t < time_to_session_ready_ms"). Under the broken-auth
@@ -959,7 +1026,12 @@ async function main() {
 			oracle_reveal_build_latency_ms: oracleRevealBuildLatencyMs,
 			oracle_cold_start_count: oracleColdStartCount,
 			oracle_synthesis_count: oracleSynthesisCount,
-			oracle_reveal_build_count: oracleRevealBuildCount
+			oracle_reveal_build_count: oracleRevealBuildCount,
+			scout_probe_latency_ms_p50: scoutProbeLatencyMsP50,
+			scout_probe_latency_ms_max: scoutProbeLatencyMsMax,
+			scout_probe_count: scoutProbeCount,
+			builder_scaffold_latency_ms: builderScaffoldLatencyMs,
+			builder_scaffold_count: builderScaffoldCount
 		},
 		error_event_samples: errorEvents.slice(0, 8).map((e) => ({
 			ts_ms: e.ts_ms,
@@ -990,7 +1062,9 @@ async function main() {
 		`s2_first=${stream2.first_event_ms_after_open}ms s2_span=${stream2.replay_span_ms}ms ` +
 		`oracle_cs=${oracleColdStartLatencyMs === null ? '-' : oracleColdStartLatencyMs + 'ms'} ` +
 		`oracle_syn=${oracleSynthesisLatencyMs === null ? '-' : oracleSynthesisLatencyMs + 'ms'} ` +
-		`oracle_rev=${oracleRevealBuildLatencyMs === null ? '-' : oracleRevealBuildLatencyMs + 'ms'}`
+		`oracle_rev=${oracleRevealBuildLatencyMs === null ? '-' : oracleRevealBuildLatencyMs + 'ms'} ` +
+		`scout_probe_p50=${scoutProbeLatencyMsP50 === null ? '-' : scoutProbeLatencyMsP50 + 'ms'}/n=${scoutProbeCount} ` +
+		`builder_scaffold=${builderScaffoldLatencyMs === null ? '-' : builderScaffoldLatencyMs + 'ms'}/n=${builderScaffoldCount}`
 	);
 	process.exit(pass ? 0 : 1);
 }

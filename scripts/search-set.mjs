@@ -140,7 +140,12 @@ function extractMetrics(artifact) {
 		oracle_reveal_build_latency_ms: m.oracle_reveal_build_latency_ms ?? null,
 		oracle_cold_start_count: m.oracle_cold_start_count ?? 0,
 		oracle_synthesis_count: m.oracle_synthesis_count ?? 0,
-		oracle_reveal_build_count: m.oracle_reveal_build_count ?? 0
+		oracle_reveal_build_count: m.oracle_reveal_build_count ?? 0,
+		scout_probe_latency_ms_p50: m.scout_probe_latency_ms_p50 ?? null,
+		scout_probe_latency_ms_max: m.scout_probe_latency_ms_max ?? null,
+		scout_probe_count: m.scout_probe_count ?? 0,
+		builder_scaffold_latency_ms: m.builder_scaffold_latency_ms ?? null,
+		builder_scaffold_count: m.builder_scaffold_count ?? 0
 	};
 }
 
@@ -616,7 +621,53 @@ async function main() {
 				? Math.min(...perIntent.map((p) => p.metrics.oracle_cold_start_count ?? 0))
 				: 0,
 			oracle_synthesis_count_sum: sumMetric('oracle_synthesis_count'),
-			oracle_reveal_build_count_sum: sumMetric('oracle_reveal_build_count')
+			oracle_reveal_build_count_sum: sumMetric('oracle_reveal_build_count'),
+			// iter-51 Stage 8 per-agent-class latency siblings — scout probe and
+			// builder scaffold. Parallel to iter-50's oracle cold-start/synthesis/
+			// reveal rollups but for the other two agent classes, giving full
+			// per-class latency visibility across the 3-role roster. Under the
+			// broken-auth baseline BOTH fire (scout × 6 per run + builder × 1 per
+			// run with ~180ms 401 RTT each), so unlike iter-50's synthesis/reveal
+			// which are forward-deploy (null until auth is fixed), these light up
+			// immediately: scout_probe_count_sum=30 _min=6 (6 scouts × 5 intents),
+			// builder_scaffold_count_sum=5 _min=1 (1 builder × 5 intents), and
+			// both latency p50/p90 rollups carry observable Anthropic RTT signal.
+			// scout_probe_latency_ms_p50/p90 here are percentiles ACROSS intents
+			// of each intent's own per-run p50 — a scout-specific cold-start
+			// latency orthogonal to oracle_cold_start_latency_ms because they
+			// cover different generateText call sites (scout.ts vs oracle.ts)
+			// that could regress independently (e.g. scout-only retry loop
+			// reintroduction would widen scout p90 while leaving oracle intact).
+			scout_probe_latency_ms_p50: percentile(
+				perIntent.map((p) => p.metrics.scout_probe_latency_ms_p50),
+				50
+			),
+			scout_probe_latency_ms_p90: percentile(
+				perIntent.map((p) => p.metrics.scout_probe_latency_ms_p50),
+				90
+			),
+			scout_probe_latency_ms_max: (() => {
+				const vals = perIntent
+					.map((p) => p.metrics.scout_probe_latency_ms_max)
+					.filter((v) => typeof v === 'number' && Number.isFinite(v));
+				return vals.length ? Math.max(...vals) : null;
+			})(),
+			scout_probe_count_sum: sumMetric('scout_probe_count'),
+			scout_probe_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.scout_probe_count ?? 0))
+				: 0,
+			builder_scaffold_latency_ms_p50: percentile(
+				perIntent.map((p) => p.metrics.builder_scaffold_latency_ms),
+				50
+			),
+			builder_scaffold_latency_ms_p90: percentile(
+				perIntent.map((p) => p.metrics.builder_scaffold_latency_ms),
+				90
+			),
+			builder_scaffold_count_sum: sumMetric('builder_scaffold_count'),
+			builder_scaffold_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.builder_scaffold_count ?? 0))
+				: 0
 		},
 		per_intent: perIntent
 	};
