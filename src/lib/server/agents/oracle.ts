@@ -428,8 +428,29 @@ export function startOracle(): void {
 				setOracleStatus('thinking', 'building final prototype');
 				console.log(`[oracle] reveal at ${context.evidence.length} evidence — awaiting builder`);
 
-				// Builder does final synthesis FIRST, then we tell the client
+				// Builder does final synthesis FIRST, then we tell the client.
+				// iter-53: capture sessionId before the fire-and-forget dispatch so
+				// the .finally can skip cross-session emissions when seedSession
+				// starts a new session while buildRevealDraft is still pending.
+				// Parallel family to iter-45 runColdStart, iter-46 rebuild,
+				// iter-47 runSynthesis, iter-48 scaffold, iter-49 buildRevealDraft
+				// — but at the orchestrator level (reading builder's persisted
+				// focus per iter-33 across a session boundary would otherwise emit
+				// stage-changed('reveal') + setOracleStatus('reveal complete') on
+				// the NEW session's bus, polluting the client UI which is in
+				// 'words' stage. buildRevealDraft's own iter-49 guards suppress
+				// its emitError/setStatus but not this outer wrapper. Unreachable
+				// under broken-auth (REVEAL_THRESHOLD=15 never reached), forward-
+				// deploy defense identical to the rest of the family.
+				const revealCapturedSessionId = context.sessionId;
 				buildRevealDraft().finally(() => {
+					if (context.sessionId !== revealCapturedSessionId) {
+						debugLog('Oracle', 'reveal-finally-stale', {
+							captured: revealCapturedSessionId,
+							current: context.sessionId
+						});
+						return;
+					}
 					emitStageChanged({ stage: 'reveal', swipeCount: context.swipeCount });
 					// iter-33: mirror builder's auth-failure focus at the oracle-level
 					// wrapper. iter-32's flag-and-branch in buildRevealDraft's finally
