@@ -200,10 +200,19 @@ async function main() {
 	const firstFacadeValues = perIntent.map((p) => p.metrics.time_to_first_facade_ms);
 	const firstDraftValues = perIntent.map((p) => p.metrics.time_to_first_draft_ms);
 	const firstSynthesisValues = perIntent.map((p) => p.metrics.time_to_first_synthesis_ms);
-	const authFailureSum = perIntent.reduce(
-		(acc, p) => acc + (p.metrics.provider_auth_failure_count ?? 0),
+	const sumMetric = (key) =>
+		perIntent.reduce((acc, p) => acc + (p.metrics[key] ?? 0), 0);
+	const authFailureSum = sumMetric('provider_auth_failure_count');
+	const errorEventSum = sumMetric('error_event_count');
+	const facadeReadyCountSum = sumMetric('facade_ready_count');
+	const draftUpdatedCountSum = sumMetric('draft_updated_count');
+	const synthesisUpdatedCountSum = sumMetric('synthesis_updated_count');
+	const swipeResultCountSum = sumMetric('swipe_result_count');
+	const revealReachedCount = perIntent.reduce(
+		(acc, p) => acc + (p.metrics.reveal_reached ? 1 : 0),
 		0
 	);
+	const revealReachRate = perIntent.length > 0 ? revealReachedCount / perIntent.length : 0;
 
 	const aggregate = {
 		started_at: startedAt,
@@ -225,6 +234,14 @@ async function main() {
 			time_to_first_draft_ms_p50: percentile(firstDraftValues, 50),
 			time_to_first_draft_ms_p90: percentile(firstDraftValues, 90),
 			time_to_first_synthesis_ms_p50: percentile(firstSynthesisValues, 50),
+			time_to_first_synthesis_ms_p90: percentile(firstSynthesisValues, 90),
+			reveal_reached_count: revealReachedCount,
+			reveal_reach_rate: revealReachRate,
+			facade_ready_count_sum: facadeReadyCountSum,
+			draft_updated_count_sum: draftUpdatedCountSum,
+			synthesis_updated_count_sum: synthesisUpdatedCountSum,
+			swipe_result_count_sum: swipeResultCountSum,
+			error_event_count_sum: errorEventSum,
 			provider_auth_failure_count_sum: authFailureSum
 		},
 		per_intent: perIntent
