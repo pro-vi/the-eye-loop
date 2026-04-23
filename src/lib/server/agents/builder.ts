@@ -201,6 +201,15 @@ async function rebuild(facade: Facade, record: SwipeRecord) {
 	// Only matters post-healthy-auth (rebuild fires on every swipe, unreachable
 	// under broken auth because no facade arrives).
 	let authFailed = false;
+	// iter-46: cross-session staleness flag. The existing success-path guard at
+	// line ~252 returns early but finally still runs setStatus, overwriting the
+	// NEW session's builder focus with this stale run's state. Parallel family
+	// to iter-19 palette reset, iter-21 bus dedup clear, iter-42 conditional
+	// stage-changed, and iter-45 runColdStart catch guard — all close cross-
+	// session state leaks that arise when an async handler races a seedSession.
+	// Also guards the catch block's emitError so a stale rejection doesn't
+	// pollute the new session's bus.lastError (iter-26 replay source).
+	let stale = false;
 	try {
 		const antiStr = context.antiPatterns.length
 			? context.antiPatterns.map((p) => `  - ${p}`).join('\n')
@@ -250,6 +259,7 @@ async function rebuild(facade: Facade, record: SwipeRecord) {
 		});
 
 		if (context.sessionId !== capturedId) {
+			stale = true;
 			console.log('[builder] session changed during rebuild, discarding');
 			return;
 		}
@@ -336,6 +346,20 @@ async function rebuild(facade: Facade, record: SwipeRecord) {
 			});
 		}
 	} catch (err) {
+		// iter-46 staleness guard, symmetric to the success-path check above and
+		// parallel to iter-45's runColdStart catch. Under fire-and-forget rebuild
+		// timing a stale rejection would otherwise emitError (polluting the new
+		// session's bus.lastError) and fall through to finally's setStatus
+		// (overwriting the new session's builder focus).
+		if (context.sessionId !== capturedId) {
+			stale = true;
+			debugLog('Builder', 'rebuild-stale-error', {
+				captured: capturedId,
+				current: context.sessionId,
+				err: String(err)
+			});
+			return;
+		}
 		console.error('[builder] rebuild failed:', err);
 		const code = classifyErrorCode(err);
 		if (code === 'provider_auth_failure') authFailed = true;
@@ -346,7 +370,15 @@ async function rebuild(facade: Facade, record: SwipeRecord) {
 			message: err instanceof Error ? err.message : String(err)
 		});
 	} finally {
-		setStatus('idle', authFailed ? 'provider auth failed' : 'watching for swipes');
+		// iter-46: skip the setStatus write when the run was stale — the new
+		// session owns builder-01's agent state now, and this run's 'watching'
+		// or 'provider auth failed' would overwrite it. busy + drainPending
+		// still run because the module-level busy gate must be released for the
+		// new session's rebuild queue to drain (drainPending's own sessionId
+		// check at line ~176 already keeps it safe for session-scoped pending).
+		if (!stale) {
+			setStatus('idle', authFailed ? 'provider auth failed' : 'watching for swipes');
+		}
 		busy = false;
 		drainPending();
 	}
