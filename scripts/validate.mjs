@@ -411,6 +411,10 @@ async function main() {
 		error_message_present_count: 0,
 		agent_status_valid_count: 0,
 		stage_changed_swipe_count_valid_count: 0,
+		// iter-67: facade.format union-membership probe — first content probe
+		// on facade-ready (iter-66 added the count; no content probe existed
+		// prior). ∈ {'word', 'mockup'} per types.ts:24.
+		facade_format_valid_count: 0,
 		first_event_ms_after_open: null,
 		last_event_ms_after_open: null,
 		replay_span_ms: null,
@@ -628,6 +632,31 @@ async function main() {
 				typeof e.data?.swipeCount === 'number' &&
 				Number.isInteger(e.data.swipeCount) &&
 				e.data.swipeCount >= 0
+		).length;
+		// iter-67: facade.format union-membership probe (stream_2) — first content
+		// probe on any facade-ready event, breaking the long-standing 66-iteration
+		// gap where facade-ready had only count-based probes (iter-66 stream_2_
+		// facade_ready_count, primary facadeReadyCount since iter-1). Extends the
+		// iter-41/55/56/58/61 typed-union membership family to a NEW event type:
+		// facade.format ∈ {'word', 'mockup'} per types.ts:24. Sibling probes:
+		//   stage-changed.stage (iter-41/55), error.source (iter-41/55),
+		//   error.code (iter-41/56), agent.status (iter-58) — all on other events.
+		// Under iter-61's healthy-auth regime with V0 stage='words', every facade
+		// scouts produce carries format='word' (no stage transitions to 'mockups'
+		// in the 10-14s validator window), so the invariant is
+		//   stream_2_facade_format_valid_count = stream_2_facade_ready_count = 6
+		// per intent. Regression class orthogonal to iter-66 count probes: a
+		// regression that emits facade-ready with format=undefined (stripped from
+		// payload), format='image' (typo / stale literal from iter-12 cleanup),
+		// or format=null (serialization bug) would leave stream_2_facade_ready_
+		// count at 6 while dropping this probe below 6 — the exact regression
+		// class typed-union probes are designed to catch. Forward-deploy signal:
+		// when a future product iteration introduces mockup-format facades in
+		// Stage='mockups', this probe continues to hold identity with the count
+		// because 'mockup' is a valid union value.
+		const VALID_FACADE_FORMATS = ['word', 'mockup'];
+		stream2.facade_format_valid_count = stream2.events.filter(
+			(e) => e.type === 'facade-ready' && VALID_FACADE_FORMATS.includes(e.data?.facade?.format)
 		).length;
 		// iter-65: draft-replay placeholder/refined discriminator (stream_2
 		// mirror of iter-64's primary-stream split). Under iter-61's healthy-auth
@@ -1212,6 +1241,28 @@ async function main() {
 			Number.isInteger(e.data.swipeCount) &&
 			e.data.swipeCount >= 0
 	).length;
+	// iter-67: facade.format union-membership probe (primary stream) — symmetric
+	// to stream2.facade_format_valid_count above. Extends the iter-41/55/56/58/61
+	// typed-union membership family to a NEW event type: facade.format ∈
+	// {'word', 'mockup'} per types.ts:24. Before iter-67, facade-ready had ZERO
+	// content probes after 66 iterations despite being the most-emitted event
+	// type per intent (7/intent under healthy auth, 6 replayed on stream_2).
+	// The {'word', 'mockup'} 2-value union parallels iter-41/55's stage 3-value
+	// union and iter-58's agent.status 4-value union. Under iter-61's healthy-
+	// auth baseline with V0 stage='words', all 7 facades per intent carry
+	// format='word', so the identity invariant is facade_format_valid_count =
+	// facade_ready_count = 7 per intent (sum=35/5 intents, _min=7). Regression
+	// class: a regression that emits facade-ready with format=undefined, format=
+	// 'image' (stale literal from pre-iter-12 cleanup), or format=null would
+	// leave iter-1's count probe intact at 7 while dropping this probe below 7.
+	// Forward-deploy discriminator: when future stages advance context.stage to
+	// 'mockups' and scouts emit format='mockup' facades, this probe continues
+	// to hold identity because 'mockup' is a valid union value — a desirable
+	// property for a baseline-regime-invariant probe.
+	const VALID_FACADE_FORMATS = new Set(['word', 'mockup']);
+	const facadeFormatValidCount = events.filter(
+		(e) => e.type === 'facade-ready' && VALID_FACADE_FORMATS.has(e.data?.facade?.format)
+	).length;
 
 	// Multi-session probe — always computed, but only populated when
 	// VALIDATE_SECOND_INTENT is set. session-ready events carry the intent in
@@ -1365,6 +1416,7 @@ async function main() {
 			stream_2_facade_ready_count: stream2.facade_ready_count,
 			stream_2_synthesis_updated_count: stream2.synthesis_updated_count,
 			stream_2_evidence_updated_count: stream2.evidence_updated_count,
+			stream_2_facade_format_valid_count: stream2.facade_format_valid_count,
 			stream_2_first_event_ms_after_open: stream2.first_event_ms_after_open,
 			stream_2_replay_span_ms: stream2.replay_span_ms,
 			stage_changed_event_count: stageChangedEventCount,
@@ -1375,6 +1427,7 @@ async function main() {
 			error_code_valid_count: errorCodeValidCount,
 			agent_status_valid_count: agentStatusValidCount,
 			stage_changed_swipe_count_valid_count: stageChangedSwipeCountValidCount,
+			facade_format_valid_count: facadeFormatValidCount,
 			oracle_cold_start_latency_ms: oracleColdStartLatencyMs,
 			oracle_synthesis_latency_ms: oracleSynthesisLatencyMs,
 			oracle_reveal_build_latency_ms: oracleRevealBuildLatencyMs,
@@ -1415,12 +1468,14 @@ async function main() {
 		`stage_changed=${stageChangedEventCount} stage_before_ready=${stageChangedBeforeSessionReady} ` +
 		`stage_valid=${stageValidCount} err_src_valid=${errorSourceValidCount} err_code_valid=${errorCodeValidCount} ` +
 		`agent_status_valid=${agentStatusValidCount} stage_swipe_valid=${stageChangedSwipeCountValidCount} ` +
+		`facade_fmt_valid=${facadeFormatValidCount} ` +
 		`s2_err=${stream2.error_event_count} s2_agents=${stream2.agent_status_count} s2_stage=${stream2.stage_changed_count} s2_diag=${stream2.diagnostic_preserved_count} s2_err_auth=${stream2.error_provider_auth_count} ` +
 		`s2_roles=s${stream2.agent_status_scout_count}/o${stream2.agent_status_oracle_count}/b${stream2.agent_status_builder_count} ` +
 		`s2_stage_valid=${stream2.stage_valid_count} s2_err_src_valid=${stream2.error_source_valid_count} s2_err_code_valid=${stream2.error_code_valid_count} s2_err_msg=${stream2.error_message_present_count} ` +
 		`s2_agent_status_valid=${stream2.agent_status_valid_count} s2_stage_swipe_valid=${stream2.stage_changed_swipe_count_valid_count} ` +
 		`s2_drafts=${stream2.draft_updated_count} s2_drafts_p/r=${stream2.draft_placeholder_count}/${stream2.draft_refined_count} ` +
 		`s2_facades=${stream2.facade_ready_count} s2_synth=${stream2.synthesis_updated_count} s2_evidence=${stream2.evidence_updated_count} ` +
+		`s2_facade_fmt_valid=${stream2.facade_format_valid_count} ` +
 		`s2_first=${stream2.first_event_ms_after_open}ms s2_span=${stream2.replay_span_ms}ms ` +
 		`oracle_cs=${oracleColdStartLatencyMs === null ? '-' : oracleColdStartLatencyMs + 'ms'} ` +
 		`oracle_syn=${oracleSynthesisLatencyMs === null ? '-' : oracleSynthesisLatencyMs + 'ms'} ` +

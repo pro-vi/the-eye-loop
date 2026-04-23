@@ -156,6 +156,8 @@ function extractMetrics(artifact) {
 		stream_2_facade_ready_count: m.stream_2_facade_ready_count ?? 0,
 		stream_2_synthesis_updated_count: m.stream_2_synthesis_updated_count ?? 0,
 		stream_2_evidence_updated_count: m.stream_2_evidence_updated_count ?? 0,
+		facade_format_valid_count: m.facade_format_valid_count ?? 0,
+		stream_2_facade_format_valid_count: m.stream_2_facade_format_valid_count ?? 0,
 		session_ready_intent_present_count: m.session_ready_intent_present_count ?? 0,
 		oracle_cold_start_latency_ms: m.oracle_cold_start_latency_ms ?? null,
 		oracle_synthesis_latency_ms: m.oracle_synthesis_latency_ms ?? null,
@@ -878,6 +880,39 @@ async function main() {
 			stream_2_evidence_updated_count_sum: sumMetric('stream_2_evidence_updated_count'),
 			stream_2_evidence_updated_count_min: perIntent.length
 				? Math.min(...perIntent.map((p) => p.metrics.stream_2_evidence_updated_count ?? 0))
+				: 0,
+			// iter-67: facade.format union-membership rollups (primary + stream_2)
+			// — first content-probe aggregates on the facade-ready event type,
+			// closing the 66-iteration gap where facade-ready had only count
+			// rollups. Under iter-61's healthy-auth baseline with V0 stage='words',
+			// every facade carries format='word', so the identity invariants are:
+			//   facade_format_valid_count_sum = facade_ready_count_sum = 35 _min=7
+			//     (primary — 7 facades × 5 intents, all format='word')
+			//   stream_2_facade_format_valid_count_sum = stream_2_facade_ready_
+			//     count_sum = 30 _min=6 (stream_2 — 6 facades replayed at snapshot
+			//     per iter-66, one late-arriving facade missed)
+			// Regression classes these aggregate rollups catch that the iter-66
+			// count rollups cannot:
+			//   - facade-ready emit site passes format=undefined: facade_ready_
+			//     count stays at 7/6 while facade_format_valid drops to 0.
+			//   - format='image' stale literal reintroduced from pre-iter-12
+			//     cleanup: both count rollups hold, format_valid collapses to 0.
+			//   - format=null from JSON.stringify of a Date/enum object: count
+			//     rollups hold, format_valid collapses below the count.
+			// Forward-deploy discriminator for future stage='mockups' regime: when
+			// scouts emit format='mockup' facades, the 'mockup' ∈ {'word','mockup'}
+			// union continues to hold identity — unlike specific-value probes
+			// (e.g. a hypothetical 'facade_word_count') that would drop when the
+			// product correctly advances to mockup-format facades. This is the
+			// preferred pattern per iter-56's 'specific-value ≠ union-membership'
+			// learning, replicated on the facade-ready event.
+			facade_format_valid_count_sum: sumMetric('facade_format_valid_count'),
+			facade_format_valid_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.facade_format_valid_count ?? 0))
+				: 0,
+			stream_2_facade_format_valid_count_sum: sumMetric('stream_2_facade_format_valid_count'),
+			stream_2_facade_format_valid_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.stream_2_facade_format_valid_count ?? 0))
 				: 0,
 			time_to_first_stage_changed_ms_p50: percentile(
 				perIntent.map((p) => p.metrics.time_to_first_stage_changed_ms),

@@ -1,0 +1,1156 @@
+{
+  "started_at": "2026-04-23T23:32:52.742Z",
+  "finished_at": "2026-04-23T23:33:07.209Z",
+  "elapsed_ms": 14467,
+  "result": "PASS",
+  "reason": "facade_and_draft_observed",
+  "intent": "ai workspace",
+  "dev_url": "http://localhost:37098",
+  "session": {
+    "rtt_ms": 10,
+    "status": 200,
+    "body": {
+      "intent": "ai workspace",
+      "sessionId": "c2c33d50-1947-4fbb-a8a5-a163c0e2a61d"
+    },
+    "error": null
+  },
+  "session_2": {
+    "attempted": false,
+    "intent": null,
+    "rtt_ms": null,
+    "status": null,
+    "body": null,
+    "error": null,
+    "posted_at_ms": null,
+    "waited_ms": null
+  },
+  "stream": {
+    "opened_at_ms": 847,
+    "error": null,
+    "event_counts": {
+      "agent-status": 21,
+      "stage-changed": 1,
+      "draft-updated": 1,
+      "session-ready": 1,
+      "facade-ready": 7,
+      "swipe-result": 1,
+      "evidence-updated": 1,
+      "synthesis-updated": 1
+    },
+    "first_event_ms": {
+      "agent-status": 852,
+      "stage-changed": 852,
+      "draft-updated": 1366,
+      "session-ready": 1366,
+      "facade-ready": 3606,
+      "swipe-result": 3645,
+      "evidence-updated": 3645,
+      "synthesis-updated": 4902
+    },
+    "events": [
+      {
+        "ts_ms": 852,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "oracle",
+            "name": "Oracle",
+            "role": "oracle",
+            "status": "idle",
+            "focus": "monitoring"
+          }
+        }
+      },
+      {
+        "ts_ms": 852,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "idle",
+            "focus": "waiting for session"
+          }
+        }
+      },
+      {
+        "ts_ms": 852,
+        "type": "stage-changed",
+        "data": {
+          "type": "stage-changed",
+          "stage": "words",
+          "swipeCount": 0
+        }
+      },
+      {
+        "ts_ms": 1366,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "thinking",
+            "focus": "generating initial scaffold"
+          }
+        }
+      },
+      {
+        "ts_ms": 1366,
+        "type": "draft-updated",
+        "data": {
+          "type": "draft-updated",
+          "draft": {
+            "title": "ai workspace",
+            "summary": "Drafting your prototype from the swipes…",
+            "html": "<div style=\"padding:2rem;text-align:center;color:var(--muted,#8a7f78);opacity:0.75\"><h2 style=\"margin:0 0 1rem;font-weight:400\">ai workspace</h2><p style=\"margin:0\">Building your first draft…</p></div>",
+            "acceptedPatterns": [],
+            "rejectedPatterns": []
+          }
+        }
+      },
+      {
+        "ts_ms": 1366,
+        "type": "session-ready",
+        "data": {
+          "type": "session-ready",
+          "intent": "ai workspace"
+        }
+      },
+      {
+        "ts_ms": 1366,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "oracle",
+            "name": "Oracle",
+            "role": "oracle",
+            "status": "thinking",
+            "focus": "cold-start analysis"
+          }
+        }
+      },
+      {
+        "ts_ms": 1366,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-01",
+            "name": "Iris",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1366,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-02",
+            "name": "Prism",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1366,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-03",
+            "name": "Lumen",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1366,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-04",
+            "name": "Aura",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1366,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-05",
+            "name": "Facet",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1366,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-06",
+            "name": "Echo",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 3606,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "f5e31b5a-43fe-4efa-890e-e4163509316c",
+            "agentId": "scout-01",
+            "hypothesis": "Users building AI workspaces prefer gentle, approachable interfaces over sharp geometric forms",
+            "axisTargeted": "Roundedness vs. Sharpness",
+            "label": "Soft rounded corners",
+            "content": "Soft rounded corners",
+            "format": "word",
+            "acceptImplies": "Design should use generous border-radius, curved edges, and smooth transitions throughout the workspace UI",
+            "rejectImplies": "User may prefer more angular, modern, or technical aesthetic with sharp corners and defined geometry"
+          }
+        }
+      },
+      {
+        "ts_ms": 3606,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-01",
+            "name": "Iris",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Soft rounded corners\"",
+            "lastFacadeId": "f5e31b5a-43fe-4efa-890e-e4163509316c"
+          }
+        }
+      },
+      {
+        "ts_ms": 3645,
+        "type": "swipe-result",
+        "data": {
+          "type": "swipe-result",
+          "record": {
+            "facadeId": "f5e31b5a-43fe-4efa-890e-e4163509316c",
+            "agentId": "scout-01",
+            "decision": "accept",
+            "latencyMs": 600,
+            "latencyBucket": "slow"
+          }
+        }
+      },
+      {
+        "ts_ms": 3645,
+        "type": "evidence-updated",
+        "data": {
+          "type": "evidence-updated",
+          "evidence": [
+            {
+              "facadeId": "f5e31b5a-43fe-4efa-890e-e4163509316c",
+              "content": "Soft rounded corners",
+              "hypothesis": "Users building AI workspaces prefer gentle, approachable interfaces over sharp geometric forms",
+              "decision": "accept",
+              "latencySignal": "slow",
+              "format": "word",
+              "implication": "Design should use generous border-radius, curved edges, and smooth transitions throughout the workspace UI"
+            }
+          ],
+          "antiPatterns": []
+        }
+      },
+      {
+        "ts_ms": 3645,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-01",
+            "name": "Iris",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe",
+            "lastFacadeId": "f5e31b5a-43fe-4efa-890e-e4163509316c"
+          }
+        }
+      },
+      {
+        "ts_ms": 3731,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "c6315e8d-ac57-4e8e-8870-93fca272d383",
+            "agentId": "scout-03",
+            "hypothesis": "Users prefer a professional, no-nonsense tone for productivity tools",
+            "axisTargeted": "friendly vs professional",
+            "label": "All business",
+            "content": "All business",
+            "format": "word",
+            "acceptImplies": "Lean toward corporate, efficient voice—minimal humor, clear directives, credential-forward messaging",
+            "rejectImplies": "Lean toward conversational, approachable voice—warmth and personality matter even in work tools"
+          }
+        }
+      },
+      {
+        "ts_ms": 3731,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-03",
+            "name": "Lumen",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"All business\"",
+            "lastFacadeId": "c6315e8d-ac57-4e8e-8870-93fca272d383"
+          }
+        }
+      },
+      {
+        "ts_ms": 3764,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "11cb2dbf-0527-446d-b493-832dd5ce85f7",
+            "agentId": "scout-05",
+            "hypothesis": "Users prefer quantified metrics over narrative summaries for workspace overview",
+            "axisTargeted": "numbers vs narrative",
+            "label": "Dashboard numbers",
+            "content": "Dashboard numbers",
+            "format": "word",
+            "acceptImplies": "Workspace should lead with live metrics, KPIs, and counts (tasks pending, team capacity, time spent) rather than prose descriptions",
+            "rejectImplies": "Workspace should emphasize prose, context, and story-driven updates over raw metrics and numerical displays"
+          }
+        }
+      },
+      {
+        "ts_ms": 3764,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-05",
+            "name": "Facet",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Dashboard numbers\"",
+            "lastFacadeId": "11cb2dbf-0527-446d-b493-832dd5ce85f7"
+          }
+        }
+      },
+      {
+        "ts_ms": 4066,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "1dd227ca-bb4e-492e-ba9d-c91db9f63f95",
+            "agentId": "scout-04",
+            "hypothesis": "Users working in AI tools prefer gentle, diffused lighting over harsh contrast",
+            "axisTargeted": "warm vs cool",
+            "label": "Soft shadows",
+            "content": "Soft shadows",
+            "format": "word",
+            "acceptImplies": "Design favors low-contrast, ambient aesthetics; warm lighting; reduced eye strain; cozy computational feel",
+            "rejectImplies": "User prefers clarity over comfort; high contrast or clinical precision; cool/bright interface; separation between tool and self"
+          }
+        }
+      },
+      {
+        "ts_ms": 4066,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-04",
+            "name": "Aura",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Soft shadows\"",
+            "lastFacadeId": "1dd227ca-bb4e-492e-ba9d-c91db9f63f95"
+          }
+        }
+      },
+      {
+        "ts_ms": 4156,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "abfcc27b-fba5-4254-bdee-8fe268c6024d",
+            "agentId": "scout-06",
+            "hypothesis": "Users of AI workspaces strongly prefer immediate feedback over animated transitions when executing commands",
+            "axisTargeted": "snappy vs fluid",
+            "label": "Instant response",
+            "content": "Instant response",
+            "format": "word",
+            "acceptImplies": "The workspace should prioritize zero-latency visual feedback; clicks execute and show results instantly without motion delays",
+            "rejectImplies": "The workspace should embrace transitional motion; animations between states help users track context and feel intentional rather than jarring"
+          }
+        }
+      },
+      {
+        "ts_ms": 4156,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-06",
+            "name": "Echo",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Instant response\"",
+            "lastFacadeId": "abfcc27b-fba5-4254-bdee-8fe268c6024d"
+          }
+        }
+      },
+      {
+        "ts_ms": 4285,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "768c360e-df81-49a5-b6a5-00581aaa38b8",
+            "agentId": "scout-02",
+            "hypothesis": "Users prefer a persistent left sidebar for workspace navigation over top tabs, reducing cognitive load when switching between tools",
+            "axisTargeted": "Navigation structure: sidebar vs tabs",
+            "label": "Sidebar focus",
+            "content": "Sidebar focus",
+            "format": "word",
+            "acceptImplies": "Explore variants: collapsible sidebar, icon-only rail, sidebar with floating action buttons for quick task creation",
+            "rejectImplies": "Investigate tab-based or hybrid navigation; test horizontal tab strips, floating tabs, or command palette as primary navigation"
+          }
+        }
+      },
+      {
+        "ts_ms": 4285,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-02",
+            "name": "Prism",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Sidebar focus\"",
+            "lastFacadeId": "768c360e-df81-49a5-b6a5-00581aaa38b8"
+          }
+        }
+      },
+      {
+        "ts_ms": 4902,
+        "type": "synthesis-updated",
+        "data": {
+          "type": "synthesis-updated",
+          "synthesis": {
+            "axes": [
+              {
+                "label": "Whether user prefers minimal/clean aesthetic vs rich/detailed visual design for their workspace",
+                "poleA": "Minimal or detailed?",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user wants tools always visible vs hidden/revealed on demand in their interface layout",
+                "poleA": "Always visible tools",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user responds to encouraging/motivational tone vs neutral/professional communication style",
+                "poleA": "Encouraging tone",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user wants a calm/focused atmosphere vs energetic/stimulating workspace mood",
+                "poleA": "Calm focus",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user prefers data-heavy dashboards vs simplified summaries and key metrics only",
+                "poleA": "Show everything",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user likes instant feedback and snappy responses vs smooth, deliberate transitions and animations",
+                "poleA": "Quick or smooth?",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              }
+            ],
+            "edge_case_flags": [],
+            "scout_assignments": [
+              {
+                "scout": "Iris",
+                "probe_axis": "Whether user prefers minimal/clean aesthetic vs rich/detailed visual design for their workspace",
+                "reason": "Cold start: first question for Iris"
+              },
+              {
+                "scout": "Prism",
+                "probe_axis": "Whether user wants tools always visible vs hidden/revealed on demand in their interface layout",
+                "reason": "Cold start: first question for Prism"
+              },
+              {
+                "scout": "Lumen",
+                "probe_axis": "Whether user responds to encouraging/motivational tone vs neutral/professional communication style",
+                "reason": "Cold start: first question for Lumen"
+              },
+              {
+                "scout": "Aura",
+                "probe_axis": "Whether user wants a calm/focused atmosphere vs energetic/stimulating workspace mood",
+                "reason": "Cold start: first question for Aura"
+              },
+              {
+                "scout": "Facet",
+                "probe_axis": "Whether user prefers data-heavy dashboards vs simplified summaries and key metrics only",
+                "reason": "Cold start: first question for Facet"
+              },
+              {
+                "scout": "Echo",
+                "probe_axis": "Whether user likes instant feedback and snappy responses vs smooth, deliberate transitions and animations",
+                "reason": "Cold start: first question for Echo"
+              }
+            ],
+            "persona_anima_divergence": null
+          }
+        }
+      },
+      {
+        "ts_ms": 4902,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "oracle",
+            "name": "Oracle",
+            "role": "oracle",
+            "status": "idle",
+            "focus": "monitoring"
+          }
+        }
+      },
+      {
+        "ts_ms": 5721,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "b59f02f7-f9b3-468f-9b60-8c68fcbba1d1",
+            "agentId": "scout-01",
+            "hypothesis": "Users building AI workspaces prefer dark or low-contrast color schemes over bright, light interfaces",
+            "axisTargeted": "color_brightness",
+            "label": "Dark background",
+            "content": "Dark background",
+            "format": "word",
+            "acceptImplies": "Prioritize dark mode, dim color palettes, and high contrast text in the workspace design system",
+            "rejectImplies": "Light, bright, or neutral backgrounds may be preferred; explore bright or medium-tone color strategies instead"
+          }
+        }
+      },
+      {
+        "ts_ms": 5721,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-01",
+            "name": "Iris",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Dark background\"",
+            "lastFacadeId": "b59f02f7-f9b3-468f-9b60-8c68fcbba1d1"
+          }
+        }
+      },
+      {
+        "ts_ms": 11987,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "idle",
+            "focus": "watching for swipes"
+          }
+        }
+      },
+      {
+        "ts_ms": 11987,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "thinking",
+            "focus": "analyzing accept on \"Soft rounded corners\""
+          }
+        }
+      }
+    ]
+  },
+  "stream_2": {
+    "attempted": true,
+    "opened_at_ms": 13362,
+    "elapsed_ms": 803,
+    "event_counts": {
+      "synthesis-updated": 1,
+      "draft-updated": 1,
+      "evidence-updated": 1,
+      "agent-status": 8,
+      "facade-ready": 6,
+      "stage-changed": 1
+    },
+    "error_event_count": 0,
+    "agent_status_count": 8,
+    "stage_changed_count": 1,
+    "draft_updated_count": 1,
+    "draft_placeholder_count": 1,
+    "draft_refined_count": 0,
+    "facade_ready_count": 6,
+    "synthesis_updated_count": 1,
+    "evidence_updated_count": 1,
+    "diagnostic_preserved_count": 0,
+    "error_provider_auth_count": 0,
+    "agent_status_scout_count": 6,
+    "agent_status_oracle_count": 1,
+    "agent_status_builder_count": 1,
+    "stage_valid_count": 1,
+    "error_source_valid_count": 0,
+    "error_code_valid_count": 0,
+    "error_message_present_count": 0,
+    "agent_status_valid_count": 8,
+    "stage_changed_swipe_count_valid_count": 1,
+    "facade_format_valid_count": 6,
+    "first_event_ms_after_open": 2,
+    "last_event_ms_after_open": 2,
+    "replay_span_ms": 0,
+    "events": [
+      {
+        "ts_ms": 13364,
+        "type": "synthesis-updated",
+        "data": {
+          "type": "synthesis-updated",
+          "synthesis": {
+            "axes": [
+              {
+                "label": "Whether user prefers minimal/clean aesthetic vs rich/detailed visual design for their workspace",
+                "poleA": "Minimal or detailed?",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user wants tools always visible vs hidden/revealed on demand in their interface layout",
+                "poleA": "Always visible tools",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user responds to encouraging/motivational tone vs neutral/professional communication style",
+                "poleA": "Encouraging tone",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user wants a calm/focused atmosphere vs energetic/stimulating workspace mood",
+                "poleA": "Calm focus",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user prefers data-heavy dashboards vs simplified summaries and key metrics only",
+                "poleA": "Show everything",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user likes instant feedback and snappy responses vs smooth, deliberate transitions and animations",
+                "poleA": "Quick or smooth?",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              }
+            ],
+            "edge_case_flags": [],
+            "scout_assignments": [
+              {
+                "scout": "Iris",
+                "probe_axis": "Whether user prefers minimal/clean aesthetic vs rich/detailed visual design for their workspace",
+                "reason": "Cold start: first question for Iris"
+              },
+              {
+                "scout": "Prism",
+                "probe_axis": "Whether user wants tools always visible vs hidden/revealed on demand in their interface layout",
+                "reason": "Cold start: first question for Prism"
+              },
+              {
+                "scout": "Lumen",
+                "probe_axis": "Whether user responds to encouraging/motivational tone vs neutral/professional communication style",
+                "reason": "Cold start: first question for Lumen"
+              },
+              {
+                "scout": "Aura",
+                "probe_axis": "Whether user wants a calm/focused atmosphere vs energetic/stimulating workspace mood",
+                "reason": "Cold start: first question for Aura"
+              },
+              {
+                "scout": "Facet",
+                "probe_axis": "Whether user prefers data-heavy dashboards vs simplified summaries and key metrics only",
+                "reason": "Cold start: first question for Facet"
+              },
+              {
+                "scout": "Echo",
+                "probe_axis": "Whether user likes instant feedback and snappy responses vs smooth, deliberate transitions and animations",
+                "reason": "Cold start: first question for Echo"
+              }
+            ],
+            "persona_anima_divergence": null
+          }
+        }
+      },
+      {
+        "ts_ms": 13364,
+        "type": "draft-updated",
+        "data": {
+          "type": "draft-updated",
+          "draft": {
+            "title": "ai workspace",
+            "summary": "Drafting your prototype from the swipes…",
+            "html": "<div style=\"padding:2rem;text-align:center;color:var(--muted,#8a7f78);opacity:0.75\"><h2 style=\"margin:0 0 1rem;font-weight:400\">ai workspace</h2><p style=\"margin:0\">Building your first draft…</p></div>",
+            "acceptedPatterns": [],
+            "rejectedPatterns": []
+          }
+        }
+      },
+      {
+        "ts_ms": 13364,
+        "type": "evidence-updated",
+        "data": {
+          "type": "evidence-updated",
+          "evidence": [
+            {
+              "facadeId": "f5e31b5a-43fe-4efa-890e-e4163509316c",
+              "content": "Soft rounded corners",
+              "hypothesis": "Users building AI workspaces prefer gentle, approachable interfaces over sharp geometric forms",
+              "decision": "accept",
+              "latencySignal": "slow",
+              "format": "word",
+              "implication": "Design should use generous border-radius, curved edges, and smooth transitions throughout the workspace UI"
+            }
+          ],
+          "antiPatterns": []
+        }
+      },
+      {
+        "ts_ms": 13364,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "thinking",
+            "focus": "analyzing accept on \"Soft rounded corners\""
+          }
+        }
+      },
+      {
+        "ts_ms": 13364,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "oracle",
+            "name": "Oracle",
+            "role": "oracle",
+            "status": "idle",
+            "focus": "monitoring"
+          }
+        }
+      },
+      {
+        "ts_ms": 13364,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-01",
+            "name": "Iris",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Dark background\"",
+            "lastFacadeId": "b59f02f7-f9b3-468f-9b60-8c68fcbba1d1"
+          }
+        }
+      },
+      {
+        "ts_ms": 13364,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-02",
+            "name": "Prism",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Sidebar focus\"",
+            "lastFacadeId": "768c360e-df81-49a5-b6a5-00581aaa38b8"
+          }
+        }
+      },
+      {
+        "ts_ms": 13364,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-03",
+            "name": "Lumen",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"All business\"",
+            "lastFacadeId": "c6315e8d-ac57-4e8e-8870-93fca272d383"
+          }
+        }
+      },
+      {
+        "ts_ms": 13364,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-04",
+            "name": "Aura",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Soft shadows\"",
+            "lastFacadeId": "1dd227ca-bb4e-492e-ba9d-c91db9f63f95"
+          }
+        }
+      },
+      {
+        "ts_ms": 13364,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-05",
+            "name": "Facet",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Dashboard numbers\"",
+            "lastFacadeId": "11cb2dbf-0527-446d-b493-832dd5ce85f7"
+          }
+        }
+      },
+      {
+        "ts_ms": 13364,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-06",
+            "name": "Echo",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Instant response\"",
+            "lastFacadeId": "abfcc27b-fba5-4254-bdee-8fe268c6024d"
+          }
+        }
+      },
+      {
+        "ts_ms": 13364,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "c6315e8d-ac57-4e8e-8870-93fca272d383",
+            "agentId": "scout-03",
+            "hypothesis": "Users prefer a professional, no-nonsense tone for productivity tools",
+            "axisTargeted": "friendly vs professional",
+            "label": "All business",
+            "content": "All business",
+            "format": "word",
+            "acceptImplies": "Lean toward corporate, efficient voice—minimal humor, clear directives, credential-forward messaging",
+            "rejectImplies": "Lean toward conversational, approachable voice—warmth and personality matter even in work tools"
+          }
+        }
+      },
+      {
+        "ts_ms": 13364,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "11cb2dbf-0527-446d-b493-832dd5ce85f7",
+            "agentId": "scout-05",
+            "hypothesis": "Users prefer quantified metrics over narrative summaries for workspace overview",
+            "axisTargeted": "numbers vs narrative",
+            "label": "Dashboard numbers",
+            "content": "Dashboard numbers",
+            "format": "word",
+            "acceptImplies": "Workspace should lead with live metrics, KPIs, and counts (tasks pending, team capacity, time spent) rather than prose descriptions",
+            "rejectImplies": "Workspace should emphasize prose, context, and story-driven updates over raw metrics and numerical displays"
+          }
+        }
+      },
+      {
+        "ts_ms": 13364,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "1dd227ca-bb4e-492e-ba9d-c91db9f63f95",
+            "agentId": "scout-04",
+            "hypothesis": "Users working in AI tools prefer gentle, diffused lighting over harsh contrast",
+            "axisTargeted": "warm vs cool",
+            "label": "Soft shadows",
+            "content": "Soft shadows",
+            "format": "word",
+            "acceptImplies": "Design favors low-contrast, ambient aesthetics; warm lighting; reduced eye strain; cozy computational feel",
+            "rejectImplies": "User prefers clarity over comfort; high contrast or clinical precision; cool/bright interface; separation between tool and self"
+          }
+        }
+      },
+      {
+        "ts_ms": 13364,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "abfcc27b-fba5-4254-bdee-8fe268c6024d",
+            "agentId": "scout-06",
+            "hypothesis": "Users of AI workspaces strongly prefer immediate feedback over animated transitions when executing commands",
+            "axisTargeted": "snappy vs fluid",
+            "label": "Instant response",
+            "content": "Instant response",
+            "format": "word",
+            "acceptImplies": "The workspace should prioritize zero-latency visual feedback; clicks execute and show results instantly without motion delays",
+            "rejectImplies": "The workspace should embrace transitional motion; animations between states help users track context and feel intentional rather than jarring"
+          }
+        }
+      },
+      {
+        "ts_ms": 13364,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "768c360e-df81-49a5-b6a5-00581aaa38b8",
+            "agentId": "scout-02",
+            "hypothesis": "Users prefer a persistent left sidebar for workspace navigation over top tabs, reducing cognitive load when switching between tools",
+            "axisTargeted": "Navigation structure: sidebar vs tabs",
+            "label": "Sidebar focus",
+            "content": "Sidebar focus",
+            "format": "word",
+            "acceptImplies": "Explore variants: collapsible sidebar, icon-only rail, sidebar with floating action buttons for quick task creation",
+            "rejectImplies": "Investigate tab-based or hybrid navigation; test horizontal tab strips, floating tabs, or command palette as primary navigation"
+          }
+        }
+      },
+      {
+        "ts_ms": 13364,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "b59f02f7-f9b3-468f-9b60-8c68fcbba1d1",
+            "agentId": "scout-01",
+            "hypothesis": "Users building AI workspaces prefer dark or low-contrast color schemes over bright, light interfaces",
+            "axisTargeted": "color_brightness",
+            "label": "Dark background",
+            "content": "Dark background",
+            "format": "word",
+            "acceptImplies": "Prioritize dark mode, dim color palettes, and high contrast text in the workspace design system",
+            "rejectImplies": "Light, bright, or neutral backgrounds may be preferred; explore bright or medium-tone color strategies instead"
+          }
+        }
+      },
+      {
+        "ts_ms": 13364,
+        "type": "stage-changed",
+        "data": {
+          "type": "stage-changed",
+          "stage": "words",
+          "swipeCount": 1
+        }
+      }
+    ],
+    "error": null
+  },
+  "facade_visible": {
+    "attempted": true,
+    "status": 200,
+    "error": null,
+    "rtt_ms": 3
+  },
+  "swipe": {
+    "attempted": true,
+    "facadeId": "f5e31b5a-43fe-4efa-890e-e4163509316c",
+    "facade_ready_at_ms": 3606,
+    "posted_at_ms": 3640,
+    "rtt_ms": 5,
+    "status": 200,
+    "body": {
+      "ok": true,
+      "swipeCount": 1,
+      "stage": "words"
+    },
+    "error": null
+  },
+  "metrics": {
+    "time_to_first_facade_ms": 3606,
+    "time_to_first_draft_ms": 1366,
+    "time_to_first_synthesis_ms": 4902,
+    "time_to_first_draft_after_swipe_ms": null,
+    "time_to_first_evidence_after_swipe_ms": 5,
+    "time_to_session_ready_ms": 1366,
+    "time_to_first_error_ms": null,
+    "time_from_session_to_first_facade_ms": 2240,
+    "time_from_session_to_first_draft_ms": 0,
+    "time_from_session_to_first_error_ms": null,
+    "facade_ready_count": 7,
+    "draft_updated_count": 1,
+    "draft_placeholder_count": 1,
+    "draft_refined_count": 0,
+    "synthesis_updated_count": 1,
+    "swipe_result_count": 1,
+    "evidence_updated_count": 1,
+    "reveal_reached": false,
+    "error_event_count": 0,
+    "error_code_counts": {},
+    "error_source_counts": {},
+    "error_agent_counts": {},
+    "distinct_error_agent_count": 0,
+    "error_source_scout_count": 0,
+    "error_source_oracle_count": 0,
+    "error_source_builder_count": 0,
+    "provider_auth_failure_count": 0,
+    "error_message_present_count": 0,
+    "auth_diagnostic_preserved_count": 0,
+    "agent_status_event_count": 21,
+    "agent_status_scout_count": 14,
+    "agent_status_oracle_count": 3,
+    "agent_status_builder_count": 4,
+    "agent_error_signal_count": 0,
+    "scout_started_count": 6,
+    "first_scout_started_ms": 1366,
+    "last_scout_started_ms": 1366,
+    "scout_start_spread_ms": 0,
+    "first_error_event_ms": null,
+    "last_error_event_ms": null,
+    "error_event_spread_ms": null,
+    "session_ready_count": 1,
+    "distinct_session_ready_intent_count": 1,
+    "session_ready_intent_present_count": 1,
+    "error_event_count_before_session_2": null,
+    "error_event_count_after_session_2": null,
+    "time_from_session_2_to_first_error_ms": null,
+    "stream_2_error_event_count": 0,
+    "stream_2_agent_status_count": 8,
+    "stream_2_stage_changed_count": 1,
+    "stream_2_diagnostic_preserved_count": 0,
+    "stream_2_error_provider_auth_count": 0,
+    "stream_2_agent_status_scout_count": 6,
+    "stream_2_agent_status_oracle_count": 1,
+    "stream_2_agent_status_builder_count": 1,
+    "stream_2_stage_valid_count": 1,
+    "stream_2_error_source_valid_count": 0,
+    "stream_2_error_code_valid_count": 0,
+    "stream_2_error_message_present_count": 0,
+    "stream_2_agent_status_valid_count": 8,
+    "stream_2_stage_changed_swipe_count_valid_count": 1,
+    "stream_2_draft_updated_count": 1,
+    "stream_2_draft_placeholder_count": 1,
+    "stream_2_draft_refined_count": 0,
+    "stream_2_facade_ready_count": 6,
+    "stream_2_synthesis_updated_count": 1,
+    "stream_2_evidence_updated_count": 1,
+    "stream_2_facade_format_valid_count": 6,
+    "stream_2_first_event_ms_after_open": 2,
+    "stream_2_replay_span_ms": 0,
+    "stage_changed_event_count": 1,
+    "time_to_first_stage_changed_ms": 852,
+    "stage_changed_before_session_ready": 1,
+    "stage_valid_count": 1,
+    "error_source_valid_count": 0,
+    "error_code_valid_count": 0,
+    "agent_status_valid_count": 21,
+    "stage_changed_swipe_count_valid_count": 1,
+    "facade_format_valid_count": 7,
+    "oracle_cold_start_latency_ms": 3536,
+    "oracle_synthesis_latency_ms": null,
+    "oracle_reveal_build_latency_ms": null,
+    "oracle_cold_start_count": 1,
+    "oracle_synthesis_count": 0,
+    "oracle_reveal_build_count": 0,
+    "scout_probe_latency_ms_p50": 2398,
+    "scout_probe_latency_ms_max": 2919,
+    "scout_probe_count": 7,
+    "builder_scaffold_latency_ms": 10621,
+    "builder_scaffold_count": 1
+  },
+  "error_event_samples": [],
+  "provider_error_samples": [],
+  "stderr_tail": "",
+  "artifact_path": "/Users/provi/Development/_projs/the-eye-loop-gnhf-worktrees/you-are-running-an-e-2c98fb/scripts/findings/validate-2026-04-23T23-33-07-209Z.json"
+}
