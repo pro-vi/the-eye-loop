@@ -118,7 +118,8 @@ function extractMetrics(artifact) {
 		error_event_spread_ms: m.error_event_spread_ms ?? null,
 		stream_2_error_event_count: m.stream_2_error_event_count ?? 0,
 		stream_2_agent_status_count: m.stream_2_agent_status_count ?? 0,
-		stream_2_stage_changed_count: m.stream_2_stage_changed_count ?? 0
+		stream_2_stage_changed_count: m.stream_2_stage_changed_count ?? 0,
+		stream_2_diagnostic_preserved_count: m.stream_2_diagnostic_preserved_count ?? 0
 	};
 }
 
@@ -364,6 +365,18 @@ async function main() {
 			stream_2_stage_changed_count_sum: sumMetric('stream_2_stage_changed_count'),
 			stream_2_stage_changed_count_min: perIntent.length
 				? Math.min(...perIntent.map((p) => p.metrics.stream_2_stage_changed_count ?? 0))
+				: 0,
+			// iter-29 stream-replay content verification: complements iter-25's
+			// auth_diagnostic_preserved_count (which reads the PRIMARY stream's
+			// live agent-status transitions) by reading the REPLAY block's
+			// synchronous for-loop over context.agents.values(). Under the
+			// broken-auth baseline _min=8 (all 8 agents' replayed focus carries
+			// the iter-23/24 diagnostic). A replay-path regression that serves
+			// stale snapshots or alters focus on the way out drops _min while
+			// leaving iter-25's live-path probe intact.
+			stream_2_diagnostic_preserved_count_sum: sumMetric('stream_2_diagnostic_preserved_count'),
+			stream_2_diagnostic_preserved_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.stream_2_diagnostic_preserved_count ?? 0))
 				: 0
 		},
 		per_intent: perIntent

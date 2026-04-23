@@ -381,6 +381,8 @@ async function main() {
 		error_event_count: 0,
 		agent_status_count: 0,
 		stage_changed_count: 0,
+		diagnostic_preserved_count: 0,
+		events: [],
 		error: null
 	};
 	{
@@ -418,6 +420,11 @@ async function main() {
 						if (parsed.type === 'error') stream2.error_event_count++;
 						if (parsed.type === 'agent-status') stream2.agent_status_count++;
 						if (parsed.type === 'stage-changed') stream2.stage_changed_count++;
+						stream2.events.push({
+							ts_ms: Date.now() - t0,
+							type: parsed.type,
+							data: parsed.data
+						});
 					}
 				}
 				try { ctrl2.abort(); } catch {}
@@ -426,6 +433,20 @@ async function main() {
 			if (e?.name !== 'AbortError') stream2.error = String(e?.message ?? e);
 		}
 		stream2.elapsed_ms = Date.now() - tS2;
+		// Content-level replay probe — complements the count-based probes above
+		// by verifying that the replay loop in /api/stream emits CURRENT agent
+		// focus values, not stale snapshots. Under the broken-auth baseline,
+		// all 8 replayed agents should carry focus='provider auth failed'
+		// (from iter-23/24's scout IIFE-return + oracle/builder preservation).
+		// This is a distinct code path from the live-emission auth_diagnostic
+		// probe: stream 1 observes each setStatus call, stream_2 observes the
+		// for-loop over context.agents.values() inside the replay block. A
+		// regression that copies agents into a stale snapshot, mutates focus
+		// on the way out, or filters the roster would drop this probe while
+		// leaving auth_diagnostic_preserved_count intact.
+		stream2.diagnostic_preserved_count = stream2.events.filter(
+			(e) => e.type === 'agent-status' && e.data?.agent?.focus === 'provider auth failed'
+		).length;
 	}
 
 	streamController.abort();
@@ -714,7 +735,8 @@ async function main() {
 			time_from_session_2_to_first_error_ms: timeFromSession2ToFirstErrorMs,
 			stream_2_error_event_count: stream2.error_event_count,
 			stream_2_agent_status_count: stream2.agent_status_count,
-			stream_2_stage_changed_count: stream2.stage_changed_count
+			stream_2_stage_changed_count: stream2.stage_changed_count,
+			stream_2_diagnostic_preserved_count: stream2.diagnostic_preserved_count
 		},
 		error_event_samples: errorEvents.slice(0, 8).map((e) => ({
 			ts_ms: e.ts_ms,
@@ -736,7 +758,7 @@ async function main() {
 		`${sessionSummary} facades=${facadeReadyCount} drafts=${draftUpdatedCount} ` +
 		`synth=${synthesisUpdatedCount} swipe=${swipe.attempted ? swipe.status : 'skipped'} ` +
 		`sse_err=${errorEventCount} auth_err=${agentErrorLines.length} ` +
-		`s2_err=${stream2.error_event_count} s2_agents=${stream2.agent_status_count} s2_stage=${stream2.stage_changed_count}`
+		`s2_err=${stream2.error_event_count} s2_agents=${stream2.agent_status_count} s2_stage=${stream2.stage_changed_count} s2_diag=${stream2.diagnostic_preserved_count}`
 	);
 	process.exit(pass ? 0 : 1);
 }
