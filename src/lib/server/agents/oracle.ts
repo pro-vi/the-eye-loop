@@ -223,6 +223,22 @@ async function runSynthesis() {
 			});
 		}
 	} catch (err) {
+		// iter-47 session staleness guard, parallel to iter-45's runColdStart
+		// catch and iter-46's rebuild catch. runSynthesis is fire-and-forget on
+		// every 4th swipe, so an in-flight synthesis that rejects AFTER
+		// seedSession would otherwise emitError and pollute the new session's
+		// bus.lastError + /api/stream replay. The finally below is ALREADY
+		// gated by synthesisRunId === myRunId (which seedSession increments),
+		// so this guard closes only the catch-side leak — the setOracleStatus
+		// overwrite is already prevented by the finally's existing gate.
+		if (context.sessionId !== capturedSessionId) {
+			debugLog('Oracle', 'synthesis-stale-error', {
+				captured: capturedSessionId,
+				current: context.sessionId,
+				err: String(err)
+			});
+			return;
+		}
 		debugLog('Oracle', 'synthesis-error', { error: String(err) });
 		console.error('[oracle] synthesis failed:', err);
 		const code = classifyErrorCode(err);
