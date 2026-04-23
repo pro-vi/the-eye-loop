@@ -10,9 +10,18 @@
 //   2  harness failure (dev boot timeout, fetch crash, etc.)
 //
 // Env knobs:
-//   VALIDATE_RUN_MS    how long to hold the SSE stream open (default 20000)
-//   VALIDATE_BOOT_MS   dev server boot deadline (default 30000)
-//   VALIDATE_INTENT    demo intent used in POST /api/session
+//   VALIDATE_RUN_MS          how long to hold the SSE stream open (default 20000)
+//   VALIDATE_BOOT_MS         dev server boot deadline (default 30000)
+//   VALIDATE_INTENT          demo intent used in POST /api/session
+//   VALIDATE_SECOND_INTENT   if set, POST a SECOND /api/session with this intent
+//                            after the 5s bus dedup window expires — turns the
+//                            validator into a multi-session probe that
+//                            exercises cross-session state isolation (e.g. the
+//                            iter-19 palette reset fix). Artifact adds
+//                            session_2 block + error_event_count_after_session_2
+//                            metric; under broken auth the new discriminative
+//                            invariant is error_event_count ≈ 2 * distinct
+//                            agents if session 2 fires fresh agent runs.
 
 import { spawn } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -28,6 +37,17 @@ const BOOT_TIMEOUT_MS = Number(process.env.VALIDATE_BOOT_MS ?? 30000);
 const DEMO_INTENT =
 	process.env.VALIDATE_INTENT ??
 	'a personal dashboard for tracking long-term health experiments';
+// Multi-session mode: if set, validator POSTs a second /api/session with this
+// intent after the 5s bus dedup window (+ slop) has elapsed since session 1's
+// errors fired. This verifies that a subsequent session triggers FRESH agent
+// runs (all 6 scouts + oracle + builder re-fire against new sessionId),
+// closing the iter-19 single-session-blind-spot for cross-session state leaks.
+const DEMO_SECOND_INTENT = process.env.VALIDATE_SECOND_INTENT ?? null;
+// bus.ts ERROR_EMIT_DEDUP_MS is 5000; wait a little longer to guarantee
+// session 1's (source, code, agentId) tuples have expired before session 2
+// fires, otherwise session 2's identical 401s would be suppressed and the
+// discriminative signal would collapse.
+const SECOND_SESSION_POST_DELAY_MS = 6500;
 
 const MAX_STORED_EVENTS = 200;
 const ERROR_SIGNAL_RE = /401|Invalid bearer|authentication_error|AI_APICall|x-api-key/i;
@@ -247,6 +267,51 @@ async function main() {
 		rtt_ms: null
 	};
 
+	// Second-session probe state — only exercised when VALIDATE_SECOND_INTENT
+	// is set. Under single-session mode all fields stay null; artifact consumers
+	// can treat attempted=false as "not exercised" rather than "failed".
+	const session2 = {
+		attempted: false,
+		intent: DEMO_SECOND_INTENT,
+		rtt_ms: null,
+		status: null,
+		body: null,
+		error: null,
+		posted_at_ms: null,
+		waited_ms: null
+	};
+
+	const secondSessionWatcher = (async () => {
+		if (!DEMO_SECOND_INTENT) return;
+		const deadline = Date.now() + RUN_TIMEOUT_MS;
+		// Wait for session 1's session-ready to be observed, so we anchor the
+		// dedup-slop sleep to live stream progress rather than wall-clock.
+		while (Date.now() < deadline && !streamController.signal.aborted) {
+			if (events.some((e) => e.type === 'session-ready')) break;
+			await sleep(150);
+		}
+		if (Date.now() >= deadline || streamController.signal.aborted) return;
+		const waitStart = Date.now();
+		await sleep(SECOND_SESSION_POST_DELAY_MS);
+		session2.waited_ms = Date.now() - waitStart;
+		if (Date.now() >= deadline || streamController.signal.aborted) return;
+		const tPost2 = Date.now();
+		session2.attempted = true;
+		session2.posted_at_ms = tPost2 - t0;
+		try {
+			const res = await fetch(detectedUrl + '/api/session', {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify({ intent: DEMO_SECOND_INTENT })
+			});
+			session2.status = res.status;
+			session2.body = await res.json().catch(() => null);
+		} catch (e) {
+			session2.error = String(e?.message ?? e);
+		}
+		session2.rtt_ms = Date.now() - tPost2;
+	})();
+
 	const swipeWatcher = (async () => {
 		const deadline = Date.now() + RUN_TIMEOUT_MS;
 		let facadeEvent = null;
@@ -295,7 +360,7 @@ async function main() {
 	// 6. Hold stream for the observation window.
 	await sleep(RUN_TIMEOUT_MS);
 	streamController.abort();
-	await Promise.all([streamTask, swipeWatcher]);
+	await Promise.all([streamTask, swipeWatcher, secondSessionWatcher]);
 
 	// 7. Teardown dev server.
 	teardown();
@@ -449,6 +514,46 @@ async function main() {
 			? timeToFirstErrorMs - timeToSessionReadyMs
 			: null;
 
+	// Multi-session probe — always computed, but only populated when
+	// VALIDATE_SECOND_INTENT is set. session-ready events carry the intent in
+	// their data, so we can count distinct sessions and distinct intents
+	// directly. Under the broken-auth baseline with multi-session mode, the
+	// new discriminative invariant is:
+	//   error_event_count ≈ session_ready_count * distinct_error_agent_count
+	// A regression where session 2 fails to trigger fresh agent runs (e.g.
+	// stopAllScouts + startAllScouts misbehave, or context.reset() leaks
+	// state that short-circuits a re-fire) would collapse the ratio toward 1,
+	// making it a direct machine-visible signal for the class of bugs iter-19
+	// fixed but the single-session-per-subprocess architecture could not see.
+	const sessionReadyEvents = events.filter((e) => e.type === 'session-ready');
+	const sessionReadyCount = sessionReadyEvents.length;
+	const sessionReadyIntents = sessionReadyEvents
+		.map((e) => (typeof e.data?.intent === 'string' ? e.data.intent : null))
+		.filter((v) => typeof v === 'string');
+	const distinctSessionReadyIntents = [...new Set(sessionReadyIntents)];
+	const distinctSessionReadyIntentCount = distinctSessionReadyIntents.length;
+	const errorEventCountBeforeSession2 =
+		session2.posted_at_ms === null
+			? null
+			: errorEvents.filter((e) => e.ts_ms < session2.posted_at_ms).length;
+	const errorEventCountAfterSession2 =
+		session2.posted_at_ms === null
+			? null
+			: errorEvents.filter((e) => e.ts_ms >= session2.posted_at_ms).length;
+	// time_from_session_2_to_first_error_ms — session 2's Anthropic 401 RTT,
+	// directly comparable to session 1's time_from_session_to_first_error_ms.
+	// Under broken auth both should cluster around ~180-270ms (Anthropic 401
+	// response time); a large divergence would indicate session 2 hitting a
+	// different code path or the bus suppressing fresh errors.
+	const firstErrorAfterSession2Ms =
+		session2.posted_at_ms === null
+			? null
+			: errorEvents.find((e) => e.ts_ms >= session2.posted_at_ms)?.ts_ms ?? null;
+	const timeFromSession2ToFirstErrorMs =
+		firstErrorAfterSession2Ms !== null && session2.posted_at_ms !== null
+			? firstErrorAfterSession2Ms - session2.posted_at_ms
+			: null;
+
 	const artifact = {
 		started_at: startedAt,
 		finished_at: nowIso(),
@@ -463,6 +568,7 @@ async function main() {
 			body: sessionBody,
 			error: sessionError
 		},
+		session_2: session2,
 		stream: {
 			opened_at_ms: tStreamOpen - t0,
 			error: streamError,
@@ -502,7 +608,12 @@ async function main() {
 			scout_start_spread_ms: scoutStartSpreadMs,
 			first_error_event_ms: firstErrorEventMs,
 			last_error_event_ms: lastErrorEventMs,
-			error_event_spread_ms: errorEventSpreadMs
+			error_event_spread_ms: errorEventSpreadMs,
+			session_ready_count: sessionReadyCount,
+			distinct_session_ready_intent_count: distinctSessionReadyIntentCount,
+			error_event_count_before_session_2: errorEventCountBeforeSession2,
+			error_event_count_after_session_2: errorEventCountAfterSession2,
+			time_from_session_2_to_first_error_ms: timeFromSession2ToFirstErrorMs
 		},
 		error_event_samples: errorEvents.slice(0, 8).map((e) => ({
 			ts_ms: e.ts_ms,
@@ -516,9 +627,12 @@ async function main() {
 	};
 
 	persistArtifact(artifact);
+	const sessionSummary = session2.attempted
+		? `session1=${sessionStatus} session2=${session2.status} ready=${sessionReadyCount}`
+		: `session=${sessionStatus}`;
 	console.log(
 		`[validate] result=${artifact.result} reason=${reason} ` +
-		`session=${sessionStatus} facades=${facadeReadyCount} drafts=${draftUpdatedCount} ` +
+		`${sessionSummary} facades=${facadeReadyCount} drafts=${draftUpdatedCount} ` +
 		`synth=${synthesisUpdatedCount} swipe=${swipe.attempted ? swipe.status : 'skipped'} ` +
 		`sse_err=${errorEventCount} auth_err=${agentErrorLines.length}`
 	);
