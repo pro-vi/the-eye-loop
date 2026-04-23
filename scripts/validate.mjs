@@ -386,6 +386,8 @@ async function main() {
 		agent_status_scout_count: 0,
 		agent_status_oracle_count: 0,
 		agent_status_builder_count: 0,
+		stage_valid_count: 0,
+		error_source_valid_count: 0,
 		first_event_ms_after_open: null,
 		last_event_ms_after_open: null,
 		replay_span_ms: null,
@@ -490,6 +492,41 @@ async function main() {
 			else if (role === 'oracle') stream2.agent_status_oracle_count++;
 			else if (role === 'builder') stream2.agent_status_builder_count++;
 		}
+		// Payload-value membership probes — iter-40 explicitly named stage_changed.stage
+		// value validity and error.source membership in the valid trio as the two
+		// remaining unprobed content dimensions on stream_2. These close those gaps.
+		//
+		// stream_2_stage_valid_count: number of replayed stage-changed events whose
+		// stage field is a member of the Stage union ('words' | 'mockups' | 'reveal'
+		// per src/lib/context/types.ts:5). Under broken-auth baseline, context.stage
+		// stays at 'words' and the replay emits { stage: 'words', swipeCount: 0 }
+		// exactly once — so the baseline invariant is stream_2_stage_valid_count = 1
+		// matching stream_2_stage_changed_count. Regression class: if context.stage
+		// is mutated to undefined/null/'' by a reset bug, or if the replay payload
+		// is truncated, or if a future Stage union extension leaks an unhandled
+		// literal into the wire, the count drops below stream_2_stage_changed_count
+		// while the latter stays at 1 — two orthogonal probes for the same event.
+		//
+		// stream_2_error_source_valid_count: number of replayed structured error
+		// events whose source field is a member of the ErrorSource union
+		// ('scout' | 'oracle' | 'builder' per types.ts:92). Complementary to
+		// iter-39's error_provider_auth_count which probes the code field.
+		// Under broken-auth, exactly one replayed error fires (from bus.ts
+		// lastError, wired by iter-26), and its source is whichever agent's
+		// emitError last won the lastError assignment — reliably one of the
+		// valid trio. Baseline invariant: stream_2_error_source_valid_count = 1
+		// matching stream_2_error_event_count. Regression class: source being
+		// dropped from the payload, mutated to a stale string, or corrupted by
+		// a payload-shape refactor would drop this probe while error_event_count
+		// (iter-26) and error_provider_auth_count (iter-39) stay at 1.
+		const VALID_STAGES = ['words', 'mockups', 'reveal'];
+		const VALID_ERROR_SOURCES = ['scout', 'oracle', 'builder'];
+		stream2.stage_valid_count = stream2.events.filter(
+			(e) => e.type === 'stage-changed' && VALID_STAGES.includes(e.data?.stage)
+		).length;
+		stream2.error_source_valid_count = stream2.events.filter(
+			(e) => e.type === 'error' && VALID_ERROR_SOURCES.includes(e.data?.source)
+		).length;
 		// Replay-tightness probe — closes iter-34's explicitly-deferred "assert
 		// p90-p50<20ms as an additional stability invariant" opportunity, but
 		// generalized: the /api/stream start() block emits ALL replay events
@@ -852,6 +889,8 @@ async function main() {
 			stream_2_agent_status_scout_count: stream2.agent_status_scout_count,
 			stream_2_agent_status_oracle_count: stream2.agent_status_oracle_count,
 			stream_2_agent_status_builder_count: stream2.agent_status_builder_count,
+			stream_2_stage_valid_count: stream2.stage_valid_count,
+			stream_2_error_source_valid_count: stream2.error_source_valid_count,
 			stream_2_first_event_ms_after_open: stream2.first_event_ms_after_open,
 			stream_2_replay_span_ms: stream2.replay_span_ms,
 			stage_changed_event_count: stageChangedEventCount,
@@ -882,6 +921,7 @@ async function main() {
 		`stage_changed=${stageChangedEventCount} stage_before_ready=${stageChangedBeforeSessionReady} ` +
 		`s2_err=${stream2.error_event_count} s2_agents=${stream2.agent_status_count} s2_stage=${stream2.stage_changed_count} s2_diag=${stream2.diagnostic_preserved_count} s2_err_auth=${stream2.error_provider_auth_count} ` +
 		`s2_roles=s${stream2.agent_status_scout_count}/o${stream2.agent_status_oracle_count}/b${stream2.agent_status_builder_count} ` +
+		`s2_stage_valid=${stream2.stage_valid_count} s2_err_src_valid=${stream2.error_source_valid_count} ` +
 		`s2_first=${stream2.first_event_ms_after_open}ms s2_span=${stream2.replay_span_ms}ms`
 	);
 	process.exit(pass ? 0 : 1);

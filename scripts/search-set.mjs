@@ -125,6 +125,8 @@ function extractMetrics(artifact) {
 		stream_2_agent_status_scout_count: m.stream_2_agent_status_scout_count ?? 0,
 		stream_2_agent_status_oracle_count: m.stream_2_agent_status_oracle_count ?? 0,
 		stream_2_agent_status_builder_count: m.stream_2_agent_status_builder_count ?? 0,
+		stream_2_stage_valid_count: m.stream_2_stage_valid_count ?? 0,
+		stream_2_error_source_valid_count: m.stream_2_error_source_valid_count ?? 0,
 		stream_2_first_event_ms_after_open: m.stream_2_first_event_ms_after_open ?? null,
 		stream_2_replay_span_ms: m.stream_2_replay_span_ms ?? null,
 		stage_changed_event_count: m.stage_changed_event_count ?? 0,
@@ -428,6 +430,31 @@ async function main() {
 			stream_2_agent_status_builder_count_sum: sumMetric('stream_2_agent_status_builder_count'),
 			stream_2_agent_status_builder_count_min: perIntent.length
 				? Math.min(...perIntent.map((p) => p.metrics.stream_2_agent_status_builder_count ?? 0))
+				: 0,
+			// iter-41 payload-value membership probes on stream_2 — closes iter-40's
+			// two explicitly-named unprobed content dimensions:
+			//   stream_2_stage_valid_count:        stage-changed.stage ∈ Stage union
+			//   stream_2_error_source_valid_count: error.source ∈ ErrorSource union
+			// Under broken-auth baseline, each fires once in the replay (matching
+			// stream_2_stage_changed_count=1 and stream_2_error_event_count=1), so
+			// the invariant at aggregate is _sum=5 _min=1. Each probe is orthogonal
+			// to the existing count/content siblings: count probes (iter-26/27) fire
+			// on "event is present at all"; content probes (iter-29 focus, iter-39
+			// code) fire on "specific field equals specific string"; these two fire
+			// on "specific field is a MEMBER of a valid enum". The regression class
+			// is payload corruption where the field is present but outside the
+			// declared union (undefined, null, stale pre-rename value, typo, or
+			// future Stage/ErrorSource extension leaking an unhandled literal). A
+			// drop in _min for either below 1 means the replay emitted a wire-shape-
+			// invalid payload that count probes cannot see and iter-29/iter-39
+			// content probes (which only catch ONE specific valid value) also miss.
+			stream_2_stage_valid_count_sum: sumMetric('stream_2_stage_valid_count'),
+			stream_2_stage_valid_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.stream_2_stage_valid_count ?? 0))
+				: 0,
+			stream_2_error_source_valid_count_sum: sumMetric('stream_2_error_source_valid_count'),
+			stream_2_error_source_valid_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.stream_2_error_source_valid_count ?? 0))
 				: 0,
 			// iter-31 primary-stream lifecycle volume. Complementary to
 			// scout_started_count_sum (counts distinct scouts that reached
