@@ -1,11 +1,11 @@
 import { createAnthropic } from '@ai-sdk/anthropic';
-import { CLAUDE_CODE_OAUTH_TOKEN } from '$env/static/private';
+import { env } from '$env/dynamic/private';
 
 const anthropic = createAnthropic({
 	apiKey: 'x',
 	headers: {
 		'x-api-key': '',
-		Authorization: `Bearer ${CLAUDE_CODE_OAUTH_TOKEN}`,
+		Authorization: `Bearer ${env.CLAUDE_CODE_OAUTH_TOKEN ?? ''}`,
 		'anthropic-beta': 'claude-code-20250219,oauth-2025-04-20',
 		'user-agent': 'claude-cli/2.1.2 (external, cli)',
 		'x-app': 'cli'
