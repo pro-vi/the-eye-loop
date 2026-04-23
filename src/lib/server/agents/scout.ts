@@ -18,6 +18,13 @@ import { FAST_MODEL } from '$lib/server/ai';
 // Visibility signal sent by client via POST /api/facade-visible.
 const SWIPE_TIMEOUT_MS = 30_000;
 const MAX_HISTORY = 8;
+// Retry backoff under provider failure: 1s, 2s, 4s, 8s, 16s (cap).
+// Under a persistent 401, 6 scouts at 1s constant would burn 72 calls/12s;
+// with backoff that drops to ~24 calls/12s while keeping first-retry latency
+// unchanged for transient errors.
+const RETRY_BASE_MS = 1_000;
+const RETRY_MAX_MS = 16_000;
+const RETRY_EXP_CAP = 4; // shift cap: 2^4 = 16
 // ── Scout roster ────────────────────────────────────────────────────
 
 const SCOUT_ROSTER = [
@@ -213,6 +220,7 @@ function startScout(agentId: string, name: string): () => void {
 		context.stage !== 'reveal';
 
 	(async () => {
+		let consecutiveFailures = 0;
 		while (alive()) {
 			try {
 				if (context.queuePressure === 'full') {
@@ -264,6 +272,7 @@ function startScout(agentId: string, name: string): () => void {
 						prompt: 'Generate the next taste probe. Follow the format instruction.',
 						abortSignal: signal
 					});
+					consecutiveFailures = 0;
 
 					if (!alive()) break;
 
@@ -430,7 +439,12 @@ Mobile viewport 375x667. No scripts. No external resources.`;
 					agentId,
 					message: err instanceof Error ? err.message : String(err)
 				});
-				await sleep(1000);
+				consecutiveFailures++;
+				const backoffMs = Math.min(
+					RETRY_BASE_MS * 2 ** Math.min(consecutiveFailures - 1, RETRY_EXP_CAP),
+					RETRY_MAX_MS
+				);
+				await sleep(backoffMs);
 			}
 		}
 
