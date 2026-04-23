@@ -146,6 +146,8 @@ function extractMetrics(artifact) {
 		error_code_valid_count: m.error_code_valid_count ?? 0,
 		agent_status_valid_count: m.agent_status_valid_count ?? 0,
 		stream_2_agent_status_valid_count: m.stream_2_agent_status_valid_count ?? 0,
+		stage_changed_swipe_count_valid_count: m.stage_changed_swipe_count_valid_count ?? 0,
+		stream_2_stage_changed_swipe_count_valid_count: m.stream_2_stage_changed_swipe_count_valid_count ?? 0,
 		session_ready_intent_present_count: m.session_ready_intent_present_count ?? 0,
 		oracle_cold_start_latency_ms: m.oracle_cold_start_latency_ms ?? null,
 		oracle_synthesis_latency_ms: m.oracle_synthesis_latency_ms ?? null,
@@ -709,6 +711,43 @@ async function main() {
 			session_ready_intent_present_count_sum: sumMetric('session_ready_intent_present_count'),
 			session_ready_intent_present_count_min: perIntent.length
 				? Math.min(...perIntent.map((p) => p.metrics.session_ready_intent_present_count ?? 0))
+				: 0,
+			// iter-61 stage-changed.swipeCount integer-validity rollups (primary +
+			// stream_2). Closes the last unprobed field on the stage-changed event
+			// type per types.ts:87 ({stage, swipeCount}) after iter-41/55 covered
+			// the stage field on both streams. Validation predicate:
+			// typeof === 'number' && Number.isInteger && >= 0. Under broken-auth
+			// baseline:
+			//   stage_changed_swipe_count_valid_count_sum=5 _min=1 (primary —
+			//     matches the iter-34 stage_changed_event_count_sum baseline
+			//     of 5/5 since exactly one stage-changed event fires per intent
+			//     on the primary stream, from the /api/stream replay at connect
+			//     with context.swipeCount=0 on a fresh context)
+			//   stream_2_stage_changed_swipe_count_valid_count_sum=5 _min=1
+			//     (stream_2 — matches stream_2_stage_changed_count baseline of
+			//     5/5 since the replay block emits exactly one stage-changed
+			//     event per stream_2 open, with context.swipeCount=0 under
+			//     broken-auth)
+			// Orthogonal regression class: a payload-shape bug that strips the
+			// swipeCount field from the wire, coerces it to string, leaks NaN
+			// from an arithmetic bug in context.onSwipe, or decrements past 0
+			// would be invisible to iter-41/55's stage union-membership probes
+			// (which filter on the stage field) and invisible to iter-34's
+			// count probe (which doesn't touch the payload), but would drop
+			// these _min rollups below 1.
+			stage_changed_swipe_count_valid_count_sum: sumMetric('stage_changed_swipe_count_valid_count'),
+			stage_changed_swipe_count_valid_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.stage_changed_swipe_count_valid_count ?? 0))
+				: 0,
+			stream_2_stage_changed_swipe_count_valid_count_sum: sumMetric(
+				'stream_2_stage_changed_swipe_count_valid_count'
+			),
+			stream_2_stage_changed_swipe_count_valid_count_min: perIntent.length
+				? Math.min(
+						...perIntent.map(
+							(p) => p.metrics.stream_2_stage_changed_swipe_count_valid_count ?? 0
+						)
+					)
 				: 0,
 			time_to_first_stage_changed_ms_p50: percentile(
 				perIntent.map((p) => p.metrics.time_to_first_stage_changed_ms),

@@ -391,6 +391,7 @@ async function main() {
 		error_code_valid_count: 0,
 		error_message_present_count: 0,
 		agent_status_valid_count: 0,
+		stage_changed_swipe_count_valid_count: 0,
 		first_event_ms_after_open: null,
 		last_event_ms_after_open: null,
 		replay_span_ms: null,
@@ -583,6 +584,27 @@ async function main() {
 		const VALID_AGENT_STATUSES = ['idle', 'thinking', 'queued', 'waiting'];
 		stream2.agent_status_valid_count = stream2.events.filter(
 			(e) => e.type === 'agent-status' && VALID_AGENT_STATUSES.includes(e.data?.agent?.status)
+		).length;
+		// iter-61: stage-changed.swipeCount integer-validity probe (stream_2)
+		// — sibling to the primary-stream stageChangedSwipeCountValidCount
+		// derivation below. Closes the {primary, stream_2} × {stage, swipeCount}
+		// field matrix on the stage-changed event after iter-41/55 covered the
+		// stage field on both streams. The /api/stream replay block emits exactly
+		// one stage-changed event at connect with { stage: context.stage,
+		// swipeCount: context.swipeCount } per +server.ts:57 — under broken-auth
+		// baseline context.swipeCount is 0 (never incremented without facades →
+		// swipes), so the invariant is stream_2_stage_changed_swipe_count_valid_
+		// count = stream_2_stage_changed_count = 1 per intent. Regression class:
+		// payload-shape bugs that strip swipeCount from the SSE wire, type-coerce
+		// to string, or leak NaN/negative values across sessions — all invisible
+		// to iter-41's stage-union probe (which tests the stage field, not this
+		// counter). Orthogonal to every existing stream_2 content probe.
+		stream2.stage_changed_swipe_count_valid_count = stream2.events.filter(
+			(e) =>
+				e.type === 'stage-changed' &&
+				typeof e.data?.swipeCount === 'number' &&
+				Number.isInteger(e.data.swipeCount) &&
+				e.data.swipeCount >= 0
 		).length;
 		// Replay-tightness probe — closes iter-34's explicitly-deferred "assert
 		// p90-p50<20ms as an additional stability invariant" opportunity, but
@@ -1064,6 +1086,35 @@ async function main() {
 	const agentStatusValidCount = events.filter(
 		(e) => e.type === 'agent-status' && VALID_AGENT_STATUSES.has(e.data?.agent?.status)
 	).length;
+	// iter-61: stage-changed.swipeCount integer-validity probe (primary stream) —
+	// closes the last unprobed field on the iter-3 'stage-changed' SSEEvent after
+	// iter-41/55 (stage union-membership) filled the stage field on both streams.
+	// stage-changed has exactly two payload fields per types.ts:87 — stage and
+	// swipeCount — so this completes the {stage, swipeCount} × {primary, stream_2}
+	// field matrix on the stage-changed event type. Typed as non-negative integer
+	// per the emit sites in oracle.ts:161/301/454 which all pass context.swipeCount
+	// (an integer counter incremented in context.onSwipe). Validation predicate
+	// matches typeof === 'number' && Number.isInteger && >= 0 to catch:
+	//   - field dropped from payload (undefined)
+	//   - serialization coerces to string ("0" from JSON stringify of a Date, etc)
+	//   - NaN leak from arithmetic bug in swipe counter
+	//   - negative leak (off-by-one decrement)
+	//   - non-integer float from future schema drift
+	// Under broken-auth baseline the primary stream emits exactly 1 stage-changed
+	// event (the /api/stream replay at connect with context.swipeCount=0 since
+	// context is fresh), so the invariant is stage_changed_swipe_count_valid_count
+	// = stage_changed_event_count = 1 per intent. Under healthy auth with swipes,
+	// swipeCount advances monotonically and every emission keeps this invariant;
+	// this is a strict identity probe that catches payload-shape regressions
+	// under ANY auth regime while the iter-55 stage_valid_count catches regressions
+	// on the OTHER field of the same event.
+	const stageChangedSwipeCountValidCount = events.filter(
+		(e) =>
+			e.type === 'stage-changed' &&
+			typeof e.data?.swipeCount === 'number' &&
+			Number.isInteger(e.data.swipeCount) &&
+			e.data.swipeCount >= 0
+	).length;
 
 	// Multi-session probe — always computed, but only populated when
 	// VALIDATE_SECOND_INTENT is set. session-ready events carry the intent in
@@ -1206,6 +1257,7 @@ async function main() {
 			stream_2_error_code_valid_count: stream2.error_code_valid_count,
 			stream_2_error_message_present_count: stream2.error_message_present_count,
 			stream_2_agent_status_valid_count: stream2.agent_status_valid_count,
+			stream_2_stage_changed_swipe_count_valid_count: stream2.stage_changed_swipe_count_valid_count,
 			stream_2_first_event_ms_after_open: stream2.first_event_ms_after_open,
 			stream_2_replay_span_ms: stream2.replay_span_ms,
 			stage_changed_event_count: stageChangedEventCount,
@@ -1215,6 +1267,7 @@ async function main() {
 			error_source_valid_count: errorSourceValidCount,
 			error_code_valid_count: errorCodeValidCount,
 			agent_status_valid_count: agentStatusValidCount,
+			stage_changed_swipe_count_valid_count: stageChangedSwipeCountValidCount,
 			oracle_cold_start_latency_ms: oracleColdStartLatencyMs,
 			oracle_synthesis_latency_ms: oracleSynthesisLatencyMs,
 			oracle_reveal_build_latency_ms: oracleRevealBuildLatencyMs,
@@ -1253,11 +1306,11 @@ async function main() {
 		`agent_status_roles=s${agentStatusScoutCount}/o${agentStatusOracleCount}/b${agentStatusBuilderCount} ` +
 		`stage_changed=${stageChangedEventCount} stage_before_ready=${stageChangedBeforeSessionReady} ` +
 		`stage_valid=${stageValidCount} err_src_valid=${errorSourceValidCount} err_code_valid=${errorCodeValidCount} ` +
-		`agent_status_valid=${agentStatusValidCount} ` +
+		`agent_status_valid=${agentStatusValidCount} stage_swipe_valid=${stageChangedSwipeCountValidCount} ` +
 		`s2_err=${stream2.error_event_count} s2_agents=${stream2.agent_status_count} s2_stage=${stream2.stage_changed_count} s2_diag=${stream2.diagnostic_preserved_count} s2_err_auth=${stream2.error_provider_auth_count} ` +
 		`s2_roles=s${stream2.agent_status_scout_count}/o${stream2.agent_status_oracle_count}/b${stream2.agent_status_builder_count} ` +
 		`s2_stage_valid=${stream2.stage_valid_count} s2_err_src_valid=${stream2.error_source_valid_count} s2_err_code_valid=${stream2.error_code_valid_count} s2_err_msg=${stream2.error_message_present_count} ` +
-		`s2_agent_status_valid=${stream2.agent_status_valid_count} ` +
+		`s2_agent_status_valid=${stream2.agent_status_valid_count} s2_stage_swipe_valid=${stream2.stage_changed_swipe_count_valid_count} ` +
 		`s2_first=${stream2.first_event_ms_after_open}ms s2_span=${stream2.replay_span_ms}ms ` +
 		`oracle_cs=${oracleColdStartLatencyMs === null ? '-' : oracleColdStartLatencyMs + 'ms'} ` +
 		`oracle_syn=${oracleSynthesisLatencyMs === null ? '-' : oracleSynthesisLatencyMs + 'ms'} ` +

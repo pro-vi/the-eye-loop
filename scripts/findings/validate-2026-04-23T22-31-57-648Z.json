@@ -1,0 +1,1108 @@
+{
+  "started_at": "2026-04-23T22:31:43.195Z",
+  "finished_at": "2026-04-23T22:31:57.648Z",
+  "elapsed_ms": 14452,
+  "result": "FAIL",
+  "reason": "no_draft_updated",
+  "intent": "a CRM for freelancers",
+  "dev_url": "http://localhost:39491",
+  "session": {
+    "rtt_ms": 10,
+    "status": 200,
+    "body": {
+      "intent": "a CRM for freelancers",
+      "sessionId": "16f76a7c-907f-4184-b607-7728e56d3f28"
+    },
+    "error": null
+  },
+  "session_2": {
+    "attempted": false,
+    "intent": null,
+    "rtt_ms": null,
+    "status": null,
+    "body": null,
+    "error": null,
+    "posted_at_ms": null,
+    "waited_ms": null
+  },
+  "stream": {
+    "opened_at_ms": 834,
+    "error": null,
+    "event_counts": {
+      "agent-status": 21,
+      "stage-changed": 1,
+      "session-ready": 1,
+      "facade-ready": 7,
+      "swipe-result": 1,
+      "evidence-updated": 1,
+      "synthesis-updated": 1
+    },
+    "first_event_ms": {
+      "agent-status": 839,
+      "stage-changed": 839,
+      "session-ready": 1352,
+      "facade-ready": 4101,
+      "swipe-result": 4223,
+      "evidence-updated": 4223,
+      "synthesis-updated": 6111
+    },
+    "events": [
+      {
+        "ts_ms": 839,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "oracle",
+            "name": "Oracle",
+            "role": "oracle",
+            "status": "idle",
+            "focus": "monitoring"
+          }
+        }
+      },
+      {
+        "ts_ms": 839,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "idle",
+            "focus": "waiting for session"
+          }
+        }
+      },
+      {
+        "ts_ms": 839,
+        "type": "stage-changed",
+        "data": {
+          "type": "stage-changed",
+          "stage": "words",
+          "swipeCount": 0
+        }
+      },
+      {
+        "ts_ms": 1352,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "thinking",
+            "focus": "generating initial scaffold"
+          }
+        }
+      },
+      {
+        "ts_ms": 1352,
+        "type": "session-ready",
+        "data": {
+          "type": "session-ready",
+          "intent": "a CRM for freelancers"
+        }
+      },
+      {
+        "ts_ms": 1352,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "oracle",
+            "name": "Oracle",
+            "role": "oracle",
+            "status": "thinking",
+            "focus": "cold-start analysis"
+          }
+        }
+      },
+      {
+        "ts_ms": 1352,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-01",
+            "name": "Iris",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1352,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-02",
+            "name": "Prism",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1352,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-03",
+            "name": "Lumen",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1352,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-04",
+            "name": "Aura",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1352,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-05",
+            "name": "Facet",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1352,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-06",
+            "name": "Echo",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 4101,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "9de84b4b-6abd-4334-8da8-3ea43f1a7eec",
+            "agentId": "scout-04",
+            "hypothesis": "A CRM for freelancers benefits from approachable, human-centered atmosphere over sterile efficiency",
+            "axisTargeted": "warm vs cool",
+            "label": "Warm glow",
+            "content": "Warm glow",
+            "format": "word",
+            "acceptImplies": "User gravitates toward inviting, personal interface—softer colors, rounded forms, conversational microcopy. Suggests CRM should feel like a trusted colleague, not corporate software.",
+            "rejectImplies": "User prefers crisp, professional distance—cooler palettes, sharp geometry, minimal prose. Suggests CRM should project competence and clarity over warmth."
+          }
+        }
+      },
+      {
+        "ts_ms": 4101,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-04",
+            "name": "Aura",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Warm glow\"",
+            "lastFacadeId": "9de84b4b-6abd-4334-8da8-3ea43f1a7eec"
+          }
+        }
+      },
+      {
+        "ts_ms": 4144,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "44ed5a05-d0ca-4ecc-a6ed-fef08e64ca14",
+            "agentId": "scout-05",
+            "hypothesis": "Freelancers prefer scannable client overviews (names, status, last contact) in card layouts over dense tabular spreadsheets",
+            "axisTargeted": "Dense data vs key metrics",
+            "label": "Client list as cards",
+            "content": "Client list as cards",
+            "format": "word",
+            "acceptImplies": "User values visual hierarchy and quick pattern recognition over comprehensive data density; likely prefers dashboard-style information architecture with progressive disclosure",
+            "rejectImplies": "User prioritizes comprehensive data access and comparison; may prefer traditional table/grid layouts where all fields are simultaneously visible; values analytical depth over visual simplicity"
+          }
+        }
+      },
+      {
+        "ts_ms": 4144,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-05",
+            "name": "Facet",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Client list as cards\"",
+            "lastFacadeId": "44ed5a05-d0ca-4ecc-a6ed-fef08e64ca14"
+          }
+        }
+      },
+      {
+        "ts_ms": 4223,
+        "type": "swipe-result",
+        "data": {
+          "type": "swipe-result",
+          "record": {
+            "facadeId": "9de84b4b-6abd-4334-8da8-3ea43f1a7eec",
+            "agentId": "scout-04",
+            "decision": "accept",
+            "latencyMs": 600,
+            "latencyBucket": "slow"
+          }
+        }
+      },
+      {
+        "ts_ms": 4223,
+        "type": "evidence-updated",
+        "data": {
+          "type": "evidence-updated",
+          "evidence": [
+            {
+              "facadeId": "9de84b4b-6abd-4334-8da8-3ea43f1a7eec",
+              "content": "Warm glow",
+              "hypothesis": "A CRM for freelancers benefits from approachable, human-centered atmosphere over sterile efficiency",
+              "decision": "accept",
+              "latencySignal": "slow",
+              "format": "word",
+              "implication": "User gravitates toward inviting, personal interface—softer colors, rounded forms, conversational microcopy. Suggests CRM should feel like a trusted colleague, not corporate software."
+            }
+          ],
+          "antiPatterns": []
+        }
+      },
+      {
+        "ts_ms": 4223,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-04",
+            "name": "Aura",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe",
+            "lastFacadeId": "9de84b4b-6abd-4334-8da8-3ea43f1a7eec"
+          }
+        }
+      },
+      {
+        "ts_ms": 4387,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "26f41c43-c1e9-4d55-967d-13c91a8d18de",
+            "agentId": "scout-01",
+            "hypothesis": "Freelancers prefer approachable, gentle interfaces that feel less corporate and more human",
+            "axisTargeted": "Roundness vs sharpness + depth via shadow",
+            "label": "Soft corners and shadows",
+            "content": "Soft corners and shadows",
+            "format": "word",
+            "acceptImplies": "User leans toward warm, welcoming aesthetic with rounded buttons/cards and subtle drop shadows—softer than minimal flat design",
+            "rejectImplies": "User may prefer crisp, modern edges and flat/bold contrast—either clean minimalism or strong geometric definition"
+          }
+        }
+      },
+      {
+        "ts_ms": 4387,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-01",
+            "name": "Iris",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Soft corners and shadows\"",
+            "lastFacadeId": "26f41c43-c1e9-4d55-967d-13c91a8d18de"
+          }
+        }
+      },
+      {
+        "ts_ms": 4408,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "14aa6709-6365-47a7-8039-55172e0fccb0",
+            "agentId": "scout-03",
+            "hypothesis": "A friendly, conversational voice will feel more approachable to solo freelancers than corporate language",
+            "axisTargeted": "Voice and personality — friendly vs professional",
+            "label": "Casual chat tone",
+            "content": "Casual chat tone",
+            "format": "word",
+            "acceptImplies": "User prefers warm, conversational microcopy; likely wants personality in empty states, confirmations, and error messages; may value humor and relatability over formal polish",
+            "rejectImplies": "User prefers professional, straightforward language; likely wants a business-focused tone; may see friendliness as unprofessional or distracting in a work tool"
+          }
+        }
+      },
+      {
+        "ts_ms": 4408,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-03",
+            "name": "Lumen",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Casual chat tone\"",
+            "lastFacadeId": "14aa6709-6365-47a7-8039-55172e0fccb0"
+          }
+        }
+      },
+      {
+        "ts_ms": 4490,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "6696f41c-cbb4-49f0-bec9-c28a0b145e3b",
+            "agentId": "scout-06",
+            "hypothesis": "Freelancers prefer snappy, immediate feedback when actions happen (no loading states)",
+            "axisTargeted": "Snappy instant vs. smooth animated transitions",
+            "label": "Instant updates",
+            "content": "Instant updates",
+            "format": "word",
+            "acceptImplies": "User values responsiveness and zero-latency feel; wants clicks to feel immediate and confirm instantly",
+            "rejectImplies": "User prefers deliberate pacing with visible transitions; may want animations that give time to process or add polish"
+          }
+        }
+      },
+      {
+        "ts_ms": 4490,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-06",
+            "name": "Echo",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Instant updates\"",
+            "lastFacadeId": "6696f41c-cbb4-49f0-bec9-c28a0b145e3b"
+          }
+        }
+      },
+      {
+        "ts_ms": 4572,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "42c9b622-fac2-4508-bf5e-08b2b04ebec8",
+            "agentId": "scout-02",
+            "hypothesis": "Freelancers need persistent client access on the left while viewing detailed project cards in the main area—reducing clicks to switch contexts.",
+            "axisTargeted": "navigation_structure_and_content_density",
+            "label": "Sidebar with cards",
+            "content": "Sidebar with cards",
+            "format": "word",
+            "acceptImplies": "User values quick client switching and prefers vertical hierarchy. Likely wants persistent navigation + modular content views.",
+            "rejectImplies": "User may prefer tab-based navigation, flatter hierarchies, or list-heavy layouts. Context-switching via tabs or full-page changes feels natural to them."
+          }
+        }
+      },
+      {
+        "ts_ms": 4572,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-02",
+            "name": "Prism",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Sidebar with cards\"",
+            "lastFacadeId": "42c9b622-fac2-4508-bf5e-08b2b04ebec8"
+          }
+        }
+      },
+      {
+        "ts_ms": 6111,
+        "type": "synthesis-updated",
+        "data": {
+          "type": "synthesis-updated",
+          "synthesis": {
+            "axes": [
+              {
+                "label": "Whether user prefers minimal, clean aesthetics vs. rich visual hierarchy with color/imagery—reveals if they want a 'blank canvas' CRM or one with visual warmth and personality",
+                "poleA": "Clean or colorful?",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user wants tools clustered in one sidebar/dashboard vs. spread across tabs and modals—reveals navigation preference for a freelancer juggling multiple clients",
+                "poleA": "Everything in one place?",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user responds to professional/formal tone vs. casual/encouraging tone—reveals if they want a business tool or a supportive coach",
+                "poleA": "Formal or friendly?",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user wants a calm, distraction-free workspace vs. energetic, motivational environment—reveals stress tolerance and work style for solo freelancers",
+                "poleA": "Calm or energizing?",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user prefers numbers/metrics front-and-center vs. narrative summaries and stories—reveals how they track success and make decisions",
+                "poleA": "Stats or stories?",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user wants instant feedback and snappy interactions vs. smooth, deliberate transitions—reveals patience level and preference for responsiveness in a fast-paced freelance workflow",
+                "poleA": "Quick snaps or smooth flow?",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              }
+            ],
+            "edge_case_flags": [],
+            "scout_assignments": [
+              {
+                "scout": "Iris",
+                "probe_axis": "Whether user prefers minimal, clean aesthetics vs. rich visual hierarchy with color/imagery—reveals if they want a 'blank canvas' CRM or one with visual warmth and personality",
+                "reason": "Cold start: first question for Iris"
+              },
+              {
+                "scout": "Prism",
+                "probe_axis": "Whether user wants tools clustered in one sidebar/dashboard vs. spread across tabs and modals—reveals navigation preference for a freelancer juggling multiple clients",
+                "reason": "Cold start: first question for Prism"
+              },
+              {
+                "scout": "Lumen",
+                "probe_axis": "Whether user responds to professional/formal tone vs. casual/encouraging tone—reveals if they want a business tool or a supportive coach",
+                "reason": "Cold start: first question for Lumen"
+              },
+              {
+                "scout": "Aura",
+                "probe_axis": "Whether user wants a calm, distraction-free workspace vs. energetic, motivational environment—reveals stress tolerance and work style for solo freelancers",
+                "reason": "Cold start: first question for Aura"
+              },
+              {
+                "scout": "Facet",
+                "probe_axis": "Whether user prefers numbers/metrics front-and-center vs. narrative summaries and stories—reveals how they track success and make decisions",
+                "reason": "Cold start: first question for Facet"
+              },
+              {
+                "scout": "Echo",
+                "probe_axis": "Whether user wants instant feedback and snappy interactions vs. smooth, deliberate transitions—reveals patience level and preference for responsiveness in a fast-paced freelance workflow",
+                "reason": "Cold start: first question for Echo"
+              }
+            ],
+            "persona_anima_divergence": null
+          }
+        }
+      },
+      {
+        "ts_ms": 6111,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "oracle",
+            "name": "Oracle",
+            "role": "oracle",
+            "status": "idle",
+            "focus": "monitoring"
+          }
+        }
+      },
+      {
+        "ts_ms": 7059,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "ebe2762b-5652-4987-8f03-bb107db90c20",
+            "agentId": "scout-04",
+            "hypothesis": "Freelancers respond better to gentle, diffused visual hierarchy (subtle depth cues) than hard borders and stark contrast, reinforcing the 'trusted colleague' atmosphere over corporate rigidity",
+            "axisTargeted": "Warm vs cool (visual softness)",
+            "label": "Soft shadows",
+            "content": "Soft shadows",
+            "format": "word",
+            "acceptImplies": "CRM interface should use low-contrast borders, diffused edges, gentle elevation effects, and muted color transitions to feel approachable and less demanding",
+            "rejectImplies": "Freelancers may prefer clarity through contrast and defined structure—crisp borders, bold hierarchy, high-contrast elements to quickly scan client data and priorities"
+          }
+        }
+      },
+      {
+        "ts_ms": 7059,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-04",
+            "name": "Aura",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Soft shadows\"",
+            "lastFacadeId": "ebe2762b-5652-4987-8f03-bb107db90c20"
+          }
+        }
+      },
+      {
+        "ts_ms": 10677,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "idle",
+            "focus": "watching for swipes"
+          }
+        }
+      },
+      {
+        "ts_ms": 10677,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "thinking",
+            "focus": "analyzing accept on \"Warm glow\""
+          }
+        }
+      }
+    ]
+  },
+  "stream_2": {
+    "attempted": true,
+    "opened_at_ms": 13346,
+    "elapsed_ms": 804,
+    "event_counts": {
+      "synthesis-updated": 1,
+      "evidence-updated": 1,
+      "agent-status": 8,
+      "facade-ready": 6,
+      "stage-changed": 1
+    },
+    "error_event_count": 0,
+    "agent_status_count": 8,
+    "stage_changed_count": 1,
+    "diagnostic_preserved_count": 0,
+    "error_provider_auth_count": 0,
+    "agent_status_scout_count": 6,
+    "agent_status_oracle_count": 1,
+    "agent_status_builder_count": 1,
+    "stage_valid_count": 1,
+    "error_source_valid_count": 0,
+    "error_code_valid_count": 0,
+    "error_message_present_count": 0,
+    "agent_status_valid_count": 8,
+    "stage_changed_swipe_count_valid_count": 1,
+    "first_event_ms_after_open": 3,
+    "last_event_ms_after_open": 3,
+    "replay_span_ms": 0,
+    "events": [
+      {
+        "ts_ms": 13349,
+        "type": "synthesis-updated",
+        "data": {
+          "type": "synthesis-updated",
+          "synthesis": {
+            "axes": [
+              {
+                "label": "Whether user prefers minimal, clean aesthetics vs. rich visual hierarchy with color/imagery—reveals if they want a 'blank canvas' CRM or one with visual warmth and personality",
+                "poleA": "Clean or colorful?",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user wants tools clustered in one sidebar/dashboard vs. spread across tabs and modals—reveals navigation preference for a freelancer juggling multiple clients",
+                "poleA": "Everything in one place?",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user responds to professional/formal tone vs. casual/encouraging tone—reveals if they want a business tool or a supportive coach",
+                "poleA": "Formal or friendly?",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user wants a calm, distraction-free workspace vs. energetic, motivational environment—reveals stress tolerance and work style for solo freelancers",
+                "poleA": "Calm or energizing?",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user prefers numbers/metrics front-and-center vs. narrative summaries and stories—reveals how they track success and make decisions",
+                "poleA": "Stats or stories?",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user wants instant feedback and snappy interactions vs. smooth, deliberate transitions—reveals patience level and preference for responsiveness in a fast-paced freelance workflow",
+                "poleA": "Quick snaps or smooth flow?",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              }
+            ],
+            "edge_case_flags": [],
+            "scout_assignments": [
+              {
+                "scout": "Iris",
+                "probe_axis": "Whether user prefers minimal, clean aesthetics vs. rich visual hierarchy with color/imagery—reveals if they want a 'blank canvas' CRM or one with visual warmth and personality",
+                "reason": "Cold start: first question for Iris"
+              },
+              {
+                "scout": "Prism",
+                "probe_axis": "Whether user wants tools clustered in one sidebar/dashboard vs. spread across tabs and modals—reveals navigation preference for a freelancer juggling multiple clients",
+                "reason": "Cold start: first question for Prism"
+              },
+              {
+                "scout": "Lumen",
+                "probe_axis": "Whether user responds to professional/formal tone vs. casual/encouraging tone—reveals if they want a business tool or a supportive coach",
+                "reason": "Cold start: first question for Lumen"
+              },
+              {
+                "scout": "Aura",
+                "probe_axis": "Whether user wants a calm, distraction-free workspace vs. energetic, motivational environment—reveals stress tolerance and work style for solo freelancers",
+                "reason": "Cold start: first question for Aura"
+              },
+              {
+                "scout": "Facet",
+                "probe_axis": "Whether user prefers numbers/metrics front-and-center vs. narrative summaries and stories—reveals how they track success and make decisions",
+                "reason": "Cold start: first question for Facet"
+              },
+              {
+                "scout": "Echo",
+                "probe_axis": "Whether user wants instant feedback and snappy interactions vs. smooth, deliberate transitions—reveals patience level and preference for responsiveness in a fast-paced freelance workflow",
+                "reason": "Cold start: first question for Echo"
+              }
+            ],
+            "persona_anima_divergence": null
+          }
+        }
+      },
+      {
+        "ts_ms": 13349,
+        "type": "evidence-updated",
+        "data": {
+          "type": "evidence-updated",
+          "evidence": [
+            {
+              "facadeId": "9de84b4b-6abd-4334-8da8-3ea43f1a7eec",
+              "content": "Warm glow",
+              "hypothesis": "A CRM for freelancers benefits from approachable, human-centered atmosphere over sterile efficiency",
+              "decision": "accept",
+              "latencySignal": "slow",
+              "format": "word",
+              "implication": "User gravitates toward inviting, personal interface—softer colors, rounded forms, conversational microcopy. Suggests CRM should feel like a trusted colleague, not corporate software."
+            }
+          ],
+          "antiPatterns": []
+        }
+      },
+      {
+        "ts_ms": 13349,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "thinking",
+            "focus": "analyzing accept on \"Warm glow\""
+          }
+        }
+      },
+      {
+        "ts_ms": 13349,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "oracle",
+            "name": "Oracle",
+            "role": "oracle",
+            "status": "idle",
+            "focus": "monitoring"
+          }
+        }
+      },
+      {
+        "ts_ms": 13349,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-01",
+            "name": "Iris",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Soft corners and shadows\"",
+            "lastFacadeId": "26f41c43-c1e9-4d55-967d-13c91a8d18de"
+          }
+        }
+      },
+      {
+        "ts_ms": 13349,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-02",
+            "name": "Prism",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Sidebar with cards\"",
+            "lastFacadeId": "42c9b622-fac2-4508-bf5e-08b2b04ebec8"
+          }
+        }
+      },
+      {
+        "ts_ms": 13349,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-03",
+            "name": "Lumen",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Casual chat tone\"",
+            "lastFacadeId": "14aa6709-6365-47a7-8039-55172e0fccb0"
+          }
+        }
+      },
+      {
+        "ts_ms": 13349,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-04",
+            "name": "Aura",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Soft shadows\"",
+            "lastFacadeId": "ebe2762b-5652-4987-8f03-bb107db90c20"
+          }
+        }
+      },
+      {
+        "ts_ms": 13349,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-05",
+            "name": "Facet",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Client list as cards\"",
+            "lastFacadeId": "44ed5a05-d0ca-4ecc-a6ed-fef08e64ca14"
+          }
+        }
+      },
+      {
+        "ts_ms": 13349,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-06",
+            "name": "Echo",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Instant updates\"",
+            "lastFacadeId": "6696f41c-cbb4-49f0-bec9-c28a0b145e3b"
+          }
+        }
+      },
+      {
+        "ts_ms": 13349,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "44ed5a05-d0ca-4ecc-a6ed-fef08e64ca14",
+            "agentId": "scout-05",
+            "hypothesis": "Freelancers prefer scannable client overviews (names, status, last contact) in card layouts over dense tabular spreadsheets",
+            "axisTargeted": "Dense data vs key metrics",
+            "label": "Client list as cards",
+            "content": "Client list as cards",
+            "format": "word",
+            "acceptImplies": "User values visual hierarchy and quick pattern recognition over comprehensive data density; likely prefers dashboard-style information architecture with progressive disclosure",
+            "rejectImplies": "User prioritizes comprehensive data access and comparison; may prefer traditional table/grid layouts where all fields are simultaneously visible; values analytical depth over visual simplicity"
+          }
+        }
+      },
+      {
+        "ts_ms": 13349,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "26f41c43-c1e9-4d55-967d-13c91a8d18de",
+            "agentId": "scout-01",
+            "hypothesis": "Freelancers prefer approachable, gentle interfaces that feel less corporate and more human",
+            "axisTargeted": "Roundness vs sharpness + depth via shadow",
+            "label": "Soft corners and shadows",
+            "content": "Soft corners and shadows",
+            "format": "word",
+            "acceptImplies": "User leans toward warm, welcoming aesthetic with rounded buttons/cards and subtle drop shadows—softer than minimal flat design",
+            "rejectImplies": "User may prefer crisp, modern edges and flat/bold contrast—either clean minimalism or strong geometric definition"
+          }
+        }
+      },
+      {
+        "ts_ms": 13349,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "14aa6709-6365-47a7-8039-55172e0fccb0",
+            "agentId": "scout-03",
+            "hypothesis": "A friendly, conversational voice will feel more approachable to solo freelancers than corporate language",
+            "axisTargeted": "Voice and personality — friendly vs professional",
+            "label": "Casual chat tone",
+            "content": "Casual chat tone",
+            "format": "word",
+            "acceptImplies": "User prefers warm, conversational microcopy; likely wants personality in empty states, confirmations, and error messages; may value humor and relatability over formal polish",
+            "rejectImplies": "User prefers professional, straightforward language; likely wants a business-focused tone; may see friendliness as unprofessional or distracting in a work tool"
+          }
+        }
+      },
+      {
+        "ts_ms": 13349,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "6696f41c-cbb4-49f0-bec9-c28a0b145e3b",
+            "agentId": "scout-06",
+            "hypothesis": "Freelancers prefer snappy, immediate feedback when actions happen (no loading states)",
+            "axisTargeted": "Snappy instant vs. smooth animated transitions",
+            "label": "Instant updates",
+            "content": "Instant updates",
+            "format": "word",
+            "acceptImplies": "User values responsiveness and zero-latency feel; wants clicks to feel immediate and confirm instantly",
+            "rejectImplies": "User prefers deliberate pacing with visible transitions; may want animations that give time to process or add polish"
+          }
+        }
+      },
+      {
+        "ts_ms": 13349,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "42c9b622-fac2-4508-bf5e-08b2b04ebec8",
+            "agentId": "scout-02",
+            "hypothesis": "Freelancers need persistent client access on the left while viewing detailed project cards in the main area—reducing clicks to switch contexts.",
+            "axisTargeted": "navigation_structure_and_content_density",
+            "label": "Sidebar with cards",
+            "content": "Sidebar with cards",
+            "format": "word",
+            "acceptImplies": "User values quick client switching and prefers vertical hierarchy. Likely wants persistent navigation + modular content views.",
+            "rejectImplies": "User may prefer tab-based navigation, flatter hierarchies, or list-heavy layouts. Context-switching via tabs or full-page changes feels natural to them."
+          }
+        }
+      },
+      {
+        "ts_ms": 13349,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "ebe2762b-5652-4987-8f03-bb107db90c20",
+            "agentId": "scout-04",
+            "hypothesis": "Freelancers respond better to gentle, diffused visual hierarchy (subtle depth cues) than hard borders and stark contrast, reinforcing the 'trusted colleague' atmosphere over corporate rigidity",
+            "axisTargeted": "Warm vs cool (visual softness)",
+            "label": "Soft shadows",
+            "content": "Soft shadows",
+            "format": "word",
+            "acceptImplies": "CRM interface should use low-contrast borders, diffused edges, gentle elevation effects, and muted color transitions to feel approachable and less demanding",
+            "rejectImplies": "Freelancers may prefer clarity through contrast and defined structure—crisp borders, bold hierarchy, high-contrast elements to quickly scan client data and priorities"
+          }
+        }
+      },
+      {
+        "ts_ms": 13349,
+        "type": "stage-changed",
+        "data": {
+          "type": "stage-changed",
+          "stage": "words",
+          "swipeCount": 1
+        }
+      }
+    ],
+    "error": null
+  },
+  "facade_visible": {
+    "attempted": true,
+    "status": 200,
+    "error": null,
+    "rtt_ms": 4
+  },
+  "swipe": {
+    "attempted": true,
+    "facadeId": "9de84b4b-6abd-4334-8da8-3ea43f1a7eec",
+    "facade_ready_at_ms": 4101,
+    "posted_at_ms": 4218,
+    "rtt_ms": 4,
+    "status": 200,
+    "body": {
+      "ok": true,
+      "swipeCount": 1,
+      "stage": "words"
+    },
+    "error": null
+  },
+  "metrics": {
+    "time_to_first_facade_ms": 4101,
+    "time_to_first_draft_ms": null,
+    "time_to_first_synthesis_ms": 6111,
+    "time_to_first_draft_after_swipe_ms": null,
+    "time_to_first_evidence_after_swipe_ms": 5,
+    "time_to_session_ready_ms": 1352,
+    "time_to_first_error_ms": null,
+    "time_from_session_to_first_facade_ms": 2749,
+    "time_from_session_to_first_draft_ms": null,
+    "time_from_session_to_first_error_ms": null,
+    "facade_ready_count": 7,
+    "draft_updated_count": 0,
+    "synthesis_updated_count": 1,
+    "swipe_result_count": 1,
+    "evidence_updated_count": 1,
+    "reveal_reached": false,
+    "error_event_count": 0,
+    "error_code_counts": {},
+    "error_source_counts": {},
+    "error_agent_counts": {},
+    "distinct_error_agent_count": 0,
+    "error_source_scout_count": 0,
+    "error_source_oracle_count": 0,
+    "error_source_builder_count": 0,
+    "provider_auth_failure_count": 0,
+    "error_message_present_count": 0,
+    "auth_diagnostic_preserved_count": 0,
+    "agent_status_event_count": 21,
+    "agent_status_scout_count": 14,
+    "agent_status_oracle_count": 3,
+    "agent_status_builder_count": 4,
+    "agent_error_signal_count": 0,
+    "scout_started_count": 6,
+    "first_scout_started_ms": 1352,
+    "last_scout_started_ms": 1352,
+    "scout_start_spread_ms": 0,
+    "first_error_event_ms": null,
+    "last_error_event_ms": null,
+    "error_event_spread_ms": null,
+    "session_ready_count": 1,
+    "distinct_session_ready_intent_count": 1,
+    "session_ready_intent_present_count": 1,
+    "error_event_count_before_session_2": null,
+    "error_event_count_after_session_2": null,
+    "time_from_session_2_to_first_error_ms": null,
+    "stream_2_error_event_count": 0,
+    "stream_2_agent_status_count": 8,
+    "stream_2_stage_changed_count": 1,
+    "stream_2_diagnostic_preserved_count": 0,
+    "stream_2_error_provider_auth_count": 0,
+    "stream_2_agent_status_scout_count": 6,
+    "stream_2_agent_status_oracle_count": 1,
+    "stream_2_agent_status_builder_count": 1,
+    "stream_2_stage_valid_count": 1,
+    "stream_2_error_source_valid_count": 0,
+    "stream_2_error_code_valid_count": 0,
+    "stream_2_error_message_present_count": 0,
+    "stream_2_agent_status_valid_count": 8,
+    "stream_2_stage_changed_swipe_count_valid_count": 1,
+    "stream_2_first_event_ms_after_open": 3,
+    "stream_2_replay_span_ms": 0,
+    "stage_changed_event_count": 1,
+    "time_to_first_stage_changed_ms": 839,
+    "stage_changed_before_session_ready": 1,
+    "stage_valid_count": 1,
+    "error_source_valid_count": 0,
+    "error_code_valid_count": 0,
+    "agent_status_valid_count": 21,
+    "stage_changed_swipe_count_valid_count": 1,
+    "oracle_cold_start_latency_ms": 4759,
+    "oracle_synthesis_latency_ms": null,
+    "oracle_reveal_build_latency_ms": null,
+    "oracle_cold_start_count": 1,
+    "oracle_synthesis_count": 0,
+    "oracle_reveal_build_count": 0,
+    "scout_probe_latency_ms_p50": 3035,
+    "scout_probe_latency_ms_max": 3220,
+    "scout_probe_count": 7,
+    "builder_scaffold_latency_ms": 9325,
+    "builder_scaffold_count": 1
+  },
+  "error_event_samples": [],
+  "provider_error_samples": [],
+  "stderr_tail": "",
+  "artifact_path": "/Users/provi/Development/_projs/the-eye-loop-gnhf-worktrees/you-are-running-an-e-2c98fb/scripts/findings/validate-2026-04-23T22-31-57-648Z.json"
+}
