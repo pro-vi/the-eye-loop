@@ -121,6 +121,12 @@ function extractMetrics(artifact) {
 		synthesis_updated_count: m.synthesis_updated_count ?? 0,
 		swipe_result_count: m.swipe_result_count ?? 0,
 		evidence_updated_count: m.evidence_updated_count ?? 0,
+		// iter-93: forward-carry count probes for the last 2 untouched
+		// SSEEvent types (facade-stale, builder-hint) so aggregate rollups
+		// below can establish the baseline-regime-invariant identity
+		// _sum=0/_min=0 under both healthy-auth and broken-auth regimes.
+		facade_stale_count: m.facade_stale_count ?? 0,
+		builder_hint_count: m.builder_hint_count ?? 0,
 		reveal_reached: m.reveal_reached ?? false,
 		error_event_count: m.error_event_count ?? 0,
 		distinct_error_agent_count: m.distinct_error_agent_count ?? 0,
@@ -1929,6 +1935,64 @@ async function main() {
 			agent_error_signal_count_sum: sumMetric('agent_error_signal_count'),
 			agent_error_signal_count_min: perIntent.length
 				? Math.min(...perIntent.map((p) => p.metrics.agent_error_signal_count ?? 0))
+				: 0,
+			// iter-93: count-probe rollups for the final 2 SSEEvent types with
+			// zero prior probe coverage (facade-stale, builder-hint). Closes
+			// the last 2 of 11 typed SSEEvent union members after 92 iterations.
+			// Both are TRANSIENT events not replayed on /api/stream (per iter-91
+			// audit of +server.ts replay block emitting only synthesis/evidence/
+			// facade/draft/stage/agent-status), so no stream_2 counterparts exist
+			// by construction — structurally N/A just like swipe-result (iter-91
+			// noted it as the 5th of iter-88's backlog that cannot be closed).
+			//
+			// Under iter-61 healthy-auth 5-intent 12s-window baseline both = 0:
+			//   facade_stale_count_sum = 0 / _min = 0 — oracle.ts:427 fires in
+			//     the reveal path (REVEAL_THRESHOLD=15 evidence, unreachable
+			//     under 1-swipe baseline); scout.ts:450 fires on stage
+			//     transition / dedup (requires concretenessFloor flip from
+			//     'word'→'mockup' at >=4 evidence, also unreachable). Identity
+			//     with a never-fires-under-baseline invariant.
+			//   builder_hint_count_sum = 0 / _min = 0 — builder.ts:370 fires
+			//     only when rebuild's output.nextHint is non-empty AND rebuild
+			//     completes (rebuild latency ~10-17s per iter-70, past 12s
+			//     window). Under broken-auth baseline also = 0 because rebuild
+			//     never fires.
+			//
+			// Baseline-regime-invariant: both probes hold _sum=0 identity across
+			// healthy-auth, broken-auth, and mixed regimes because neither event
+			// is reached by 1-swipe in-window. The probe's discriminative power
+			// is on the SHOULD-BE-ZERO invariant — catches classes of regression
+			// that iter-67/72/80/81/82/83/85/86/88-91 probes cannot:
+			//   - spurious facade-stale emission: a dedup/diversity bug that
+			//     fires facade-stale during healthy sessions (e.g. iter-76
+			//     multi-session race variant where session 1's facades are
+			//     staled by session 2's scouts) would flip facade_stale_count_
+			//     sum above 0 while facade_ready_count_sum stays at 35.
+			//   - wrong-phase builder-hint: a refactor that accidentally routes
+			//     emitBuilderHint into the scaffold path (which doesn't currently
+			//     emit hints) would flip builder_hint_count_sum above 0 without
+			//     affecting builder_scaffold_count_sum.
+			//   - cardinality-family regression: adding a new emit site for
+			//     facade-stale or builder-hint in a non-reveal/non-rebuild path
+			//     would shift _sum away from 0, surfacing the addition as a
+			//     probe-coverage alert even before a content probe is authored.
+			//
+			// Forward-deploy: when a widened VALIDATE_RUN_MS (~20-30s) lets
+			// rebuild complete in-window, builder_hint_count_sum will transition
+			// from 0 to positive (once per rebuild that produces a nextHint).
+			// That transition is a LEGITIMATE shift, not a regression — future
+			// iterations noting _sum>0 should check whether the window changed
+			// rather than assuming bug. Similarly, when reveal-path becomes
+			// reachable (REVEAL_THRESHOLD dropped or multi-swipe harness lands),
+			// facade_stale_count_sum transitions from 0 to positive (~7 per
+			// intent as the reveal prune clears the facade queue).
+			facade_stale_count_sum: sumMetric('facade_stale_count'),
+			facade_stale_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.facade_stale_count ?? 0))
+				: 0,
+			builder_hint_count_sum: sumMetric('builder_hint_count'),
+			builder_hint_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.builder_hint_count ?? 0))
 				: 0
 		},
 		per_intent: perIntent

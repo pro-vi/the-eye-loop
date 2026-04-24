@@ -995,6 +995,38 @@ async function main() {
 	const swipeResultCount = eventCounts['swipe-result'] ?? 0;
 	const evidenceUpdatedCount = eventCounts['evidence-updated'] ?? 0;
 	const errorEventCount = eventCounts['error'] ?? 0;
+	// iter-93: count probes for the two remaining SSEEvent types with zero
+	// prior probe coverage — facade-stale (oracle.ts:427 reveal prune,
+	// scout.ts:450 stage transition/dedup) and builder-hint (builder.ts:370
+	// rebuild output.nextHint). Closes the last 2 of 11 typed SSEEvent union
+	// members that had no count or content probe after 92 iterations. Both
+	// events are TRANSIENT (not replayed on /api/stream per iter-91 note that
+	// the replay block only emits synthesis/evidence/facade/draft/stage/agent-
+	// status), so by construction there is no stream_2 counterpart — same
+	// structural N/A status as swipe-result (iter-80/91). Under iter-61
+	// healthy-auth 12s-window baseline both fire 0 times per intent:
+	//   facade-stale: oracle's reveal path (REVEAL_THRESHOLD=15 evidence,
+	//     unreachable under 1-swipe baseline) and scout's stage transition
+	//     (requires concretenessFloor flip from 'word'→'mockup' at 4+ evidence,
+	//     also unreachable). A regression that accidentally fires facade-stale
+	//     during a healthy session (e.g. a buggy facade-dedup that stales out
+	//     fresh facades) would flip this count above 0 while facade_ready_count
+	//     stays at 7 — discriminative for spurious emissions.
+	//   builder-hint: builder's rebuild emits on nextHint only if rebuild
+	//     completes AND output.nextHint is non-empty; rebuild takes ~10-17s
+	//     per iter-70, past the 12s window, so count stays at 0. A regression
+	//     that fires builder-hint without a corresponding rebuild (e.g. a
+	//     scaffold-path accidentally calling emitBuilderHint) would flip this
+	//     count above 0 while builder_rebuild_count stays at 0 — discriminative
+	//     for wrong-phase emissions.
+	// Baseline-regime-invariant: under broken-auth both also = 0 (no reveal
+	// cycle reached, no rebuild fires), so the _sum=0/_min=0 identity holds
+	// across both regimes. The probe's discriminative power is on the
+	// SHOULD-BE-ZERO invariant — a probe whose healthy value is a positive
+	// integer can't detect 'fired once when it shouldn't have', but a probe
+	// whose healthy value is zero catches exactly that regression class.
+	const facadeStaleCount = eventCounts['facade-stale'] ?? 0;
+	const builderHintCount = eventCounts['builder-hint'] ?? 0;
 	// Primary-stream agent-status lifecycle volume — complementary to iter-16
 	// scout_started_count (distinct scouts that reached 'thinking') and iter-25
 	// auth_diagnostic_preserved_count (content of the FINAL focus). This counts
@@ -2143,6 +2175,14 @@ async function main() {
 			synthesis_updated_count: synthesisUpdatedCount,
 			swipe_result_count: swipeResultCount,
 			evidence_updated_count: evidenceUpdatedCount,
+			// iter-93: transient event count probes on the last 2 untouched
+			// SSEEvent types (facade-stale, builder-hint). Under iter-61
+			// healthy-auth 12s-window baseline both = 0 per intent; identity
+			// invariant facade_stale_count = builder_hint_count = 0 holds
+			// baseline-regime-invariantly (broken-auth also = 0). No stream_2
+			// counterparts by construction — neither event is replayed.
+			facade_stale_count: facadeStaleCount,
+			builder_hint_count: builderHintCount,
 			reveal_reached: revealReached,
 			error_event_count: errorEventCount,
 			error_code_counts: errorCodeCounts,
@@ -2302,6 +2342,7 @@ async function main() {
 		`drafts_r_s_len=${draftRefinedScaffoldHtmlLengthP50 === null ? '-' : draftRefinedScaffoldHtmlLengthP50 + 'c'}/min=${draftRefinedScaffoldHtmlLengthMin === null ? '-' : draftRefinedScaffoldHtmlLengthMin + 'c'} ` +
 		`drafts_r_r_len=${draftRefinedRebuildHtmlLengthP50 === null ? '-' : draftRefinedRebuildHtmlLengthP50 + 'c'}/min=${draftRefinedRebuildHtmlLengthMin === null ? '-' : draftRefinedRebuildHtmlLengthMin + 'c'} ` +
 		`synth=${synthesisUpdatedCount} swipe=${swipe.attempted ? swipe.status : 'skipped'} ` +
+		`fstale=${facadeStaleCount} bhint=${builderHintCount} ` +
 		`sse_err=${errorEventCount} auth_err=${agentErrorLines.length} ` +
 		`err_msg=${errorMessagePresentCount} ` +
 		`s1_roles=s${errorSourceScoutCount}/o${errorSourceOracleCount}/b${errorSourceBuilderCount} ` +
