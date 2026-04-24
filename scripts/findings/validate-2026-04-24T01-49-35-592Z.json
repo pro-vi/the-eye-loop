@@ -1,0 +1,1190 @@
+{
+  "started_at": "2026-04-24T01:49:21.135Z",
+  "finished_at": "2026-04-24T01:49:35.592Z",
+  "elapsed_ms": 14457,
+  "result": "PASS",
+  "reason": "facade_and_draft_observed",
+  "intent": "a CRM for freelancers",
+  "dev_url": "http://localhost:33065",
+  "session": {
+    "rtt_ms": 9,
+    "status": 200,
+    "body": {
+      "intent": "a CRM for freelancers",
+      "sessionId": "a44e8b99-53fe-404a-8da9-13ccc89ccc13"
+    },
+    "error": null
+  },
+  "session_2": {
+    "attempted": false,
+    "intent": null,
+    "rtt_ms": null,
+    "status": null,
+    "body": null,
+    "error": null,
+    "posted_at_ms": null,
+    "waited_ms": null
+  },
+  "stream": {
+    "opened_at_ms": 836,
+    "error": null,
+    "event_counts": {
+      "agent-status": 21,
+      "stage-changed": 1,
+      "draft-updated": 2,
+      "session-ready": 1,
+      "facade-ready": 7,
+      "swipe-result": 1,
+      "evidence-updated": 1,
+      "synthesis-updated": 1
+    },
+    "first_event_ms": {
+      "agent-status": 842,
+      "stage-changed": 842,
+      "draft-updated": 1354,
+      "session-ready": 1354,
+      "facade-ready": 3681,
+      "swipe-result": 3789,
+      "evidence-updated": 3789,
+      "synthesis-updated": 6070
+    },
+    "events": [
+      {
+        "ts_ms": 842,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "oracle",
+            "name": "Oracle",
+            "role": "oracle",
+            "status": "idle",
+            "focus": "monitoring"
+          }
+        }
+      },
+      {
+        "ts_ms": 842,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "idle",
+            "focus": "waiting for session"
+          }
+        }
+      },
+      {
+        "ts_ms": 842,
+        "type": "stage-changed",
+        "data": {
+          "type": "stage-changed",
+          "stage": "words",
+          "swipeCount": 0
+        }
+      },
+      {
+        "ts_ms": 1354,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "thinking",
+            "focus": "generating initial scaffold"
+          }
+        }
+      },
+      {
+        "ts_ms": 1354,
+        "type": "draft-updated",
+        "data": {
+          "type": "draft-updated",
+          "draft": {
+            "title": "a CRM for freelancers",
+            "summary": "Drafting your prototype from the swipes…",
+            "html": "<div style=\"padding:2rem;text-align:center;color:var(--muted,#8a7f78);opacity:0.75\"><h2 style=\"margin:0 0 1rem;font-weight:400\">a CRM for freelancers</h2><p style=\"margin:0\">Building your first draft…</p></div>",
+            "acceptedPatterns": [],
+            "rejectedPatterns": []
+          }
+        }
+      },
+      {
+        "ts_ms": 1354,
+        "type": "session-ready",
+        "data": {
+          "type": "session-ready",
+          "intent": "a CRM for freelancers"
+        }
+      },
+      {
+        "ts_ms": 1354,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "oracle",
+            "name": "Oracle",
+            "role": "oracle",
+            "status": "thinking",
+            "focus": "cold-start analysis"
+          }
+        }
+      },
+      {
+        "ts_ms": 1354,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-01",
+            "name": "Iris",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1354,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-02",
+            "name": "Prism",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1354,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-03",
+            "name": "Lumen",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1354,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-04",
+            "name": "Aura",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1354,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-05",
+            "name": "Facet",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1354,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-06",
+            "name": "Echo",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 3681,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "4ad3548e-8314-4300-8346-6dabbdddbbfd",
+            "agentId": "scout-03",
+            "hypothesis": "Freelancers respond better to friendly, conversational tone over corporate formality",
+            "axisTargeted": "Friendly vs Professional",
+            "label": "Casual and approachable",
+            "content": "Casual and approachable",
+            "format": "word",
+            "acceptImplies": "Voice should be warm, use contractions, acknowledge freelancer lifestyle challenges; build trust through personality not authority",
+            "rejectImplies": "Voice should be polished and formal; establish credibility through professional distance and structured language; assume users want business-like efficiency"
+          }
+        }
+      },
+      {
+        "ts_ms": 3681,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-03",
+            "name": "Lumen",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Casual and approachable\"",
+            "lastFacadeId": "4ad3548e-8314-4300-8346-6dabbdddbbfd"
+          }
+        }
+      },
+      {
+        "ts_ms": 3747,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "d2d384ae-2a88-4218-a89b-5964beb5285f",
+            "agentId": "scout-05",
+            "hypothesis": "Freelancers prioritize a single metric (revenue, upcoming work, time to deadline) over detailed breakdowns, especially on mobile and in quick check-ins",
+            "axisTargeted": "Dense data vs key metrics",
+            "label": "One big number",
+            "content": "One big number",
+            "format": "word",
+            "acceptImplies": "Build around glanceable single-stat dashboards; minimize tables and grids on primary views",
+            "rejectImplies": "Build comprehensive data views by default; show full context and multiple metrics simultaneously"
+          }
+        }
+      },
+      {
+        "ts_ms": 3747,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-05",
+            "name": "Facet",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"One big number\"",
+            "lastFacadeId": "d2d384ae-2a88-4218-a89b-5964beb5285f"
+          }
+        }
+      },
+      {
+        "ts_ms": 3789,
+        "type": "swipe-result",
+        "data": {
+          "type": "swipe-result",
+          "record": {
+            "facadeId": "4ad3548e-8314-4300-8346-6dabbdddbbfd",
+            "agentId": "scout-03",
+            "decision": "accept",
+            "latencyMs": 600,
+            "latencyBucket": "slow"
+          }
+        }
+      },
+      {
+        "ts_ms": 3789,
+        "type": "evidence-updated",
+        "data": {
+          "type": "evidence-updated",
+          "evidence": [
+            {
+              "facadeId": "4ad3548e-8314-4300-8346-6dabbdddbbfd",
+              "content": "Casual and approachable",
+              "hypothesis": "Freelancers respond better to friendly, conversational tone over corporate formality",
+              "decision": "accept",
+              "latencySignal": "slow",
+              "format": "word",
+              "implication": "Voice should be warm, use contractions, acknowledge freelancer lifestyle challenges; build trust through personality not authority"
+            }
+          ],
+          "antiPatterns": []
+        }
+      },
+      {
+        "ts_ms": 3789,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-03",
+            "name": "Lumen",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe",
+            "lastFacadeId": "4ad3548e-8314-4300-8346-6dabbdddbbfd"
+          }
+        }
+      },
+      {
+        "ts_ms": 4202,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "deda9659-11c6-4bd3-aba5-be6e7ddb6d68",
+            "agentId": "scout-01",
+            "hypothesis": "Freelancers respond better to soft, approachable color palettes than stark white or dark interfaces",
+            "axisTargeted": "Light vs dark spectrum and overall warmth",
+            "label": "Warm cream background",
+            "content": "Warm cream background",
+            "format": "word",
+            "acceptImplies": "Design should use warm neutrals, off-whites, and soft earth tones to create psychological safety and reduce interface fatigue",
+            "rejectImplies": "Design should lean toward crisp whites, cool grays, or dark modes to maintain professional clarity and visual hierarchy"
+          }
+        }
+      },
+      {
+        "ts_ms": 4202,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-01",
+            "name": "Iris",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Warm cream background\"",
+            "lastFacadeId": "deda9659-11c6-4bd3-aba5-be6e7ddb6d68"
+          }
+        }
+      },
+      {
+        "ts_ms": 4246,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "321b02c6-af2b-4547-b92c-0b9744b6f3b6",
+            "agentId": "scout-02",
+            "hypothesis": "Freelancers prefer a persistent sidebar for navigation (clients, projects, invoices) paired with card-based layouts in the main area, reducing cognitive load from too many menu levels",
+            "axisTargeted": "Navigation architecture (sidebar vs tabs) combined with content grouping (cards vs lists)",
+            "label": "Sidebar with cards",
+            "content": "Sidebar with cards",
+            "format": "word",
+            "acceptImplies": "Explore density within cards, test sidebar collapse behavior, probe whether cards should stack vertically or horizontally",
+            "rejectImplies": "Move toward tab-based or top-nav navigation; test list-based content instead of cards; consider whether a more unified single-column layout suits freelancer workflows better"
+          }
+        }
+      },
+      {
+        "ts_ms": 4246,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-02",
+            "name": "Prism",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Sidebar with cards\"",
+            "lastFacadeId": "321b02c6-af2b-4547-b92c-0b9744b6f3b6"
+          }
+        }
+      },
+      {
+        "ts_ms": 4532,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "73716a32-04d5-413d-9be7-18fb5ed46b9c",
+            "agentId": "scout-06",
+            "hypothesis": "Freelance CRM users prefer immediate feedback on client data entry—forms validate and save without clicking a submit button, reducing friction in rapid client capture workflows.",
+            "axisTargeted": "Gesture vs click / Fluid vs snappy",
+            "label": "Instant form submit",
+            "content": "Instant form submit",
+            "format": "word",
+            "acceptImplies": "Move toward auto-save patterns, real-time validation feedback, continuous data persistence as user types.",
+            "rejectImplies": "Move toward explicit confirmation (submit buttons, confirmation dialogs), bounded transaction steps, user-controlled checkpoint moments."
+          }
+        }
+      },
+      {
+        "ts_ms": 4532,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-06",
+            "name": "Echo",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Instant form submit\"",
+            "lastFacadeId": "73716a32-04d5-413d-9be7-18fb5ed46b9c"
+          }
+        }
+      },
+      {
+        "ts_ms": 4542,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "55247cd8-b158-4fdb-8697-7271725a2ed4",
+            "agentId": "scout-04",
+            "hypothesis": "For a CRM targeting freelancers, a warm, inviting interface (soft colors, rounded corners, gentle animations) will feel more human and less corporate than typical enterprise tools, making daily check-ins feel less sterile.",
+            "axisTargeted": "warm vs cool",
+            "label": "Warm glow",
+            "content": "Warm glow",
+            "format": "word",
+            "acceptImplies": "User gravitates toward comfort and approachability; CRM should feel like a trusted ally, not a demanding boss. Soft palette, human typography, forgiving interactions.",
+            "rejectImplies": "User prefers clarity and efficiency over coziness; CRM should signal professionalism and precision. Likely cooler tones, sharp typography, minimal ornament."
+          }
+        }
+      },
+      {
+        "ts_ms": 4542,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-04",
+            "name": "Aura",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Warm glow\"",
+            "lastFacadeId": "55247cd8-b158-4fdb-8697-7271725a2ed4"
+          }
+        }
+      },
+      {
+        "ts_ms": 6070,
+        "type": "synthesis-updated",
+        "data": {
+          "type": "synthesis-updated",
+          "synthesis": {
+            "axes": [
+              {
+                "label": "Whether user prefers minimal, clean aesthetics vs. rich visual hierarchy with color/imagery—reveals if they want a 'blank canvas' CRM or one with visual warmth and personality",
+                "poleA": "Clean or colorful?",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user wants tools clustered in one sidebar/dashboard vs. spread across tabs and modals—reveals navigation preference for a freelancer juggling multiple clients",
+                "poleA": "Everything in one place?",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user responds to professional/formal tone vs. casual/encouraging tone—reveals if they want a business tool or a supportive coach",
+                "poleA": "Formal or friendly?",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user wants a calm, distraction-free workspace vs. energetic, motivational environment—reveals stress tolerance and work style for solo freelancers",
+                "poleA": "Calm or energizing?",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user prefers numbers/metrics front-and-center vs. narrative summaries and stories—reveals how they track success and make decisions",
+                "poleA": "Stats or stories?",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user wants instant feedback and snappy interactions vs. smooth, deliberate transitions—reveals patience level and preference for responsiveness in a busy workflow",
+                "poleA": "Quick snaps or smooth flows?",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              }
+            ],
+            "edge_case_flags": [],
+            "scout_assignments": [
+              {
+                "scout": "Iris",
+                "probe_axis": "Whether user prefers minimal, clean aesthetics vs. rich visual hierarchy with color/imagery—reveals if they want a 'blank canvas' CRM or one with visual warmth and personality",
+                "reason": "Cold start: first question for Iris"
+              },
+              {
+                "scout": "Prism",
+                "probe_axis": "Whether user wants tools clustered in one sidebar/dashboard vs. spread across tabs and modals—reveals navigation preference for a freelancer juggling multiple clients",
+                "reason": "Cold start: first question for Prism"
+              },
+              {
+                "scout": "Lumen",
+                "probe_axis": "Whether user responds to professional/formal tone vs. casual/encouraging tone—reveals if they want a business tool or a supportive coach",
+                "reason": "Cold start: first question for Lumen"
+              },
+              {
+                "scout": "Aura",
+                "probe_axis": "Whether user wants a calm, distraction-free workspace vs. energetic, motivational environment—reveals stress tolerance and work style for solo freelancers",
+                "reason": "Cold start: first question for Aura"
+              },
+              {
+                "scout": "Facet",
+                "probe_axis": "Whether user prefers numbers/metrics front-and-center vs. narrative summaries and stories—reveals how they track success and make decisions",
+                "reason": "Cold start: first question for Facet"
+              },
+              {
+                "scout": "Echo",
+                "probe_axis": "Whether user wants instant feedback and snappy interactions vs. smooth, deliberate transitions—reveals patience level and preference for responsiveness in a busy workflow",
+                "reason": "Cold start: first question for Echo"
+              }
+            ],
+            "persona_anima_divergence": null
+          }
+        }
+      },
+      {
+        "ts_ms": 6070,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "oracle",
+            "name": "Oracle",
+            "role": "oracle",
+            "status": "idle",
+            "focus": "monitoring"
+          }
+        }
+      },
+      {
+        "ts_ms": 6997,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "b7365402-d348-4ff3-936d-56bf3f3a0e60",
+            "agentId": "scout-03",
+            "hypothesis": "Freelancers prefer personality-driven interface copy (like Slack's tone) over generic SaaS—using humor, relatability, and self-aware language—because it builds psychological safety and reduces CRM friction",
+            "axisTargeted": "Voice personality spectrum: Quirky/relatable vs. Neutral/professional",
+            "label": "Slack-style friendly",
+            "content": "Slack-style friendly",
+            "format": "word",
+            "acceptImplies": "Lean into casual, witty microcopy throughout the product (empty states, error messages, onboarding); consider brand voice guidelines that mirror freelancer communities (Discord, Twitter)",
+            "rejectImplies": "Keep voice businesslike and authoritative; prioritize clarity and formality over personality; treat copy as functional labels rather than relationship-building touchpoints"
+          }
+        }
+      },
+      {
+        "ts_ms": 6997,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-03",
+            "name": "Lumen",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Slack-style friendly\"",
+            "lastFacadeId": "b7365402-d348-4ff3-936d-56bf3f3a0e60"
+          }
+        }
+      },
+      {
+        "ts_ms": 11203,
+        "type": "draft-updated",
+        "data": {
+          "type": "draft-updated",
+          "draft": {
+            "title": "ClientFlow",
+            "summary": "A lightweight CRM dashboard for freelancers to track projects, clients, and invoices in one place.",
+            "html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>ClientFlow</title>\n  <style>\n    :root {\n      --bg: #FFF8F0;\n      --card: #FFF;\n      --accent: #FF8C69;\n      --text: #4A3E38;\n      --muted: #A1887F;\n      --radius: 16px;\n      --space: 20px;\n    }\n    * {\n      margin: 0;\n      padding: 0;\n      box-sizing: border-box;\n    }\n    body {\n      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;\n      background: var(--bg);\n      color: var(--text);\n      font-size: 16px;\n      line-height: 1.5;\n    }\n    .container {\n      width: 100%;\n      max-width: 375px;\n      margin: 0 auto;\n      padding: var(--space);\n    }\n    .header {\n      margin-bottom: 32px;\n    }\n    .header h1 {\n      font-size: 28px;\n      font-weight: 700;\n      margin-bottom: 8px;\n    }\n    .header p {\n      font-size: 14px;\n      color: var(--muted);\n    }\n    .section-title {\n      font-size: 18px;\n      font-weight: 600;\n      margin-bottom: 16px;\n      color: var(--text);\n    }\n    .card {\n      background: var(--card);\n      border-radius: var(--radius);\n      padding: var(--space);\n      margin-bottom: 12px;\n      border: 1px solid #F0E6E0;\n    }\n    .card-header {\n      display: flex;\n      justify-content: space-between;\n      align-items: flex-start;\n      margin-bottom: 12px;\n    }\n    .card-title {\n      font-size: 16px;\n      font-weight: 600;\n      color: var(--text);\n    }\n    .card-meta {\n      font-size: 13px;\n      color: var(--muted);\n      margin-top: 4px;\n    }\n    .badge {\n      display: inline-block;\n      font-size: 12px;\n      padding: 4px 10px;\n      border-radius: 8px;\n      font-weight: 500;\n    }\n    .badge-active {\n      background: #E8F5E9;\n      color: #2E7D32;\n    }\n    .badge-pending {\n      background: #FFF3E0;\n      color: #E65100;\n    }\n    .button {\n      display: inline-block;\n      background: var(--accent);\n      color: #FFF;\n      border: none;\n      border-radius: 10px;\n      padding: 12px 20px;\n      font-size: 16px;\n      font-weight: 600;\n      cursor: pointer;\n      width: 100%;\n      text-align: center;\n      margin-top: 16px;\n    }\n    .button:hover {\n      opacity: 0.9;\n    }\n    .stats {\n      display: grid;\n      grid-template-columns: 1fr 1fr;\n      gap: 12px;\n      margin-bottom: 32px;\n    }\n    .stat-box {\n      background: var(--card);\n      border-radius: var(--radius);\n      padding: 16px;\n      border: 1px solid #F0E6E0;\n      text-align: center;\n    }\n    .stat-number {\n      font-size: 24px;\n      font-weight: 700;\n      color: var(--accent);\n    }\n    .stat-label {\n      font-size: 12px;\n      color: var(--muted);\n      margin-top: 4px;\n      text-transform: uppercase;\n      letter-spacing: 0.5px;\n    }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <div class=\"header\">\n      <h1>ClientFlow</h1>\n      <p>Manage your freelance business</p>\n    </div>\n\n    <div class=\"stats\">\n      <div class=\"stat-box\">\n        <div class=\"stat-number\">8</div>\n        <div class=\"stat-label\">Active Clients</div>\n      </div>\n      <div class=\"stat-box\">\n        <div class=\"stat-number\">$4.2K</div>\n        <div class=\"stat-label\">This Month</div>\n      </div>\n    </div>\n\n    <div>\n      <h2 class=\"section-title\">Active Projects</h2>\n      <div class=\"card\">\n        <div class=\"card-header\">\n          <div>\n            <div class=\"card-title\">Website Redesign</div>\n            <div class=\"card-meta\">Acme Corp</div>\n          </div>\n          <span class=\"badge badge-active\">In Progress</span>\n        </div>\n        <div class=\"card-meta\">Due: Jan 15, 2025</div>\n      </div>\n      <div class=\"card\">\n        <div class=\"card-header\">\n          <div>\n            <div class=\"card-title\">Logo Design</div>\n            <div class=\"card-meta\">StartUp Labs</div>\n          </div>\n          <span class=\"badge badge-pending\">Pending Review</span>\n        </div>\n        <div class=\"card-meta\">Due: Jan 10, 2025</div>\n      </div>\n    </div>\n\n    <div style=\"margin-top: 32px;\">\n      <h2 class=\"section-title\">Recent Invoices</h2>\n      <div class=\"card\">\n        <div class=\"card-header\">\n          <div>\n            <div class=\"card-title\">Invoice #1024</div>\n            <div class=\"card-meta\">Acme Corp</div>\n          </div>\n          <span class=\"badge badge-active\">Paid</span>\n        </div>\n        <div class=\"card-meta\">$1,200 • Jan 5, 2025</div>\n      </div>\n      <div class=\"card\">\n        <div class=\"card-header\">\n          <div>\n            <div class=\"card-title\">Invoice #1023</div>\n            <div class=\"card-meta\">Design Studio</div>\n          </div>\n          <span class=\"badge badge-pending\">Unpaid</span>\n        </div>\n        <div class=\"card-meta\">$850 • Dec 28, 2024</div>\n      </div>\n    </div>\n\n    <button class=\"button\">Add New Project</button>\n  </div>\n</body>\n</html>",
+            "acceptedPatterns": [],
+            "rejectedPatterns": []
+          }
+        }
+      },
+      {
+        "ts_ms": 11203,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "idle",
+            "focus": "watching for swipes"
+          }
+        }
+      },
+      {
+        "ts_ms": 11203,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "thinking",
+            "focus": "analyzing accept on \"Casual and approachable\""
+          }
+        }
+      }
+    ]
+  },
+  "stream_2": {
+    "attempted": true,
+    "opened_at_ms": 13349,
+    "elapsed_ms": 806,
+    "event_counts": {
+      "synthesis-updated": 1,
+      "draft-updated": 1,
+      "evidence-updated": 1,
+      "agent-status": 8,
+      "facade-ready": 6,
+      "stage-changed": 1
+    },
+    "error_event_count": 0,
+    "agent_status_count": 8,
+    "stage_changed_count": 1,
+    "draft_updated_count": 1,
+    "draft_placeholder_count": 0,
+    "draft_refined_count": 1,
+    "facade_ready_count": 6,
+    "synthesis_updated_count": 1,
+    "evidence_updated_count": 1,
+    "diagnostic_preserved_count": 0,
+    "error_provider_auth_count": 0,
+    "agent_status_scout_count": 6,
+    "agent_status_oracle_count": 1,
+    "agent_status_builder_count": 1,
+    "stage_valid_count": 1,
+    "error_source_valid_count": 0,
+    "error_code_valid_count": 0,
+    "error_message_present_count": 0,
+    "agent_status_valid_count": 8,
+    "stage_changed_swipe_count_valid_count": 1,
+    "facade_format_valid_count": 6,
+    "first_event_ms_after_open": 3,
+    "last_event_ms_after_open": 3,
+    "replay_span_ms": 0,
+    "events": [
+      {
+        "ts_ms": 13352,
+        "type": "synthesis-updated",
+        "data": {
+          "type": "synthesis-updated",
+          "synthesis": {
+            "axes": [
+              {
+                "label": "Whether user prefers minimal, clean aesthetics vs. rich visual hierarchy with color/imagery—reveals if they want a 'blank canvas' CRM or one with visual warmth and personality",
+                "poleA": "Clean or colorful?",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user wants tools clustered in one sidebar/dashboard vs. spread across tabs and modals—reveals navigation preference for a freelancer juggling multiple clients",
+                "poleA": "Everything in one place?",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user responds to professional/formal tone vs. casual/encouraging tone—reveals if they want a business tool or a supportive coach",
+                "poleA": "Formal or friendly?",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user wants a calm, distraction-free workspace vs. energetic, motivational environment—reveals stress tolerance and work style for solo freelancers",
+                "poleA": "Calm or energizing?",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user prefers numbers/metrics front-and-center vs. narrative summaries and stories—reveals how they track success and make decisions",
+                "poleA": "Stats or stories?",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user wants instant feedback and snappy interactions vs. smooth, deliberate transitions—reveals patience level and preference for responsiveness in a busy workflow",
+                "poleA": "Quick snaps or smooth flows?",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              }
+            ],
+            "edge_case_flags": [],
+            "scout_assignments": [
+              {
+                "scout": "Iris",
+                "probe_axis": "Whether user prefers minimal, clean aesthetics vs. rich visual hierarchy with color/imagery—reveals if they want a 'blank canvas' CRM or one with visual warmth and personality",
+                "reason": "Cold start: first question for Iris"
+              },
+              {
+                "scout": "Prism",
+                "probe_axis": "Whether user wants tools clustered in one sidebar/dashboard vs. spread across tabs and modals—reveals navigation preference for a freelancer juggling multiple clients",
+                "reason": "Cold start: first question for Prism"
+              },
+              {
+                "scout": "Lumen",
+                "probe_axis": "Whether user responds to professional/formal tone vs. casual/encouraging tone—reveals if they want a business tool or a supportive coach",
+                "reason": "Cold start: first question for Lumen"
+              },
+              {
+                "scout": "Aura",
+                "probe_axis": "Whether user wants a calm, distraction-free workspace vs. energetic, motivational environment—reveals stress tolerance and work style for solo freelancers",
+                "reason": "Cold start: first question for Aura"
+              },
+              {
+                "scout": "Facet",
+                "probe_axis": "Whether user prefers numbers/metrics front-and-center vs. narrative summaries and stories—reveals how they track success and make decisions",
+                "reason": "Cold start: first question for Facet"
+              },
+              {
+                "scout": "Echo",
+                "probe_axis": "Whether user wants instant feedback and snappy interactions vs. smooth, deliberate transitions—reveals patience level and preference for responsiveness in a busy workflow",
+                "reason": "Cold start: first question for Echo"
+              }
+            ],
+            "persona_anima_divergence": null
+          }
+        }
+      },
+      {
+        "ts_ms": 13352,
+        "type": "draft-updated",
+        "data": {
+          "type": "draft-updated",
+          "draft": {
+            "title": "ClientFlow",
+            "summary": "A lightweight CRM dashboard for freelancers to track projects, clients, and invoices in one place.",
+            "html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>ClientFlow</title>\n  <style>\n    :root {\n      --bg: #FFF8F0;\n      --card: #FFF;\n      --accent: #FF8C69;\n      --text: #4A3E38;\n      --muted: #A1887F;\n      --radius: 16px;\n      --space: 20px;\n    }\n    * {\n      margin: 0;\n      padding: 0;\n      box-sizing: border-box;\n    }\n    body {\n      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;\n      background: var(--bg);\n      color: var(--text);\n      font-size: 16px;\n      line-height: 1.5;\n    }\n    .container {\n      width: 100%;\n      max-width: 375px;\n      margin: 0 auto;\n      padding: var(--space);\n    }\n    .header {\n      margin-bottom: 32px;\n    }\n    .header h1 {\n      font-size: 28px;\n      font-weight: 700;\n      margin-bottom: 8px;\n    }\n    .header p {\n      font-size: 14px;\n      color: var(--muted);\n    }\n    .section-title {\n      font-size: 18px;\n      font-weight: 600;\n      margin-bottom: 16px;\n      color: var(--text);\n    }\n    .card {\n      background: var(--card);\n      border-radius: var(--radius);\n      padding: var(--space);\n      margin-bottom: 12px;\n      border: 1px solid #F0E6E0;\n    }\n    .card-header {\n      display: flex;\n      justify-content: space-between;\n      align-items: flex-start;\n      margin-bottom: 12px;\n    }\n    .card-title {\n      font-size: 16px;\n      font-weight: 600;\n      color: var(--text);\n    }\n    .card-meta {\n      font-size: 13px;\n      color: var(--muted);\n      margin-top: 4px;\n    }\n    .badge {\n      display: inline-block;\n      font-size: 12px;\n      padding: 4px 10px;\n      border-radius: 8px;\n      font-weight: 500;\n    }\n    .badge-active {\n      background: #E8F5E9;\n      color: #2E7D32;\n    }\n    .badge-pending {\n      background: #FFF3E0;\n      color: #E65100;\n    }\n    .button {\n      display: inline-block;\n      background: var(--accent);\n      color: #FFF;\n      border: none;\n      border-radius: 10px;\n      padding: 12px 20px;\n      font-size: 16px;\n      font-weight: 600;\n      cursor: pointer;\n      width: 100%;\n      text-align: center;\n      margin-top: 16px;\n    }\n    .button:hover {\n      opacity: 0.9;\n    }\n    .stats {\n      display: grid;\n      grid-template-columns: 1fr 1fr;\n      gap: 12px;\n      margin-bottom: 32px;\n    }\n    .stat-box {\n      background: var(--card);\n      border-radius: var(--radius);\n      padding: 16px;\n      border: 1px solid #F0E6E0;\n      text-align: center;\n    }\n    .stat-number {\n      font-size: 24px;\n      font-weight: 700;\n      color: var(--accent);\n    }\n    .stat-label {\n      font-size: 12px;\n      color: var(--muted);\n      margin-top: 4px;\n      text-transform: uppercase;\n      letter-spacing: 0.5px;\n    }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <div class=\"header\">\n      <h1>ClientFlow</h1>\n      <p>Manage your freelance business</p>\n    </div>\n\n    <div class=\"stats\">\n      <div class=\"stat-box\">\n        <div class=\"stat-number\">8</div>\n        <div class=\"stat-label\">Active Clients</div>\n      </div>\n      <div class=\"stat-box\">\n        <div class=\"stat-number\">$4.2K</div>\n        <div class=\"stat-label\">This Month</div>\n      </div>\n    </div>\n\n    <div>\n      <h2 class=\"section-title\">Active Projects</h2>\n      <div class=\"card\">\n        <div class=\"card-header\">\n          <div>\n            <div class=\"card-title\">Website Redesign</div>\n            <div class=\"card-meta\">Acme Corp</div>\n          </div>\n          <span class=\"badge badge-active\">In Progress</span>\n        </div>\n        <div class=\"card-meta\">Due: Jan 15, 2025</div>\n      </div>\n      <div class=\"card\">\n        <div class=\"card-header\">\n          <div>\n            <div class=\"card-title\">Logo Design</div>\n            <div class=\"card-meta\">StartUp Labs</div>\n          </div>\n          <span class=\"badge badge-pending\">Pending Review</span>\n        </div>\n        <div class=\"card-meta\">Due: Jan 10, 2025</div>\n      </div>\n    </div>\n\n    <div style=\"margin-top: 32px;\">\n      <h2 class=\"section-title\">Recent Invoices</h2>\n      <div class=\"card\">\n        <div class=\"card-header\">\n          <div>\n            <div class=\"card-title\">Invoice #1024</div>\n            <div class=\"card-meta\">Acme Corp</div>\n          </div>\n          <span class=\"badge badge-active\">Paid</span>\n        </div>\n        <div class=\"card-meta\">$1,200 • Jan 5, 2025</div>\n      </div>\n      <div class=\"card\">\n        <div class=\"card-header\">\n          <div>\n            <div class=\"card-title\">Invoice #1023</div>\n            <div class=\"card-meta\">Design Studio</div>\n          </div>\n          <span class=\"badge badge-pending\">Unpaid</span>\n        </div>\n        <div class=\"card-meta\">$850 • Dec 28, 2024</div>\n      </div>\n    </div>\n\n    <button class=\"button\">Add New Project</button>\n  </div>\n</body>\n</html>",
+            "acceptedPatterns": [],
+            "rejectedPatterns": []
+          }
+        }
+      },
+      {
+        "ts_ms": 13352,
+        "type": "evidence-updated",
+        "data": {
+          "type": "evidence-updated",
+          "evidence": [
+            {
+              "facadeId": "4ad3548e-8314-4300-8346-6dabbdddbbfd",
+              "content": "Casual and approachable",
+              "hypothesis": "Freelancers respond better to friendly, conversational tone over corporate formality",
+              "decision": "accept",
+              "latencySignal": "slow",
+              "format": "word",
+              "implication": "Voice should be warm, use contractions, acknowledge freelancer lifestyle challenges; build trust through personality not authority"
+            }
+          ],
+          "antiPatterns": []
+        }
+      },
+      {
+        "ts_ms": 13352,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "thinking",
+            "focus": "analyzing accept on \"Casual and approachable\""
+          }
+        }
+      },
+      {
+        "ts_ms": 13352,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "oracle",
+            "name": "Oracle",
+            "role": "oracle",
+            "status": "idle",
+            "focus": "monitoring"
+          }
+        }
+      },
+      {
+        "ts_ms": 13352,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-01",
+            "name": "Iris",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Warm cream background\"",
+            "lastFacadeId": "deda9659-11c6-4bd3-aba5-be6e7ddb6d68"
+          }
+        }
+      },
+      {
+        "ts_ms": 13352,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-02",
+            "name": "Prism",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Sidebar with cards\"",
+            "lastFacadeId": "321b02c6-af2b-4547-b92c-0b9744b6f3b6"
+          }
+        }
+      },
+      {
+        "ts_ms": 13352,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-03",
+            "name": "Lumen",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Slack-style friendly\"",
+            "lastFacadeId": "b7365402-d348-4ff3-936d-56bf3f3a0e60"
+          }
+        }
+      },
+      {
+        "ts_ms": 13352,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-04",
+            "name": "Aura",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Warm glow\"",
+            "lastFacadeId": "55247cd8-b158-4fdb-8697-7271725a2ed4"
+          }
+        }
+      },
+      {
+        "ts_ms": 13352,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-05",
+            "name": "Facet",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"One big number\"",
+            "lastFacadeId": "d2d384ae-2a88-4218-a89b-5964beb5285f"
+          }
+        }
+      },
+      {
+        "ts_ms": 13352,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-06",
+            "name": "Echo",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Instant form submit\"",
+            "lastFacadeId": "73716a32-04d5-413d-9be7-18fb5ed46b9c"
+          }
+        }
+      },
+      {
+        "ts_ms": 13352,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "d2d384ae-2a88-4218-a89b-5964beb5285f",
+            "agentId": "scout-05",
+            "hypothesis": "Freelancers prioritize a single metric (revenue, upcoming work, time to deadline) over detailed breakdowns, especially on mobile and in quick check-ins",
+            "axisTargeted": "Dense data vs key metrics",
+            "label": "One big number",
+            "content": "One big number",
+            "format": "word",
+            "acceptImplies": "Build around glanceable single-stat dashboards; minimize tables and grids on primary views",
+            "rejectImplies": "Build comprehensive data views by default; show full context and multiple metrics simultaneously"
+          }
+        }
+      },
+      {
+        "ts_ms": 13352,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "deda9659-11c6-4bd3-aba5-be6e7ddb6d68",
+            "agentId": "scout-01",
+            "hypothesis": "Freelancers respond better to soft, approachable color palettes than stark white or dark interfaces",
+            "axisTargeted": "Light vs dark spectrum and overall warmth",
+            "label": "Warm cream background",
+            "content": "Warm cream background",
+            "format": "word",
+            "acceptImplies": "Design should use warm neutrals, off-whites, and soft earth tones to create psychological safety and reduce interface fatigue",
+            "rejectImplies": "Design should lean toward crisp whites, cool grays, or dark modes to maintain professional clarity and visual hierarchy"
+          }
+        }
+      },
+      {
+        "ts_ms": 13352,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "321b02c6-af2b-4547-b92c-0b9744b6f3b6",
+            "agentId": "scout-02",
+            "hypothesis": "Freelancers prefer a persistent sidebar for navigation (clients, projects, invoices) paired with card-based layouts in the main area, reducing cognitive load from too many menu levels",
+            "axisTargeted": "Navigation architecture (sidebar vs tabs) combined with content grouping (cards vs lists)",
+            "label": "Sidebar with cards",
+            "content": "Sidebar with cards",
+            "format": "word",
+            "acceptImplies": "Explore density within cards, test sidebar collapse behavior, probe whether cards should stack vertically or horizontally",
+            "rejectImplies": "Move toward tab-based or top-nav navigation; test list-based content instead of cards; consider whether a more unified single-column layout suits freelancer workflows better"
+          }
+        }
+      },
+      {
+        "ts_ms": 13352,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "73716a32-04d5-413d-9be7-18fb5ed46b9c",
+            "agentId": "scout-06",
+            "hypothesis": "Freelance CRM users prefer immediate feedback on client data entry—forms validate and save without clicking a submit button, reducing friction in rapid client capture workflows.",
+            "axisTargeted": "Gesture vs click / Fluid vs snappy",
+            "label": "Instant form submit",
+            "content": "Instant form submit",
+            "format": "word",
+            "acceptImplies": "Move toward auto-save patterns, real-time validation feedback, continuous data persistence as user types.",
+            "rejectImplies": "Move toward explicit confirmation (submit buttons, confirmation dialogs), bounded transaction steps, user-controlled checkpoint moments."
+          }
+        }
+      },
+      {
+        "ts_ms": 13352,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "55247cd8-b158-4fdb-8697-7271725a2ed4",
+            "agentId": "scout-04",
+            "hypothesis": "For a CRM targeting freelancers, a warm, inviting interface (soft colors, rounded corners, gentle animations) will feel more human and less corporate than typical enterprise tools, making daily check-ins feel less sterile.",
+            "axisTargeted": "warm vs cool",
+            "label": "Warm glow",
+            "content": "Warm glow",
+            "format": "word",
+            "acceptImplies": "User gravitates toward comfort and approachability; CRM should feel like a trusted ally, not a demanding boss. Soft palette, human typography, forgiving interactions.",
+            "rejectImplies": "User prefers clarity and efficiency over coziness; CRM should signal professionalism and precision. Likely cooler tones, sharp typography, minimal ornament."
+          }
+        }
+      },
+      {
+        "ts_ms": 13352,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "b7365402-d348-4ff3-936d-56bf3f3a0e60",
+            "agentId": "scout-03",
+            "hypothesis": "Freelancers prefer personality-driven interface copy (like Slack's tone) over generic SaaS—using humor, relatability, and self-aware language—because it builds psychological safety and reduces CRM friction",
+            "axisTargeted": "Voice personality spectrum: Quirky/relatable vs. Neutral/professional",
+            "label": "Slack-style friendly",
+            "content": "Slack-style friendly",
+            "format": "word",
+            "acceptImplies": "Lean into casual, witty microcopy throughout the product (empty states, error messages, onboarding); consider brand voice guidelines that mirror freelancer communities (Discord, Twitter)",
+            "rejectImplies": "Keep voice businesslike and authoritative; prioritize clarity and formality over personality; treat copy as functional labels rather than relationship-building touchpoints"
+          }
+        }
+      },
+      {
+        "ts_ms": 13352,
+        "type": "stage-changed",
+        "data": {
+          "type": "stage-changed",
+          "stage": "words",
+          "swipeCount": 1
+        }
+      }
+    ],
+    "error": null
+  },
+  "facade_visible": {
+    "attempted": true,
+    "status": 200,
+    "error": null,
+    "rtt_ms": 4
+  },
+  "swipe": {
+    "attempted": true,
+    "facadeId": "4ad3548e-8314-4300-8346-6dabbdddbbfd",
+    "facade_ready_at_ms": 3681,
+    "posted_at_ms": 3785,
+    "rtt_ms": 4,
+    "status": 200,
+    "body": {
+      "ok": true,
+      "swipeCount": 1,
+      "stage": "words"
+    },
+    "error": null
+  },
+  "metrics": {
+    "time_to_first_facade_ms": 3681,
+    "time_to_first_draft_ms": 1354,
+    "time_to_first_synthesis_ms": 6070,
+    "time_to_first_draft_after_swipe_ms": 7418,
+    "time_to_first_evidence_after_swipe_ms": 4,
+    "time_to_session_ready_ms": 1354,
+    "time_to_first_error_ms": null,
+    "time_from_session_to_first_facade_ms": 2327,
+    "time_from_session_to_first_draft_ms": 0,
+    "time_from_session_to_first_error_ms": null,
+    "facade_ready_count": 7,
+    "draft_updated_count": 2,
+    "draft_placeholder_count": 1,
+    "draft_refined_count": 1,
+    "draft_refined_html_length_p50": 4901,
+    "draft_refined_html_length_max": 4901,
+    "draft_refined_html_length_min": 4901,
+    "draft_refined_scaffold_count": 1,
+    "draft_refined_rebuild_count": 0,
+    "draft_refined_unknown_count": 0,
+    "draft_refined_scaffold_html_length_p50": 4901,
+    "draft_refined_scaffold_html_length_min": 4901,
+    "draft_refined_scaffold_html_length_max": 4901,
+    "draft_refined_rebuild_html_length_p50": null,
+    "draft_refined_rebuild_html_length_min": null,
+    "draft_refined_rebuild_html_length_max": null,
+    "synthesis_updated_count": 1,
+    "swipe_result_count": 1,
+    "evidence_updated_count": 1,
+    "reveal_reached": false,
+    "error_event_count": 0,
+    "error_code_counts": {},
+    "error_source_counts": {},
+    "error_agent_counts": {},
+    "distinct_error_agent_count": 0,
+    "error_source_scout_count": 0,
+    "error_source_oracle_count": 0,
+    "error_source_builder_count": 0,
+    "provider_auth_failure_count": 0,
+    "error_message_present_count": 0,
+    "auth_diagnostic_preserved_count": 0,
+    "agent_status_event_count": 21,
+    "agent_status_scout_count": 14,
+    "agent_status_oracle_count": 3,
+    "agent_status_builder_count": 4,
+    "agent_error_signal_count": 0,
+    "scout_started_count": 6,
+    "first_scout_started_ms": 1354,
+    "last_scout_started_ms": 1354,
+    "scout_start_spread_ms": 0,
+    "first_error_event_ms": null,
+    "last_error_event_ms": null,
+    "error_event_spread_ms": null,
+    "session_ready_count": 1,
+    "distinct_session_ready_intent_count": 1,
+    "session_ready_intent_present_count": 1,
+    "error_event_count_before_session_2": null,
+    "error_event_count_after_session_2": null,
+    "time_from_session_2_to_first_error_ms": null,
+    "stream_2_error_event_count": 0,
+    "stream_2_agent_status_count": 8,
+    "stream_2_stage_changed_count": 1,
+    "stream_2_diagnostic_preserved_count": 0,
+    "stream_2_error_provider_auth_count": 0,
+    "stream_2_agent_status_scout_count": 6,
+    "stream_2_agent_status_oracle_count": 1,
+    "stream_2_agent_status_builder_count": 1,
+    "stream_2_stage_valid_count": 1,
+    "stream_2_error_source_valid_count": 0,
+    "stream_2_error_code_valid_count": 0,
+    "stream_2_error_message_present_count": 0,
+    "stream_2_agent_status_valid_count": 8,
+    "stream_2_stage_changed_swipe_count_valid_count": 1,
+    "stream_2_draft_updated_count": 1,
+    "stream_2_draft_placeholder_count": 0,
+    "stream_2_draft_refined_count": 1,
+    "stream_2_facade_ready_count": 6,
+    "stream_2_synthesis_updated_count": 1,
+    "stream_2_evidence_updated_count": 1,
+    "stream_2_facade_format_valid_count": 6,
+    "stream_2_first_event_ms_after_open": 3,
+    "stream_2_replay_span_ms": 0,
+    "stage_changed_event_count": 1,
+    "time_to_first_stage_changed_ms": 842,
+    "stage_changed_before_session_ready": 1,
+    "stage_valid_count": 1,
+    "error_source_valid_count": 0,
+    "error_code_valid_count": 0,
+    "agent_status_valid_count": 21,
+    "stage_changed_swipe_count_valid_count": 1,
+    "facade_format_valid_count": 7,
+    "synthesis_axes_count": 6,
+    "synthesis_axes_min": 6,
+    "synthesis_scout_assignments_count": 6,
+    "synthesis_scout_assignments_min": 6,
+    "oracle_cold_start_latency_ms": 4716,
+    "oracle_synthesis_latency_ms": null,
+    "oracle_reveal_build_latency_ms": null,
+    "oracle_cold_start_count": 1,
+    "oracle_synthesis_count": 0,
+    "oracle_reveal_build_count": 0,
+    "scout_probe_latency_ms_p50": 2892,
+    "scout_probe_latency_ms_max": 3208,
+    "scout_probe_count": 7,
+    "builder_scaffold_latency_ms": 9849,
+    "builder_scaffold_count": 1,
+    "builder_rebuild_latency_ms": null,
+    "builder_rebuild_latency_ms_p50": null,
+    "builder_rebuild_latency_ms_max": null,
+    "builder_rebuild_count": 0
+  },
+  "error_event_samples": [],
+  "provider_error_samples": [],
+  "stderr_tail": "",
+  "artifact_path": "/Users/provi/Development/_projs/the-eye-loop-gnhf-worktrees/you-are-running-an-e-2c98fb/scripts/findings/validate-2026-04-24T01-49-35-592Z.json"
+}
