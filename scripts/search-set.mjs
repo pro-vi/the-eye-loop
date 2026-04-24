@@ -114,6 +114,16 @@ function extractMetrics(artifact) {
 		// count in lock-step via builder.ts:369-371's shared `if (output.nextHint)`
 		// gate.
 		draft_next_hint_present_count: m.draft_next_hint_present_count ?? 0,
+		// iter-96: forward-carry draft.acceptedPatterns / .rejectedPatterns
+		// presence-validity probe counts from validate.mjs so aggregate rollups
+		// below can establish the SHOULD-BE-ZERO invariant (_sum=0/_min=0)
+		// under iter-61 healthy-auth 5-intent 12s-window baseline. Under
+		// rebuild-reachable forward-deploy regimes both counts flip positive,
+		// split per-decision (accept-rebuilds populate accepted_present, reject-
+		// rebuilds populate rejected_present) — higher discriminative resolution
+		// than iter-95's single-channel nextHint signal.
+		draft_accepted_patterns_present_count: m.draft_accepted_patterns_present_count ?? 0,
+		draft_rejected_patterns_present_count: m.draft_rejected_patterns_present_count ?? 0,
 		draft_refined_html_length_p50: m.draft_refined_html_length_p50 ?? null,
 		draft_refined_html_length_max: m.draft_refined_html_length_max ?? null,
 		draft_refined_html_length_min: m.draft_refined_html_length_min ?? null,
@@ -186,6 +196,16 @@ function extractMetrics(artifact) {
 		// reachable regime where /api/stream replay snapshot captures context.
 		// draft after rebuild has populated nextHint.
 		stream_2_draft_next_hint_present_count: m.stream_2_draft_next_hint_present_count ?? 0,
+		// iter-96: forward-carry stream_2 counterparts of draft.acceptedPatterns /
+		// .rejectedPatterns presence-validity probes. Cross-stream SHOULD-BE-
+		// ZERO identity with primary iter-96 under healthy-auth baseline;
+		// forward-deploys under rebuild-reachable regime where /api/stream
+		// replay snapshot captures context.draft after rebuild has dedupe-
+		// appended patterns. Same per-decision split as primary iter-96.
+		stream_2_draft_accepted_patterns_present_count:
+			m.stream_2_draft_accepted_patterns_present_count ?? 0,
+		stream_2_draft_rejected_patterns_present_count:
+			m.stream_2_draft_rejected_patterns_present_count ?? 0,
 		stream_2_draft_refined_count: m.stream_2_draft_refined_count ?? 0,
 		stream_2_facade_ready_count: m.stream_2_facade_ready_count ?? 0,
 		stream_2_synthesis_updated_count: m.stream_2_synthesis_updated_count ?? 0,
@@ -561,6 +581,96 @@ async function main() {
 			draft_next_hint_present_count_sum: sumMetric('draft_next_hint_present_count'),
 			draft_next_hint_present_count_min: perIntent.length
 				? Math.min(...perIntent.map((p) => p.metrics.draft_next_hint_present_count ?? 0))
+				: 0,
+			// iter-96: draft.acceptedPatterns / .rejectedPatterns presence-validity
+			// rollups on the primary bus. Both PrototypeDraft pattern arrays
+			// (types.ts:50-51) start at [] (context.ts:35-36) and are only
+			// mutated by rebuild() at builder.ts:325-341 (placeholder/scaffold/
+			// reveal paths leave them at the [] init or preserve rebuild's
+			// state). Under iter-61 healthy-auth 5-intent 12s-window 1-swipe
+			// baseline rebuild is unreachable (~15s Haiku rebuild past the 12s
+			// window), so:
+			//   draft_accepted_patterns_present_count_sum = 0
+			//   draft_accepted_patterns_present_count_min = 0
+			//   draft_rejected_patterns_present_count_sum = 0
+			//   draft_rejected_patterns_present_count_min = 0
+			// SHOULD-BE-ZERO invariants in the current regime parallel to
+			// iter-93 (facade_stale_count, builder_hint_count), iter-94
+			// (synthesis_palette_present_count), and iter-95 (draft_next_hint_
+			// present_count) — all forward-deploy probes whose baseline=0 under
+			// the current 12s/1-swipe window but whose discriminative value
+			// emerges under widened-window / multi-swipe / rebuild-reachable
+			// regimes.
+			//
+			// Forward-deploy identity under rebuild-reachable regime is DISTINCT
+			// from iter-95's nextHint identity (which pairs with iter-93's
+			// builder_hint_count via builder.ts:369-371's shared `if (output.
+			// nextHint)` gate). Pattern arrays instead split per swipe DECISION:
+			//   draft_accepted_patterns_present_count_sum
+			//     == (number of rebuild runs where output.acceptedPatterns
+			//        was non-empty AND survived dedupe-append)
+			//   draft_rejected_patterns_present_count_sum
+			//     == (number of rebuild runs where output.rejectedPatterns
+			//        was non-empty AND survived dedupe-append)
+			// These channels are INDEPENDENT — a single rebuild can populate
+			// one without the other (e.g. accept rebuild emits acceptedPatterns
+			// =['warm'] but rejectedPatterns stays at []), giving HIGHER
+			// discriminative resolution than nextHint's single combined signal.
+			//
+			// Regression classes these rollups catch that iter-64/65/75/76/95
+			// rollups cannot:
+			//   (a) placeholder/scaffold accidentally seeding pattern arrays
+			//       (e.g. someone defaults acceptedPatterns: ['warming up'] in
+			//       context.ts init or a future "scaffold patterns" feature).
+			//       Both counts flip from 0 → 5 per intent under healthy-auth
+			//       baseline, with iter-64's placeholder_count (5) and iter-95's
+			//       next_hint count (0) both unchanged — pinpoints the seed
+			//       regression to the patterns fields specifically.
+			//   (b) rebuild path refactor that mutates patterns but skips the
+			//       emitDraftUpdated call. Under forward-deploy rebuild-
+			//       reachable regime, builder_hint_count_sum (iter-93) and
+			//       draft_next_hint_present_count_sum (iter-95) track rebuild
+			//       completions-with-hint, but BOTH pattern_present counts stay
+			//       at 0 — the missing emit is uniquely visible at the patterns
+			//       layer.
+			//   (c) rebuild emits acceptedPatterns ALWAYS truthy regardless of
+			//       swipe decision (e.g. dedupe-append accidentally pulls from
+			//       the wrong output field on reject paths). accepted count
+			//       tracks ALL rebuilds while rejected count drops below match
+			//       — the per-decision split discriminates accept-vs-reject
+			//       corruption invisible to a single combined patterns_present
+			//       probe.
+			//   (d) dedupe regression where existingAccepted/existingRejected
+			//       Set check is broken (builder.ts:326,334), causing repeated
+			//       patterns to inflate the array. Length-based presence stays
+			//       boolean (true once any pattern lands), so this rollup
+			//       cannot catch growth-vs-correct-dedupe — that would need a
+			//       separate iter-96-follow-on length distribution probe.
+			//
+			// Paired with stream_2 counterpart rollups (iter-96 below) for
+			// cross-stream identity: under healthy-auth both _sum=0; under
+			// rebuild-reachable regime primary count matches stream_2 snapshot
+			// count IF context.draft pattern arrays are still set at stream_2
+			// open time (they always are — rebuild is the only mutation site
+			// and reveal does NOT clear them). A /api/stream replay block
+			// regression that drops one or both arrays from the snapshot
+			// payload while primary retains them would drop stream_2 count
+			// below primary under forward-deploy.
+			draft_accepted_patterns_present_count_sum: sumMetric(
+				'draft_accepted_patterns_present_count'
+			),
+			draft_accepted_patterns_present_count_min: perIntent.length
+				? Math.min(
+						...perIntent.map((p) => p.metrics.draft_accepted_patterns_present_count ?? 0)
+					)
+				: 0,
+			draft_rejected_patterns_present_count_sum: sumMetric(
+				'draft_rejected_patterns_present_count'
+			),
+			draft_rejected_patterns_present_count_min: perIntent.length
+				? Math.min(
+						...perIntent.map((p) => p.metrics.draft_rejected_patterns_present_count ?? 0)
+					)
 				: 0,
 			// iter-75 draft refined html length distribution rollups — iter-74
 			// reduced Haiku's scaffold output from ~5800-7300 chars (iter-71
@@ -1208,6 +1318,55 @@ async function main() {
 			stream_2_draft_next_hint_present_count_min: perIntent.length
 				? Math.min(
 						...perIntent.map((p) => p.metrics.stream_2_draft_next_hint_present_count ?? 0)
+					)
+				: 0,
+			// iter-96: stream_2 counterparts for iter-96 primary-bus draft.
+			// acceptedPatterns / .rejectedPatterns presence-validity rollups.
+			// /api/stream replay at +server.ts:27-29 emits draft-updated when
+			// context.draft.html is non-empty — the payload is context.draft by
+			// reference, so stream_2 carries whatever pattern array state is on
+			// context.draft at open time. Under iter-61 healthy-auth 5-intent
+			// 12s-window baseline rebuild is unreachable within the window, so
+			// context.draft.acceptedPatterns / .rejectedPatterns stay at the []
+			// init from context.ts:35-36; the replay carries the empty arrays
+			// on the wire, yielding:
+			//   stream_2_draft_accepted_patterns_present_count_sum = 0
+			//   stream_2_draft_accepted_patterns_present_count_min = 0
+			//   stream_2_draft_rejected_patterns_present_count_sum = 0
+			//   stream_2_draft_rejected_patterns_present_count_min = 0
+			// Cross-stream SHOULD-BE-ZERO identity with primary iter-96 rollups.
+			// Forward-deploy transition under a rebuild-reachable regime: when
+			// rebuild completes before stream_2 opens, context.draft pattern
+			// arrays are populated; the replay emits a draft-updated with non-
+			// empty arrays so stream_2 counts rise to match the snapshot replay
+			// count (1 per intent — +server.ts:27 only fires once per stream_2
+			// connect, gated on html non-empty). Same per-decision split as
+			// primary iter-96 — accepted and rejected channels independent.
+			// A /api/stream replay block regression that drops one or both
+			// pattern arrays from the snapshot payload while primary retains
+			// them would drop stream_2 count below primary under forward-deploy
+			// — two-sided per-decision coverage that primary-only probes cannot
+			// provide. This pattern (primary + stream_2 paired in same iter)
+			// continues the iter-89-91 backlog-closure cadence: any new draft-
+			// updated content probe naturally requires both stream sides.
+			stream_2_draft_accepted_patterns_present_count_sum: sumMetric(
+				'stream_2_draft_accepted_patterns_present_count'
+			),
+			stream_2_draft_accepted_patterns_present_count_min: perIntent.length
+				? Math.min(
+						...perIntent.map(
+							(p) => p.metrics.stream_2_draft_accepted_patterns_present_count ?? 0
+						)
+					)
+				: 0,
+			stream_2_draft_rejected_patterns_present_count_sum: sumMetric(
+				'stream_2_draft_rejected_patterns_present_count'
+			),
+			stream_2_draft_rejected_patterns_present_count_min: perIntent.length
+				? Math.min(
+						...perIntent.map(
+							(p) => p.metrics.stream_2_draft_rejected_patterns_present_count ?? 0
+						)
 					)
 				: 0,
 			// iter-66: close the three remaining unprobed cells on /api/stream

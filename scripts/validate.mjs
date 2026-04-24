@@ -558,6 +558,32 @@ async function main() {
 		// deploy rebuild regime); (c) JSON serialization turns undefined into null
 		// but typeof still !== 'string' so probe holds correct semantic.
 		draft_next_hint_present_count: 0,
+		// iter-96: stream_2 counterparts for primary-bus draft.acceptedPatterns
+		// / .rejectedPatterns presence-validity probes. Both PrototypeDraft
+		// pattern arrays (types.ts:50-51) start at [] (context.ts:35-36) and
+		// are only mutated by rebuild() (builder.ts:325-341, unreachable under
+		// the 12s 1-swipe validator window). Under iter-61 healthy-auth
+		// baseline /api/stream replay carries context.draft snapshot at open
+		// time — placeholder (iter-63) and scaffold (iter-48 merge) paths leave
+		// both arrays at [], so stream_2_*_present_count = 0 per intent.
+		// SHOULD-BE-ZERO cross-stream identity with primary iter-96 paired in
+		// lock-step via the rebuild-only mutation site. Forward-deploy under
+		// rebuild-reachable regimes: when rebuild completes before stream_2
+		// opens, context.draft.acceptedPatterns/.rejectedPatterns carry the
+		// dedupe-appended patterns; the replay emits a draft-updated with the
+		// non-empty arrays, so stream_2 counts rise to match the snapshot
+		// replay count. Regression classes: (a) placeholder/scaffold paths
+		// accidentally seeding patterns (count flips 0→1 inappropriately);
+		// (b) /api/stream replay drops one or both pattern arrays from the
+		// snapshot payload while primary keeps them (stream_2 drops below
+		// primary under forward-deploy rebuild regime); (c) JSON serialization
+		// turns string[] into something else (e.g. nested object), Array.
+		// isArray check catches this distinct from a presence-only check.
+		// Splits iter-95's single rebuild-signal into per-decision channels
+		// (accepted vs rejected) — same orthogonal-resolution amplification as
+		// the primary iter-96 probes.
+		draft_accepted_patterns_present_count: 0,
+		draft_rejected_patterns_present_count: 0,
 		first_event_ms_after_open: null,
 		last_event_ms_after_open: null,
 		replay_span_ms: null,
@@ -1030,6 +1056,31 @@ async function main() {
 				typeof e.data?.draft?.nextHint === 'string' &&
 				e.data.draft.nextHint.length > 0
 		).length;
+		// iter-96: stream_2 draft.acceptedPatterns / .rejectedPatterns presence-
+		// validity probes. Mirrors the primary-bus iter-96 probes onto the
+		// /api/stream replay snapshot — same Array.isArray + length>0 predicate
+		// as the primary block. Under iter-61 healthy-auth 12s/1-swipe baseline
+		// stream_2 replay never carries non-empty pattern arrays (rebuild
+		// unreachable), yielding 0 per intent. Cross-stream SHOULD-BE-ZERO
+		// identity with primary iter-96. Forward-deploys under rebuild-reachable
+		// regimes where the snapshot captures context.draft AFTER rebuild has
+		// dedupe-appended patterns — at that point the replay emits draft-updated
+		// with non-empty arrays and stream_2 counts rise to match the per-stream
+		// snapshot replay count (1 per intent — +server.ts:27 only fires once
+		// per stream_2 connect, gated on html non-empty). Same regression
+		// classes as the iter-95 stream_2 nextHint probe but split per-decision.
+		stream2.draft_accepted_patterns_present_count = stream2.events.filter(
+			(e) =>
+				e.type === 'draft-updated' &&
+				Array.isArray(e.data?.draft?.acceptedPatterns) &&
+				e.data.draft.acceptedPatterns.length > 0
+		).length;
+		stream2.draft_rejected_patterns_present_count = stream2.events.filter(
+			(e) =>
+				e.type === 'draft-updated' &&
+				Array.isArray(e.data?.draft?.rejectedPatterns) &&
+				e.data.draft.rejectedPatterns.length > 0
+		).length;
 		// Replay-tightness probe — closes iter-34's explicitly-deferred "assert
 		// p90-p50<20ms as an additional stability invariant" opportunity, but
 		// generalized: the /api/stream start() block emits ALL replay events
@@ -1237,6 +1288,73 @@ async function main() {
 	const draftNextHintPresentCount = draftUpdatedEvents.filter((e) => {
 		const nextHint = e.data?.draft?.nextHint;
 		return typeof nextHint === 'string' && nextHint.length > 0;
+	}).length;
+
+	// iter-96: draft.acceptedPatterns / rejectedPatterns presence-validity on
+	// the primary bus. PrototypeDraft.acceptedPatterns / .rejectedPatterns
+	// (types.ts:50-51) are `string[]` initialized to [] at context.ts:35-36 and
+	// only mutated by the rebuild() path at builder.ts:325-341 (dedupe-append
+	// from output.acceptedPatterns / output.rejectedPatterns). The four
+	// emission paths diverge on these fields:
+	//   placeholder (builder.ts:454-462, sync pre-scaffold): both arrays stay
+	//     at the [] init; placeholder draft never carries patterns.
+	//   scaffold success (builder.ts:524-528): merges title/summary/html only;
+	//     both pattern arrays remain at [] from init.
+	//   rebuild success (builder.ts:325-341): the ONLY path that appends to
+	//     either array — splits by output decision (acceptedPatterns from the
+	//     accept side, rejectedPatterns from the reject side).
+	//   reveal success (builder.ts:708-712): merges title/summary/html and
+	//     clears nextHint, but does NOT touch acceptedPatterns/rejectedPatterns
+	//     — preserves whatever the rebuild path accumulated, so reveal-emitted
+	//     drafts inherit non-empty patterns IFF rebuild ran first.
+	// Under iter-61 healthy-auth 12s-window 1-swipe baseline rebuild is
+	// unreachable (~15s Haiku rebuild call past the 12s window), so both arrays
+	// stay at [] across all draft-updated emits — yielding _present_count=0 per
+	// intent. SHOULD-BE-ZERO invariants under current regime parallel to
+	// iter-93 (facade-stale, builder-hint), iter-94 (synthesis.palette), and
+	// iter-95 (draft.nextHint) — all forward-deploy under widened windows or
+	// multi-swipe regimes to positive counts matching specific path predicates.
+	//
+	// Identity pairing distinct from iter-95's nextHint identity: nextHint
+	// pairs with iter-93's builder_hint_count via builder.ts:369-371's shared
+	// `if (output.nextHint)` gate. acceptedPatterns/rejectedPatterns instead
+	// pair with the SWIPE DECISION distribution: under rebuild-reachable
+	// regimes, accepted_present_count tracks the number of accept-decision
+	// rebuilds where the LLM emitted a non-empty acceptedPatterns array,
+	// rejected_present_count tracks the same for reject-decision rebuilds.
+	// The two pattern-arrays split iter-95's lock-step rebuild signal into
+	// per-decision channels — rebuild can populate one without the other
+	// (e.g. accept rebuild emits acceptedPatterns=['warm'] but rejectedPatterns
+	// stays at []), giving HIGHER discriminative resolution than nextHint's
+	// single-channel signal. iter-95 explicitly named these as natural follow-on
+	// probes; this iteration closes them with the SAME single-iteration
+	// closure pattern as iter-91 (axes.confidence + scout_assignments.scout
+	// in one pass).
+	//
+	// Regression classes this catches that iter-64/65/75/76/95 cannot:
+	//   (a) placeholder/scaffold accidentally seeding patterns (e.g. someone
+	//       defaults acceptedPatterns: ['warming up'] in context.ts init).
+	//       Both counts flip from 0 → 5 per intent under healthy-auth, with
+	//       iter-95 next_hint count unchanged at 0 — pinpoints the seed
+	//       regression to the patterns fields specifically.
+	//   (b) rebuild path refactor that mutates patterns but skips the
+	//       emitDraftUpdated. iter-93 builder_hint_count tracks rebuild
+	//       completion-with-hint, iter-95 next_hint count tracks rebuild
+	//       completions-with-nextHint, but BOTH pattern counts stay at 0 —
+	//       the missing emit is uniquely visible at the patterns layer.
+	//   (c) rebuild emits acceptedPatterns ALWAYS truthy regardless of
+	//       decision (e.g. dedupe-append accidentally pulls from the wrong
+	//       output field). accepted_present_count tracks ALL rebuilds while
+	//       rejected_present_count drops to 0 — the per-decision split
+	//       discriminates accept-vs-reject corruption invisible to a single
+	//       combined patterns_present probe.
+	const draftAcceptedPatternsPresentCount = draftUpdatedEvents.filter((e) => {
+		const accepted = e.data?.draft?.acceptedPatterns;
+		return Array.isArray(accepted) && accepted.length > 0;
+	}).length;
+	const draftRejectedPatternsPresentCount = draftUpdatedEvents.filter((e) => {
+		const rejected = e.data?.draft?.rejectedPatterns;
+		return Array.isArray(rejected) && rejected.length > 0;
 	}).length;
 
 	// iter-75: draft refined html length distribution probe. iter-74 reduced
@@ -2340,6 +2458,8 @@ async function main() {
 			draft_placeholder_count: draftPlaceholderCount,
 			draft_refined_count: draftRefinedCount,
 			draft_next_hint_present_count: draftNextHintPresentCount,
+			draft_accepted_patterns_present_count: draftAcceptedPatternsPresentCount,
+			draft_rejected_patterns_present_count: draftRejectedPatternsPresentCount,
 			draft_refined_html_length_p50: draftRefinedHtmlLengthP50,
 			draft_refined_html_length_max: draftRefinedHtmlLengthMax,
 			draft_refined_html_length_min: draftRefinedHtmlLengthMin,
@@ -2412,6 +2532,8 @@ async function main() {
 			stream_2_draft_placeholder_count: stream2.draft_placeholder_count,
 			stream_2_draft_refined_count: stream2.draft_refined_count,
 			stream_2_draft_next_hint_present_count: stream2.draft_next_hint_present_count,
+			stream_2_draft_accepted_patterns_present_count: stream2.draft_accepted_patterns_present_count,
+			stream_2_draft_rejected_patterns_present_count: stream2.draft_rejected_patterns_present_count,
 			// iter-66: final three unprobed cells on stream_2 replay (iter-65
 			// explicitly named these as remaining harness-completeness gaps).
 			stream_2_facade_ready_count: stream2.facade_ready_count,
@@ -2519,7 +2641,7 @@ async function main() {
 	console.log(
 		`[validate] result=${artifact.result} reason=${reason} ` +
 		`${sessionSummary} facades=${facadeReadyCount} drafts=${draftUpdatedCount} ` +
-		`drafts_p/r=${draftPlaceholderCount}/${draftRefinedCount} draft_next_hint=${draftNextHintPresentCount} ` +
+		`drafts_p/r=${draftPlaceholderCount}/${draftRefinedCount} draft_next_hint=${draftNextHintPresentCount} draft_accepted_pat=${draftAcceptedPatternsPresentCount} draft_rejected_pat=${draftRejectedPatternsPresentCount} ` +
 		`drafts_r_len=${draftRefinedHtmlLengthP50 === null ? '-' : draftRefinedHtmlLengthP50 + 'c'}/min=${draftRefinedHtmlLengthMin === null ? '-' : draftRefinedHtmlLengthMin + 'c'}/max=${draftRefinedHtmlLengthMax === null ? '-' : draftRefinedHtmlLengthMax + 'c'} ` +
 		`drafts_r_src=s${draftRefinedScaffoldCount}/r${draftRefinedRebuildCount}/u${draftRefinedUnknownCount} ` +
 		`drafts_r_s_len=${draftRefinedScaffoldHtmlLengthP50 === null ? '-' : draftRefinedScaffoldHtmlLengthP50 + 'c'}/min=${draftRefinedScaffoldHtmlLengthMin === null ? '-' : draftRefinedScaffoldHtmlLengthMin + 'c'} ` +
@@ -2543,7 +2665,7 @@ async function main() {
 		`s2_roles=s${stream2.agent_status_scout_count}/o${stream2.agent_status_oracle_count}/b${stream2.agent_status_builder_count} ` +
 		`s2_stage_valid=${stream2.stage_valid_count} s2_err_src_valid=${stream2.error_source_valid_count} s2_err_code_valid=${stream2.error_code_valid_count} s2_err_msg=${stream2.error_message_present_count} ` +
 		`s2_agent_status_valid=${stream2.agent_status_valid_count} s2_agent_status_role_valid=${stream2.agent_status_role_valid_count} s2_stage_swipe_valid=${stream2.stage_changed_swipe_count_valid_count} ` +
-		`s2_drafts=${stream2.draft_updated_count} s2_drafts_p/r=${stream2.draft_placeholder_count}/${stream2.draft_refined_count} s2_draft_next_hint=${stream2.draft_next_hint_present_count} ` +
+		`s2_drafts=${stream2.draft_updated_count} s2_drafts_p/r=${stream2.draft_placeholder_count}/${stream2.draft_refined_count} s2_draft_next_hint=${stream2.draft_next_hint_present_count} s2_draft_accepted_pat=${stream2.draft_accepted_patterns_present_count} s2_draft_rejected_pat=${stream2.draft_rejected_patterns_present_count} ` +
 		`s2_facades=${stream2.facade_ready_count} s2_synth=${stream2.synthesis_updated_count} s2_evidence=${stream2.evidence_updated_count} ` +
 		`s2_facade_fmt_valid=${stream2.facade_format_valid_count} ` +
 		`s2_synth_axes=${stream2.synthesis_axes_count}/min=${stream2.synthesis_axes_min} s2_synth_axes_conf_valid=${stream2.synthesis_axes_valid_confidence_count} s2_synth_assigns=${stream2.synthesis_scout_assignments_count}/min=${stream2.synthesis_scout_assignments_min} s2_synth_assigns_scout_valid=${stream2.synthesis_scout_assignments_valid_scout_count} s2_synth_palette=${stream2.synthesis_palette_present_count} ` +

@@ -1,0 +1,1244 @@
+{
+  "started_at": "2026-04-24T04:13:40.918Z",
+  "finished_at": "2026-04-24T04:13:55.391Z",
+  "elapsed_ms": 14473,
+  "result": "PASS",
+  "reason": "facade_and_draft_observed",
+  "intent": "recipe app for people who hate cooking",
+  "dev_url": "http://localhost:39416",
+  "session": {
+    "rtt_ms": 9,
+    "status": 200,
+    "body": {
+      "intent": "recipe app for people who hate cooking",
+      "sessionId": "a6cf361a-3c19-40d6-9286-9a360c575f1c"
+    },
+    "error": null
+  },
+  "session_2": {
+    "attempted": false,
+    "intent": null,
+    "rtt_ms": null,
+    "status": null,
+    "body": null,
+    "error": null,
+    "posted_at_ms": null,
+    "waited_ms": null
+  },
+  "stream": {
+    "opened_at_ms": 854,
+    "error": null,
+    "event_counts": {
+      "agent-status": 21,
+      "stage-changed": 1,
+      "draft-updated": 2,
+      "session-ready": 1,
+      "facade-ready": 7,
+      "swipe-result": 1,
+      "evidence-updated": 1,
+      "synthesis-updated": 1
+    },
+    "first_event_ms": {
+      "agent-status": 859,
+      "stage-changed": 859,
+      "draft-updated": 1372,
+      "session-ready": 1372,
+      "facade-ready": 4087,
+      "swipe-result": 4107,
+      "evidence-updated": 4107,
+      "synthesis-updated": 5731
+    },
+    "events": [
+      {
+        "ts_ms": 859,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "oracle",
+            "name": "Oracle",
+            "role": "oracle",
+            "status": "idle",
+            "focus": "monitoring"
+          }
+        }
+      },
+      {
+        "ts_ms": 859,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "idle",
+            "focus": "waiting for session"
+          }
+        }
+      },
+      {
+        "ts_ms": 859,
+        "type": "stage-changed",
+        "data": {
+          "type": "stage-changed",
+          "stage": "words",
+          "swipeCount": 0
+        }
+      },
+      {
+        "ts_ms": 1372,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "thinking",
+            "focus": "generating initial scaffold"
+          }
+        }
+      },
+      {
+        "ts_ms": 1372,
+        "type": "draft-updated",
+        "data": {
+          "type": "draft-updated",
+          "draft": {
+            "title": "recipe app for people who hate cooking",
+            "summary": "Drafting your prototype from the swipes…",
+            "html": "<div style=\"padding:2rem;text-align:center;color:var(--muted,#8a7f78);opacity:0.75\"><h2 style=\"margin:0 0 1rem;font-weight:400\">recipe app for people who hate cooking</h2><p style=\"margin:0\">Building your first draft…</p></div>",
+            "acceptedPatterns": [],
+            "rejectedPatterns": []
+          }
+        }
+      },
+      {
+        "ts_ms": 1372,
+        "type": "session-ready",
+        "data": {
+          "type": "session-ready",
+          "intent": "recipe app for people who hate cooking"
+        }
+      },
+      {
+        "ts_ms": 1372,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "oracle",
+            "name": "Oracle",
+            "role": "oracle",
+            "status": "thinking",
+            "focus": "cold-start analysis"
+          }
+        }
+      },
+      {
+        "ts_ms": 1372,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-01",
+            "name": "Iris",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1372,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-02",
+            "name": "Prism",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1372,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-03",
+            "name": "Lumen",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1372,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-04",
+            "name": "Aura",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1372,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-05",
+            "name": "Facet",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1372,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-06",
+            "name": "Echo",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 4087,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "1b8a6dee-c8b8-4ae5-b94e-4e3b88482933",
+            "agentId": "scout-03",
+            "hypothesis": "A voice that's self-aware, gently funny, and knows cooking is annoying—uses humor and personality to make the app feel like a friend, not a stern cookbook",
+            "axisTargeted": "Friendly/playful vs professional/serious",
+            "label": "Dad jokes and winks",
+            "content": "Dad jokes and winks",
+            "format": "word",
+            "acceptImplies": "User wants personality and levity in microcopy, UI language, and tone throughout the app—casual, humorous asides are welcome",
+            "rejectImplies": "User wants a cleaner, more straightforward tone—humor might feel forced or undermine trust in a tool meant to make cooking easier"
+          }
+        }
+      },
+      {
+        "ts_ms": 4087,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-03",
+            "name": "Lumen",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Dad jokes and winks\"",
+            "lastFacadeId": "1b8a6dee-c8b8-4ae5-b94e-4e3b88482933"
+          }
+        }
+      },
+      {
+        "ts_ms": 4088,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "872662b4-bffe-4666-832c-3b5851b99b3b",
+            "agentId": "scout-01",
+            "hypothesis": "A recipe app for people who hate cooking should feel approachable and low-pressure, so soft, rounded UI elements reduce cognitive friction and make the interface feel forgiving rather than demanding.",
+            "axisTargeted": "Softness vs. Sharpness",
+            "label": "Soft rounded buttons",
+            "content": "Soft rounded buttons",
+            "format": "word",
+            "acceptImplies": "User gravitates toward warm, cushioned, forgiving visual language — likely wants the app to feel like a supportive friend, not a stern instructor.",
+            "rejectImplies": "User may prefer clarity through contrast and defined edges — precision and scannability matter more than coziness."
+          }
+        }
+      },
+      {
+        "ts_ms": 4088,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-01",
+            "name": "Iris",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Soft rounded buttons\"",
+            "lastFacadeId": "872662b4-bffe-4666-832c-3b5851b99b3b"
+          }
+        }
+      },
+      {
+        "ts_ms": 4107,
+        "type": "swipe-result",
+        "data": {
+          "type": "swipe-result",
+          "record": {
+            "facadeId": "1b8a6dee-c8b8-4ae5-b94e-4e3b88482933",
+            "agentId": "scout-03",
+            "decision": "accept",
+            "latencyMs": 600,
+            "latencyBucket": "slow"
+          }
+        }
+      },
+      {
+        "ts_ms": 4107,
+        "type": "evidence-updated",
+        "data": {
+          "type": "evidence-updated",
+          "evidence": [
+            {
+              "facadeId": "1b8a6dee-c8b8-4ae5-b94e-4e3b88482933",
+              "content": "Dad jokes and winks",
+              "hypothesis": "A voice that's self-aware, gently funny, and knows cooking is annoying—uses humor and personality to make the app feel like a friend, not a stern cookbook",
+              "decision": "accept",
+              "latencySignal": "slow",
+              "format": "word",
+              "implication": "User wants personality and levity in microcopy, UI language, and tone throughout the app—casual, humorous asides are welcome"
+            }
+          ],
+          "antiPatterns": []
+        }
+      },
+      {
+        "ts_ms": 4107,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-03",
+            "name": "Lumen",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe",
+            "lastFacadeId": "1b8a6dee-c8b8-4ae5-b94e-4e3b88482933"
+          }
+        }
+      },
+      {
+        "ts_ms": 4117,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "c5b892d6-9012-4377-966f-12a2279bdbfd",
+            "agentId": "scout-05",
+            "hypothesis": "For people who hate cooking, showing a simple, scannable ingredient list (text + minimal numbers) feels less intimidating than a full recipe narrative with steps and technique explanations.",
+            "axisTargeted": "density of information presentation: dense prose narrative vs. ultra-minimal ingredient-focused text",
+            "label": "Just the ingredients list",
+            "content": "Just the ingredients list",
+            "format": "word",
+            "acceptImplies": "User gravitates toward stripped-down, ingredient-forward design that removes perceived complexity and intimidation from the cooking process.",
+            "rejectImplies": "User needs more context, structure, or narrative guidance than just ingredients—they may want step numbers, timing, or reassurance built into the information design."
+          }
+        }
+      },
+      {
+        "ts_ms": 4117,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-05",
+            "name": "Facet",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Just the ingredients list\"",
+            "lastFacadeId": "c5b892d6-9012-4377-966f-12a2279bdbfd"
+          }
+        }
+      },
+      {
+        "ts_ms": 4595,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "6d3fb2d9-9c15-47e8-bee4-7d94cfbe8917",
+            "agentId": "scout-06",
+            "hypothesis": "Users who hate cooking want zero delay between action and outcome—tapping a button should immediately show what they can make, not load or transition",
+            "axisTargeted": "Snappy vs fluid",
+            "label": "Instant results",
+            "content": "Instant results",
+            "format": "word",
+            "acceptImplies": "Build for instant feedback loops: tap ingredient → instant recipe matches, swipe → instant next meal, no loading states or animations that delay gratification",
+            "rejectImplies": "Fluid, leisurely pacing is acceptable—users tolerate and might prefer smooth transitions and staged reveals even if they take 300-500ms longer"
+          }
+        }
+      },
+      {
+        "ts_ms": 4595,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-06",
+            "name": "Echo",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Instant results\"",
+            "lastFacadeId": "6d3fb2d9-9c15-47e8-bee4-7d94cfbe8917"
+          }
+        }
+      },
+      {
+        "ts_ms": 4650,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "f91d909b-41dc-4873-8fac-7c6bd55bad61",
+            "agentId": "scout-02",
+            "hypothesis": "Users who hate cooking want minimal friction — they prefer single-action shortcuts over multi-step navigation or form-filling. A layout that exposes the fastest path to a recipe (one tap from home) will score higher acceptance than nested menus.",
+            "axisTargeted": "interaction density & friction",
+            "label": "One-tap cooking",
+            "content": "One-tap cooking",
+            "format": "word",
+            "acceptImplies": "Build around command shortcuts, big tap targets, and flat navigation. Minimize steps between 'open app' and 'start cooking'.",
+            "rejectImplies": "Users value discoverability and choice over speed. They need context (categories, filters, reviews) before committing. Navigation can afford depth."
+          }
+        }
+      },
+      {
+        "ts_ms": 4650,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-02",
+            "name": "Prism",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"One-tap cooking\"",
+            "lastFacadeId": "f91d909b-41dc-4873-8fac-7c6bd55bad61"
+          }
+        }
+      },
+      {
+        "ts_ms": 5731,
+        "type": "synthesis-updated",
+        "data": {
+          "type": "synthesis-updated",
+          "synthesis": {
+            "axes": [
+              {
+                "label": "Whether user wants visual simplicity and minimal ingredient lists vs. rich food photography and detailed plating inspiration",
+                "poleA": "Photo-heavy or text-focused",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user prefers step-by-step guided workflows vs. ingredient-first browsing and flexible navigation",
+                "poleA": "Linear steps or ingredient search",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user responds to encouraging, motivational tone vs. irreverent, humorous tone that validates cooking aversion",
+                "poleA": "Cheerleader or comedian",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user wants calm, meditative cooking experience vs. quick-win, dopamine-hit satisfaction from easy wins",
+                "poleA": "Zen or fast-wins",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user wants minimal information (just do this) vs. detailed explanations (why this works, what you're learning)",
+                "poleA": "Just tell me or explain why",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user prefers instant gratification with no waiting vs. enjoying a slower reveal and anticipation of results",
+                "poleA": "Instant results or slow reveal",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              }
+            ],
+            "edge_case_flags": [],
+            "scout_assignments": [
+              {
+                "scout": "Iris",
+                "probe_axis": "Whether user wants visual simplicity and minimal ingredient lists vs. rich food photography and detailed plating inspiration",
+                "reason": "Cold start: first question for Iris"
+              },
+              {
+                "scout": "Prism",
+                "probe_axis": "Whether user prefers step-by-step guided workflows vs. ingredient-first browsing and flexible navigation",
+                "reason": "Cold start: first question for Prism"
+              },
+              {
+                "scout": "Lumen",
+                "probe_axis": "Whether user responds to encouraging, motivational tone vs. irreverent, humorous tone that validates cooking aversion",
+                "reason": "Cold start: first question for Lumen"
+              },
+              {
+                "scout": "Aura",
+                "probe_axis": "Whether user wants calm, meditative cooking experience vs. quick-win, dopamine-hit satisfaction from easy wins",
+                "reason": "Cold start: first question for Aura"
+              },
+              {
+                "scout": "Facet",
+                "probe_axis": "Whether user wants minimal information (just do this) vs. detailed explanations (why this works, what you're learning)",
+                "reason": "Cold start: first question for Facet"
+              },
+              {
+                "scout": "Echo",
+                "probe_axis": "Whether user prefers instant gratification with no waiting vs. enjoying a slower reveal and anticipation of results",
+                "reason": "Cold start: first question for Echo"
+              }
+            ],
+            "persona_anima_divergence": null
+          }
+        }
+      },
+      {
+        "ts_ms": 5731,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "oracle",
+            "name": "Oracle",
+            "role": "oracle",
+            "status": "idle",
+            "focus": "monitoring"
+          }
+        }
+      },
+      {
+        "ts_ms": 5731,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "65b2b48d-5827-4ef7-a837-8877c705f0ca",
+            "agentId": "scout-04",
+            "hypothesis": "For people who hate cooking, the friction point is decision-making and steps. A single tap to a complete meal (with ingredient delivery or pantry integration) removes both cognitive and physical work.",
+            "axisTargeted": "Organic (human choice, ritual) vs Digital (automated, frictionless)",
+            "label": "One-tap dinner",
+            "content": "One-tap dinner",
+            "format": "word",
+            "acceptImplies": "User values automation and speed over hands-on control. They want the app to *do* cooking thinking for them, not guide them through it.",
+            "rejectImplies": "User wants some agency or scaffolding in the process. They don't want to feel passive. They may enjoy *choosing* what to cook, just not the execution."
+          }
+        }
+      },
+      {
+        "ts_ms": 5731,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-04",
+            "name": "Aura",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"One-tap dinner\"",
+            "lastFacadeId": "65b2b48d-5827-4ef7-a837-8877c705f0ca"
+          }
+        }
+      },
+      {
+        "ts_ms": 7558,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "72c32d4f-9e9e-4f22-afc4-e0e7177020ee",
+            "agentId": "scout-03",
+            "hypothesis": "When recipes go wrong or steps are confusing, the app uses upbeat, encouraging language rather than error alerts—turning mistakes into moments of solidarity and humor, reinforcing that even cooking failures are okay",
+            "axisTargeted": "Voice and Personality — reassuring levity vs cold functionality",
+            "label": "Cheerful failure messages",
+            "content": "Cheerful failure messages",
+            "format": "word",
+            "acceptImplies": "The app should embrace a tone that normalizes cooking mishaps and celebrates resilience; error states become character moments rather than dead ends",
+            "rejectImplies": "The user prefers straightforward, neutral communication without humor in instructional or failure contexts; personality should stay in microcopy only, not in critical moments"
+          }
+        }
+      },
+      {
+        "ts_ms": 7558,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-03",
+            "name": "Lumen",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Cheerful failure messages\"",
+            "lastFacadeId": "72c32d4f-9e9e-4f22-afc4-e0e7177020ee"
+          }
+        }
+      },
+      {
+        "ts_ms": 10836,
+        "type": "draft-updated",
+        "data": {
+          "type": "draft-updated",
+          "draft": {
+            "title": "QuickBite – Recipe App for People Who Hate Cooking",
+            "summary": "A recipe app that strips away complexity and delivers dead-simple meals in 15 minutes or less, with ingredient lists you can actually find and zero pretentious cooking jargon.",
+            "html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>QuickBite</title>\n  <style>\n    :root {\n      --bg: #FFF8F0;\n      --card: #FFF;\n      --accent: #FF8C69;\n      --text: #4A3E38;\n      --muted: #A1887F;\n      --radius: 16px;\n      --space: 20px;\n    }\n    * {\n      margin: 0;\n      padding: 0;\n      box-sizing: border-box;\n    }\n    body {\n      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;\n      background: var(--bg);\n      color: var(--text);\n      font-size: 16px;\n      line-height: 1.5;\n    }\n    .container {\n      width: 100%;\n      max-width: 375px;\n      margin: 0 auto;\n      padding: var(--space);\n    }\n    header {\n      margin-bottom: 32px;\n    }\n    h1 {\n      font-size: 28px;\n      font-weight: 700;\n      margin-bottom: 8px;\n    }\n    .tagline {\n      font-size: 14px;\n      color: var(--muted);\n    }\n    .section {\n      margin-bottom: 32px;\n    }\n    h2 {\n      font-size: 20px;\n      font-weight: 600;\n      margin-bottom: 16px;\n      color: var(--text);\n    }\n    .recipe-card {\n      background: var(--card);\n      border-radius: var(--radius);\n      padding: var(--space);\n      margin-bottom: 12px;\n      border: 1px solid #F0E6E0;\n      cursor: pointer;\n      transition: transform 0.2s, box-shadow 0.2s;\n    }\n    .recipe-card:active {\n      transform: scale(0.98);\n      box-shadow: 0 4px 12px rgba(255, 140, 105, 0.15);\n    }\n    .recipe-title {\n      font-size: 18px;\n      font-weight: 600;\n      margin-bottom: 8px;\n      color: var(--text);\n    }\n    .recipe-meta {\n      display: flex;\n      gap: 16px;\n      font-size: 14px;\n      color: var(--muted);\n    }\n    .meta-item {\n      display: flex;\n      align-items: center;\n      gap: 4px;\n    }\n    .button {\n      background: var(--accent);\n      color: #FFF;\n      border: none;\n      border-radius: var(--radius);\n      padding: 14px 20px;\n      font-size: 16px;\n      font-weight: 600;\n      cursor: pointer;\n      width: 100%;\n      transition: background 0.2s;\n    }\n    .button:active {\n      background: #E67A57;\n    }\n    .placeholder-image {\n      background: linear-gradient(135deg, var(--accent), var(--bg));\n      height: 160px;\n      border-radius: var(--radius);\n      margin-bottom: 16px;\n    }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <header>\n      <h1>QuickBite</h1>\n      <p class=\"tagline\">Meals so simple, you'll actually make them</p>\n    </header>\n\n    <section class=\"section\">\n      <h2>Today's Picks</h2>\n      <div class=\"recipe-card\">\n        <div class=\"placeholder-image\"></div>\n        <div class=\"recipe-title\">Garlic Butter Pasta</div>\n        <div class=\"recipe-meta\">\n          <div class=\"meta-item\">12 min</div>\n          <div class=\"meta-item\">4 ingredients</div>\n        </div>\n      </div>\n      <div class=\"recipe-card\">\n        <div class=\"placeholder-image\"></div>\n        <div class=\"recipe-title\">Sheet Pan Chicken & Veggies</div>\n        <div class=\"recipe-meta\">\n          <div class=\"meta-item\">18 min</div>\n          <div class=\"meta-item\">6 ingredients</div>\n        </div>\n      </div>\n      <div class=\"recipe-card\">\n        <div class=\"placeholder-image\"></div>\n        <div class=\"recipe-title\">Egg Fried Rice</div>\n        <div class=\"recipe-meta\">\n          <div class=\"meta-item\">10 min</div>\n          <div class=\"meta-item\">5 ingredients</div>\n        </div>\n      </div>\n    </section>\n\n    <section class=\"section\">\n      <h2>What's in Your Kitchen?</h2>\n      <p style=\"font-size: 14px; color: var(--muted); margin-bottom: 16px;\">Tell us what you have, we'll suggest meals you can actually make right now.</p>\n      <button class=\"button\">Add Ingredients</button>\n    </section>\n\n    <section class=\"section\">\n      <h2>No Time? No Problem.</h2>\n      <div class=\"recipe-card\">\n        <div class=\"recipe-title\">15-Minute Meals Only</div>\n        <div class=\"recipe-meta\">\n          <div class=\"meta-item\">Filter active</div>\n        </div>\n      </div>\n      <button class=\"button\" style=\"background: #F0E6E0; color: var(--text);\">Browse All Recipes</button>\n    </section>\n  </div>\n</body>\n</html>",
+            "acceptedPatterns": [],
+            "rejectedPatterns": []
+          }
+        }
+      },
+      {
+        "ts_ms": 10836,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "idle",
+            "focus": "watching for swipes"
+          }
+        }
+      },
+      {
+        "ts_ms": 10836,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "thinking",
+            "focus": "analyzing accept on \"Dad jokes and winks\""
+          }
+        }
+      }
+    ]
+  },
+  "stream_2": {
+    "attempted": true,
+    "opened_at_ms": 13368,
+    "elapsed_ms": 803,
+    "event_counts": {
+      "synthesis-updated": 1,
+      "draft-updated": 1,
+      "evidence-updated": 1,
+      "agent-status": 8,
+      "facade-ready": 6,
+      "stage-changed": 1
+    },
+    "error_event_count": 0,
+    "agent_status_count": 8,
+    "stage_changed_count": 1,
+    "draft_updated_count": 1,
+    "draft_placeholder_count": 0,
+    "draft_refined_count": 1,
+    "facade_ready_count": 6,
+    "synthesis_updated_count": 1,
+    "evidence_updated_count": 1,
+    "diagnostic_preserved_count": 0,
+    "error_provider_auth_count": 0,
+    "agent_status_scout_count": 6,
+    "agent_status_oracle_count": 1,
+    "agent_status_builder_count": 1,
+    "stage_valid_count": 1,
+    "error_source_valid_count": 0,
+    "error_code_valid_count": 0,
+    "error_message_present_count": 0,
+    "agent_status_valid_count": 8,
+    "agent_status_role_valid_count": 8,
+    "stage_changed_swipe_count_valid_count": 1,
+    "facade_format_valid_count": 6,
+    "synthesis_axes_count": 6,
+    "synthesis_axes_min": 6,
+    "synthesis_scout_assignments_count": 6,
+    "synthesis_scout_assignments_min": 6,
+    "evidence_array_valid_count": 1,
+    "anti_patterns_array_valid_count": 1,
+    "evidence_length_min": 1,
+    "evidence_length_max": 1,
+    "evidence_items_valid_decision_count": 1,
+    "evidence_items_valid_format_count": 1,
+    "evidence_items_valid_latency_signal_count": 1,
+    "synthesis_axes_valid_confidence_count": 6,
+    "synthesis_scout_assignments_valid_scout_count": 6,
+    "synthesis_palette_present_count": 0,
+    "draft_next_hint_present_count": 0,
+    "draft_accepted_patterns_present_count": 0,
+    "draft_rejected_patterns_present_count": 0,
+    "first_event_ms_after_open": 2,
+    "last_event_ms_after_open": 2,
+    "replay_span_ms": 0,
+    "events": [
+      {
+        "ts_ms": 13370,
+        "type": "synthesis-updated",
+        "data": {
+          "type": "synthesis-updated",
+          "synthesis": {
+            "axes": [
+              {
+                "label": "Whether user wants visual simplicity and minimal ingredient lists vs. rich food photography and detailed plating inspiration",
+                "poleA": "Photo-heavy or text-focused",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user prefers step-by-step guided workflows vs. ingredient-first browsing and flexible navigation",
+                "poleA": "Linear steps or ingredient search",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user responds to encouraging, motivational tone vs. irreverent, humorous tone that validates cooking aversion",
+                "poleA": "Cheerleader or comedian",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user wants calm, meditative cooking experience vs. quick-win, dopamine-hit satisfaction from easy wins",
+                "poleA": "Zen or fast-wins",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user wants minimal information (just do this) vs. detailed explanations (why this works, what you're learning)",
+                "poleA": "Just tell me or explain why",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user prefers instant gratification with no waiting vs. enjoying a slower reveal and anticipation of results",
+                "poleA": "Instant results or slow reveal",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              }
+            ],
+            "edge_case_flags": [],
+            "scout_assignments": [
+              {
+                "scout": "Iris",
+                "probe_axis": "Whether user wants visual simplicity and minimal ingredient lists vs. rich food photography and detailed plating inspiration",
+                "reason": "Cold start: first question for Iris"
+              },
+              {
+                "scout": "Prism",
+                "probe_axis": "Whether user prefers step-by-step guided workflows vs. ingredient-first browsing and flexible navigation",
+                "reason": "Cold start: first question for Prism"
+              },
+              {
+                "scout": "Lumen",
+                "probe_axis": "Whether user responds to encouraging, motivational tone vs. irreverent, humorous tone that validates cooking aversion",
+                "reason": "Cold start: first question for Lumen"
+              },
+              {
+                "scout": "Aura",
+                "probe_axis": "Whether user wants calm, meditative cooking experience vs. quick-win, dopamine-hit satisfaction from easy wins",
+                "reason": "Cold start: first question for Aura"
+              },
+              {
+                "scout": "Facet",
+                "probe_axis": "Whether user wants minimal information (just do this) vs. detailed explanations (why this works, what you're learning)",
+                "reason": "Cold start: first question for Facet"
+              },
+              {
+                "scout": "Echo",
+                "probe_axis": "Whether user prefers instant gratification with no waiting vs. enjoying a slower reveal and anticipation of results",
+                "reason": "Cold start: first question for Echo"
+              }
+            ],
+            "persona_anima_divergence": null
+          }
+        }
+      },
+      {
+        "ts_ms": 13370,
+        "type": "draft-updated",
+        "data": {
+          "type": "draft-updated",
+          "draft": {
+            "title": "QuickBite – Recipe App for People Who Hate Cooking",
+            "summary": "A recipe app that strips away complexity and delivers dead-simple meals in 15 minutes or less, with ingredient lists you can actually find and zero pretentious cooking jargon.",
+            "html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>QuickBite</title>\n  <style>\n    :root {\n      --bg: #FFF8F0;\n      --card: #FFF;\n      --accent: #FF8C69;\n      --text: #4A3E38;\n      --muted: #A1887F;\n      --radius: 16px;\n      --space: 20px;\n    }\n    * {\n      margin: 0;\n      padding: 0;\n      box-sizing: border-box;\n    }\n    body {\n      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;\n      background: var(--bg);\n      color: var(--text);\n      font-size: 16px;\n      line-height: 1.5;\n    }\n    .container {\n      width: 100%;\n      max-width: 375px;\n      margin: 0 auto;\n      padding: var(--space);\n    }\n    header {\n      margin-bottom: 32px;\n    }\n    h1 {\n      font-size: 28px;\n      font-weight: 700;\n      margin-bottom: 8px;\n    }\n    .tagline {\n      font-size: 14px;\n      color: var(--muted);\n    }\n    .section {\n      margin-bottom: 32px;\n    }\n    h2 {\n      font-size: 20px;\n      font-weight: 600;\n      margin-bottom: 16px;\n      color: var(--text);\n    }\n    .recipe-card {\n      background: var(--card);\n      border-radius: var(--radius);\n      padding: var(--space);\n      margin-bottom: 12px;\n      border: 1px solid #F0E6E0;\n      cursor: pointer;\n      transition: transform 0.2s, box-shadow 0.2s;\n    }\n    .recipe-card:active {\n      transform: scale(0.98);\n      box-shadow: 0 4px 12px rgba(255, 140, 105, 0.15);\n    }\n    .recipe-title {\n      font-size: 18px;\n      font-weight: 600;\n      margin-bottom: 8px;\n      color: var(--text);\n    }\n    .recipe-meta {\n      display: flex;\n      gap: 16px;\n      font-size: 14px;\n      color: var(--muted);\n    }\n    .meta-item {\n      display: flex;\n      align-items: center;\n      gap: 4px;\n    }\n    .button {\n      background: var(--accent);\n      color: #FFF;\n      border: none;\n      border-radius: var(--radius);\n      padding: 14px 20px;\n      font-size: 16px;\n      font-weight: 600;\n      cursor: pointer;\n      width: 100%;\n      transition: background 0.2s;\n    }\n    .button:active {\n      background: #E67A57;\n    }\n    .placeholder-image {\n      background: linear-gradient(135deg, var(--accent), var(--bg));\n      height: 160px;\n      border-radius: var(--radius);\n      margin-bottom: 16px;\n    }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <header>\n      <h1>QuickBite</h1>\n      <p class=\"tagline\">Meals so simple, you'll actually make them</p>\n    </header>\n\n    <section class=\"section\">\n      <h2>Today's Picks</h2>\n      <div class=\"recipe-card\">\n        <div class=\"placeholder-image\"></div>\n        <div class=\"recipe-title\">Garlic Butter Pasta</div>\n        <div class=\"recipe-meta\">\n          <div class=\"meta-item\">12 min</div>\n          <div class=\"meta-item\">4 ingredients</div>\n        </div>\n      </div>\n      <div class=\"recipe-card\">\n        <div class=\"placeholder-image\"></div>\n        <div class=\"recipe-title\">Sheet Pan Chicken & Veggies</div>\n        <div class=\"recipe-meta\">\n          <div class=\"meta-item\">18 min</div>\n          <div class=\"meta-item\">6 ingredients</div>\n        </div>\n      </div>\n      <div class=\"recipe-card\">\n        <div class=\"placeholder-image\"></div>\n        <div class=\"recipe-title\">Egg Fried Rice</div>\n        <div class=\"recipe-meta\">\n          <div class=\"meta-item\">10 min</div>\n          <div class=\"meta-item\">5 ingredients</div>\n        </div>\n      </div>\n    </section>\n\n    <section class=\"section\">\n      <h2>What's in Your Kitchen?</h2>\n      <p style=\"font-size: 14px; color: var(--muted); margin-bottom: 16px;\">Tell us what you have, we'll suggest meals you can actually make right now.</p>\n      <button class=\"button\">Add Ingredients</button>\n    </section>\n\n    <section class=\"section\">\n      <h2>No Time? No Problem.</h2>\n      <div class=\"recipe-card\">\n        <div class=\"recipe-title\">15-Minute Meals Only</div>\n        <div class=\"recipe-meta\">\n          <div class=\"meta-item\">Filter active</div>\n        </div>\n      </div>\n      <button class=\"button\" style=\"background: #F0E6E0; color: var(--text);\">Browse All Recipes</button>\n    </section>\n  </div>\n</body>\n</html>",
+            "acceptedPatterns": [],
+            "rejectedPatterns": []
+          }
+        }
+      },
+      {
+        "ts_ms": 13370,
+        "type": "evidence-updated",
+        "data": {
+          "type": "evidence-updated",
+          "evidence": [
+            {
+              "facadeId": "1b8a6dee-c8b8-4ae5-b94e-4e3b88482933",
+              "content": "Dad jokes and winks",
+              "hypothesis": "A voice that's self-aware, gently funny, and knows cooking is annoying—uses humor and personality to make the app feel like a friend, not a stern cookbook",
+              "decision": "accept",
+              "latencySignal": "slow",
+              "format": "word",
+              "implication": "User wants personality and levity in microcopy, UI language, and tone throughout the app—casual, humorous asides are welcome"
+            }
+          ],
+          "antiPatterns": []
+        }
+      },
+      {
+        "ts_ms": 13370,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "thinking",
+            "focus": "analyzing accept on \"Dad jokes and winks\""
+          }
+        }
+      },
+      {
+        "ts_ms": 13370,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "oracle",
+            "name": "Oracle",
+            "role": "oracle",
+            "status": "idle",
+            "focus": "monitoring"
+          }
+        }
+      },
+      {
+        "ts_ms": 13370,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-01",
+            "name": "Iris",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Soft rounded buttons\"",
+            "lastFacadeId": "872662b4-bffe-4666-832c-3b5851b99b3b"
+          }
+        }
+      },
+      {
+        "ts_ms": 13370,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-02",
+            "name": "Prism",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"One-tap cooking\"",
+            "lastFacadeId": "f91d909b-41dc-4873-8fac-7c6bd55bad61"
+          }
+        }
+      },
+      {
+        "ts_ms": 13370,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-03",
+            "name": "Lumen",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Cheerful failure messages\"",
+            "lastFacadeId": "72c32d4f-9e9e-4f22-afc4-e0e7177020ee"
+          }
+        }
+      },
+      {
+        "ts_ms": 13370,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-04",
+            "name": "Aura",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"One-tap dinner\"",
+            "lastFacadeId": "65b2b48d-5827-4ef7-a837-8877c705f0ca"
+          }
+        }
+      },
+      {
+        "ts_ms": 13370,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-05",
+            "name": "Facet",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Just the ingredients list\"",
+            "lastFacadeId": "c5b892d6-9012-4377-966f-12a2279bdbfd"
+          }
+        }
+      },
+      {
+        "ts_ms": 13370,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-06",
+            "name": "Echo",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Instant results\"",
+            "lastFacadeId": "6d3fb2d9-9c15-47e8-bee4-7d94cfbe8917"
+          }
+        }
+      },
+      {
+        "ts_ms": 13370,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "872662b4-bffe-4666-832c-3b5851b99b3b",
+            "agentId": "scout-01",
+            "hypothesis": "A recipe app for people who hate cooking should feel approachable and low-pressure, so soft, rounded UI elements reduce cognitive friction and make the interface feel forgiving rather than demanding.",
+            "axisTargeted": "Softness vs. Sharpness",
+            "label": "Soft rounded buttons",
+            "content": "Soft rounded buttons",
+            "format": "word",
+            "acceptImplies": "User gravitates toward warm, cushioned, forgiving visual language — likely wants the app to feel like a supportive friend, not a stern instructor.",
+            "rejectImplies": "User may prefer clarity through contrast and defined edges — precision and scannability matter more than coziness."
+          }
+        }
+      },
+      {
+        "ts_ms": 13370,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "c5b892d6-9012-4377-966f-12a2279bdbfd",
+            "agentId": "scout-05",
+            "hypothesis": "For people who hate cooking, showing a simple, scannable ingredient list (text + minimal numbers) feels less intimidating than a full recipe narrative with steps and technique explanations.",
+            "axisTargeted": "density of information presentation: dense prose narrative vs. ultra-minimal ingredient-focused text",
+            "label": "Just the ingredients list",
+            "content": "Just the ingredients list",
+            "format": "word",
+            "acceptImplies": "User gravitates toward stripped-down, ingredient-forward design that removes perceived complexity and intimidation from the cooking process.",
+            "rejectImplies": "User needs more context, structure, or narrative guidance than just ingredients—they may want step numbers, timing, or reassurance built into the information design."
+          }
+        }
+      },
+      {
+        "ts_ms": 13370,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "6d3fb2d9-9c15-47e8-bee4-7d94cfbe8917",
+            "agentId": "scout-06",
+            "hypothesis": "Users who hate cooking want zero delay between action and outcome—tapping a button should immediately show what they can make, not load or transition",
+            "axisTargeted": "Snappy vs fluid",
+            "label": "Instant results",
+            "content": "Instant results",
+            "format": "word",
+            "acceptImplies": "Build for instant feedback loops: tap ingredient → instant recipe matches, swipe → instant next meal, no loading states or animations that delay gratification",
+            "rejectImplies": "Fluid, leisurely pacing is acceptable—users tolerate and might prefer smooth transitions and staged reveals even if they take 300-500ms longer"
+          }
+        }
+      },
+      {
+        "ts_ms": 13370,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "f91d909b-41dc-4873-8fac-7c6bd55bad61",
+            "agentId": "scout-02",
+            "hypothesis": "Users who hate cooking want minimal friction — they prefer single-action shortcuts over multi-step navigation or form-filling. A layout that exposes the fastest path to a recipe (one tap from home) will score higher acceptance than nested menus.",
+            "axisTargeted": "interaction density & friction",
+            "label": "One-tap cooking",
+            "content": "One-tap cooking",
+            "format": "word",
+            "acceptImplies": "Build around command shortcuts, big tap targets, and flat navigation. Minimize steps between 'open app' and 'start cooking'.",
+            "rejectImplies": "Users value discoverability and choice over speed. They need context (categories, filters, reviews) before committing. Navigation can afford depth."
+          }
+        }
+      },
+      {
+        "ts_ms": 13370,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "65b2b48d-5827-4ef7-a837-8877c705f0ca",
+            "agentId": "scout-04",
+            "hypothesis": "For people who hate cooking, the friction point is decision-making and steps. A single tap to a complete meal (with ingredient delivery or pantry integration) removes both cognitive and physical work.",
+            "axisTargeted": "Organic (human choice, ritual) vs Digital (automated, frictionless)",
+            "label": "One-tap dinner",
+            "content": "One-tap dinner",
+            "format": "word",
+            "acceptImplies": "User values automation and speed over hands-on control. They want the app to *do* cooking thinking for them, not guide them through it.",
+            "rejectImplies": "User wants some agency or scaffolding in the process. They don't want to feel passive. They may enjoy *choosing* what to cook, just not the execution."
+          }
+        }
+      },
+      {
+        "ts_ms": 13370,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "72c32d4f-9e9e-4f22-afc4-e0e7177020ee",
+            "agentId": "scout-03",
+            "hypothesis": "When recipes go wrong or steps are confusing, the app uses upbeat, encouraging language rather than error alerts—turning mistakes into moments of solidarity and humor, reinforcing that even cooking failures are okay",
+            "axisTargeted": "Voice and Personality — reassuring levity vs cold functionality",
+            "label": "Cheerful failure messages",
+            "content": "Cheerful failure messages",
+            "format": "word",
+            "acceptImplies": "The app should embrace a tone that normalizes cooking mishaps and celebrates resilience; error states become character moments rather than dead ends",
+            "rejectImplies": "The user prefers straightforward, neutral communication without humor in instructional or failure contexts; personality should stay in microcopy only, not in critical moments"
+          }
+        }
+      },
+      {
+        "ts_ms": 13370,
+        "type": "stage-changed",
+        "data": {
+          "type": "stage-changed",
+          "stage": "words",
+          "swipeCount": 1
+        }
+      }
+    ],
+    "error": null
+  },
+  "facade_visible": {
+    "attempted": true,
+    "status": 200,
+    "error": null,
+    "rtt_ms": 3
+  },
+  "swipe": {
+    "attempted": true,
+    "facadeId": "1b8a6dee-c8b8-4ae5-b94e-4e3b88482933",
+    "facade_ready_at_ms": 4087,
+    "posted_at_ms": 4103,
+    "rtt_ms": 4,
+    "status": 200,
+    "body": {
+      "ok": true,
+      "swipeCount": 1,
+      "stage": "words"
+    },
+    "error": null
+  },
+  "metrics": {
+    "time_to_first_facade_ms": 4087,
+    "time_to_first_draft_ms": 1372,
+    "time_to_first_synthesis_ms": 5731,
+    "time_to_first_draft_after_swipe_ms": 6733,
+    "time_to_first_evidence_after_swipe_ms": 4,
+    "time_to_session_ready_ms": 1372,
+    "time_to_first_error_ms": null,
+    "time_from_session_to_first_facade_ms": 2715,
+    "time_from_session_to_first_draft_ms": 0,
+    "time_from_session_to_first_error_ms": null,
+    "facade_ready_count": 7,
+    "draft_updated_count": 2,
+    "draft_placeholder_count": 1,
+    "draft_refined_count": 1,
+    "draft_next_hint_present_count": 0,
+    "draft_accepted_patterns_present_count": 0,
+    "draft_rejected_patterns_present_count": 0,
+    "draft_refined_html_length_p50": 4190,
+    "draft_refined_html_length_max": 4190,
+    "draft_refined_html_length_min": 4190,
+    "draft_refined_scaffold_count": 1,
+    "draft_refined_rebuild_count": 0,
+    "draft_refined_unknown_count": 0,
+    "draft_refined_scaffold_html_length_p50": 4190,
+    "draft_refined_scaffold_html_length_min": 4190,
+    "draft_refined_scaffold_html_length_max": 4190,
+    "draft_refined_rebuild_html_length_p50": null,
+    "draft_refined_rebuild_html_length_min": null,
+    "draft_refined_rebuild_html_length_max": null,
+    "synthesis_updated_count": 1,
+    "swipe_result_count": 1,
+    "evidence_updated_count": 1,
+    "facade_stale_count": 0,
+    "builder_hint_count": 0,
+    "reveal_reached": false,
+    "error_event_count": 0,
+    "error_code_counts": {},
+    "error_source_counts": {},
+    "error_agent_counts": {},
+    "distinct_error_agent_count": 0,
+    "error_source_scout_count": 0,
+    "error_source_oracle_count": 0,
+    "error_source_builder_count": 0,
+    "provider_auth_failure_count": 0,
+    "error_message_present_count": 0,
+    "auth_diagnostic_preserved_count": 0,
+    "agent_status_event_count": 21,
+    "agent_status_scout_count": 14,
+    "agent_status_oracle_count": 3,
+    "agent_status_builder_count": 4,
+    "agent_error_signal_count": 0,
+    "scout_started_count": 6,
+    "first_scout_started_ms": 1372,
+    "last_scout_started_ms": 1372,
+    "scout_start_spread_ms": 0,
+    "first_error_event_ms": null,
+    "last_error_event_ms": null,
+    "error_event_spread_ms": null,
+    "session_ready_count": 1,
+    "distinct_session_ready_intent_count": 1,
+    "session_ready_intent_present_count": 1,
+    "error_event_count_before_session_2": null,
+    "error_event_count_after_session_2": null,
+    "time_from_session_2_to_first_error_ms": null,
+    "stream_2_error_event_count": 0,
+    "stream_2_agent_status_count": 8,
+    "stream_2_stage_changed_count": 1,
+    "stream_2_diagnostic_preserved_count": 0,
+    "stream_2_error_provider_auth_count": 0,
+    "stream_2_agent_status_scout_count": 6,
+    "stream_2_agent_status_oracle_count": 1,
+    "stream_2_agent_status_builder_count": 1,
+    "stream_2_stage_valid_count": 1,
+    "stream_2_error_source_valid_count": 0,
+    "stream_2_error_code_valid_count": 0,
+    "stream_2_error_message_present_count": 0,
+    "stream_2_agent_status_valid_count": 8,
+    "stream_2_agent_status_role_valid_count": 8,
+    "stream_2_stage_changed_swipe_count_valid_count": 1,
+    "stream_2_draft_updated_count": 1,
+    "stream_2_draft_placeholder_count": 0,
+    "stream_2_draft_refined_count": 1,
+    "stream_2_draft_next_hint_present_count": 0,
+    "stream_2_draft_accepted_patterns_present_count": 0,
+    "stream_2_draft_rejected_patterns_present_count": 0,
+    "stream_2_facade_ready_count": 6,
+    "stream_2_synthesis_updated_count": 1,
+    "stream_2_evidence_updated_count": 1,
+    "stream_2_facade_format_valid_count": 6,
+    "stream_2_synthesis_axes_count": 6,
+    "stream_2_synthesis_axes_min": 6,
+    "stream_2_synthesis_scout_assignments_count": 6,
+    "stream_2_synthesis_scout_assignments_min": 6,
+    "stream_2_evidence_array_valid_count": 1,
+    "stream_2_anti_patterns_array_valid_count": 1,
+    "stream_2_evidence_length_min": 1,
+    "stream_2_evidence_length_max": 1,
+    "stream_2_evidence_items_valid_decision_count": 1,
+    "stream_2_evidence_items_valid_format_count": 1,
+    "stream_2_evidence_items_valid_latency_signal_count": 1,
+    "stream_2_synthesis_axes_valid_confidence_count": 6,
+    "stream_2_synthesis_scout_assignments_valid_scout_count": 6,
+    "stream_2_synthesis_palette_present_count": 0,
+    "stream_2_first_event_ms_after_open": 2,
+    "stream_2_replay_span_ms": 0,
+    "stage_changed_event_count": 1,
+    "time_to_first_stage_changed_ms": 859,
+    "stage_changed_before_session_ready": 1,
+    "stage_valid_count": 1,
+    "error_source_valid_count": 0,
+    "error_code_valid_count": 0,
+    "agent_status_valid_count": 21,
+    "agent_status_role_valid_count": 21,
+    "stage_changed_swipe_count_valid_count": 1,
+    "facade_format_valid_count": 7,
+    "swipe_decision_valid_count": 1,
+    "swipe_latency_bucket_valid_count": 1,
+    "synthesis_axes_count": 6,
+    "synthesis_axes_min": 6,
+    "synthesis_axes_valid_confidence_count": 6,
+    "synthesis_scout_assignments_count": 6,
+    "synthesis_scout_assignments_min": 6,
+    "synthesis_scout_assignments_valid_scout_count": 6,
+    "synthesis_palette_present_count": 0,
+    "evidence_array_valid_count": 1,
+    "anti_patterns_array_valid_count": 1,
+    "evidence_length_min": 1,
+    "evidence_length_max": 1,
+    "evidence_items_valid_decision_count": 1,
+    "evidence_items_valid_format_count": 1,
+    "evidence_items_valid_latency_signal_count": 1,
+    "oracle_cold_start_latency_ms": 4359,
+    "oracle_synthesis_latency_ms": null,
+    "oracle_reveal_build_latency_ms": null,
+    "oracle_cold_start_count": 1,
+    "oracle_synthesis_count": 0,
+    "oracle_reveal_build_count": 0,
+    "scout_probe_latency_ms_p50": 3223,
+    "scout_probe_latency_ms_max": 4359,
+    "scout_probe_count": 7,
+    "builder_scaffold_latency_ms": 9464,
+    "builder_scaffold_count": 1,
+    "builder_rebuild_latency_ms": null,
+    "builder_rebuild_latency_ms_p50": null,
+    "builder_rebuild_latency_ms_max": null,
+    "builder_rebuild_count": 0
+  },
+  "error_event_samples": [],
+  "provider_error_samples": [],
+  "stderr_tail": "",
+  "artifact_path": "/Users/provi/Development/_projs/the-eye-loop-gnhf-worktrees/you-are-running-an-e-2c98fb/scripts/findings/validate-2026-04-24T04-13-55-392Z.json"
+}
