@@ -70,6 +70,17 @@ const DRAFT_PLACEHOLDER_SIGNATURE = 'Building your first draft…';
 const VALID_EVIDENCE_DECISIONS = new Set(['accept', 'reject']);
 const VALID_EVIDENCE_FORMATS = new Set(['word', 'mockup']);
 const VALID_EVIDENCE_LATENCY_SIGNALS = new Set(['fast', 'slow']);
+// iter-91 hoist: synthesis-array typed-union sets originally inlined at the
+// primary-bus iter-83 / iter-85 evaluation sites (~line 1780-1830). Hoisted so
+// the iter-91 stream_2 synthesis-items blocks (axes.confidence and scout_
+// assignments.scout roster-membership) can reference the same source of truth
+// without duplicating the union definitions. Same pattern as the iter-90
+// VALID_EVIDENCE_* hoist — stream_2 runs earlier in main() than the primary-bus
+// block, so inlining only at primary-bus would leave these undeclared upstream.
+// Union values mirror types.ts:63-70 (EmergentAxis.confidence) and the canonical
+// scout roster established by oracle.ts:52-58 / oracle.ts:96 / scout.ts:33-38.
+const VALID_AXIS_CONFIDENCES = new Set(['unprobed', 'exploring', 'leaning', 'resolved']);
+const VALID_SCOUT_ROSTER = new Set(['Iris', 'Prism', 'Lumen', 'Aura', 'Facet', 'Echo']);
 
 function nowIso() { return new Date().toISOString(); }
 function fileStamp() { return nowIso().replace(/[:.]/g, '-'); }
@@ -485,6 +496,29 @@ async function main() {
 		evidence_items_valid_decision_count: 0,
 		evidence_items_valid_format_count: 0,
 		evidence_items_valid_latency_signal_count: 0,
+		// iter-91: stream_2 counterparts for iter-83's primary-bus synthesis-updated.
+		// axes[].confidence typed-union probe AND iter-85's scout_assignments[].scout
+		// roster-membership probe, closing the 3rd and 4th of iter-88's 5 explicitly-
+		// named unclosed stream_2 counterpart backlog items. (iter-89 closed the 1st —
+		// evidence array-shape; iter-90 closed the 2nd — evidence items typed-union;
+		// iter-88's remaining 5th item is swipe-result, which is NOT replayed on
+		// /api/stream so has no stream_2 counterpart by construction.) Extends iter-88's
+		// whole-array length probes on synthesis-updated to within-item field validation.
+		// +server.ts:24-26 replays synthesis-updated via JSON.stringify({synthesis:
+		// context.synthesis}) spread — so a replay bug that preserves axes[]+scout_
+		// assignments[] array-shape but corrupts per-item confidence/scout fields (a
+		// .map(a => ({...a, confidence: 'unknown'})) transform, a serialization that
+		// strips typed-union fields, or a payload-shape divergence from the primary
+		// bus) would pass iter-88's length probes while iter-83/85 primary-bus probes
+		// stay at identity — exactly the cross-stream divergence pattern iter-90
+		// demonstrated for evidence items. Under iter-61 healthy-auth 5-intent 12s-
+		// window baseline: the replay carries the same cold-start synthesis (6 axes,
+		// all confidence='unprobed'; 6 scout_assignments, all scout ∈ 6-name roster)
+		// so both identity-with-primary invariants hold:
+		//   stream_2_synthesis_axes_valid_confidence_count = 6/intent (sum=30/_min=6)
+		//   stream_2_synthesis_scout_assignments_valid_scout_count = 6/intent (sum=30/_min=6)
+		synthesis_axes_valid_confidence_count: 0,
+		synthesis_scout_assignments_valid_scout_count: 0,
 		first_event_ms_after_open: null,
 		last_event_ms_after_open: null,
 		replay_span_ms: null,
@@ -773,6 +807,15 @@ async function main() {
 		// payloads as they fire; stream_2 counts only the snapshot at
 		// connect time — cross-stream divergence pinpoints replay-block
 		// bugs invisible to single-stream probes.
+		// iter-91: extends iter-88's stream_2 synthesis-events loop to also tally
+		// within-item typed-union validity — axes[].confidence (iter-83 primary
+		// counterpart) and scout_assignments[].scout (iter-85 primary counterpart).
+		// Uses the module-scope VALID_AXIS_CONFIDENCES and VALID_SCOUT_ROSTER sets
+		// (hoisted near line 80) that the primary-bus iter-83/85 loop also reads,
+		// so both streams share one source of truth for the union definitions.
+		// Closes iter-88's 3rd and 4th named backlog items in a single iteration
+		// because both probes loop over the same synthesis-updated array payload,
+		// analogous to iter-90 closing decision+format+latency_signal together.
 		{
 			const stream2SynthesisEvents = stream2.events.filter(
 				(e) => e.type === 'synthesis-updated'
@@ -790,6 +833,20 @@ async function main() {
 				if (axesLen < s2SynthesisAxesMin) s2SynthesisAxesMin = axesLen;
 				if (assignmentsLen < s2SynthesisScoutAssignmentsMin)
 					s2SynthesisScoutAssignmentsMin = assignmentsLen;
+				if (Array.isArray(axes)) {
+					for (const axis of axes) {
+						if (axis && VALID_AXIS_CONFIDENCES.has(axis.confidence)) {
+							stream2.synthesis_axes_valid_confidence_count++;
+						}
+					}
+				}
+				if (Array.isArray(assignments)) {
+					for (const assignment of assignments) {
+						if (assignment && VALID_SCOUT_ROSTER.has(assignment.scout)) {
+							stream2.synthesis_scout_assignments_valid_scout_count++;
+						}
+					}
+				}
 			}
 			stream2.synthesis_axes_min =
 				s2SynthesisAxesMin === Infinity ? 0 : s2SynthesisAxesMin;
@@ -1786,7 +1843,9 @@ async function main() {
 	// this count below synthesis_axes_count while leaving axes_count
 	// itself at identity — pinpointing field-level corruption invisible to
 	// iter-72's whole-array length probe.
-	const VALID_AXIS_CONFIDENCES = new Set(['unprobed', 'exploring', 'leaning', 'resolved']);
+	// iter-91: VALID_AXIS_CONFIDENCES hoisted to module scope (near line 80)
+	// so the iter-91 stream_2 axes.confidence counterpart can share this one
+	// source. Same hoist pattern as iter-90's VALID_EVIDENCE_*.
 	// iter-85: scout-roster-membership probe on synthesis-updated.scout_
 	// assignments[].scout — closes iter-83's explicitly-named follow-on
 	// ('A future iteration could add scout-roster-membership probe on
@@ -1825,7 +1884,9 @@ async function main() {
 	// signal that scout.ts:191's `a.scout === scoutName` silent-fallback path
 	// is being exercised. This is the iter-84-named silent-fallback class
 	// (validator-level observation pairing with schema-level enforcement).
-	const VALID_SCOUT_ROSTER = new Set(['Iris', 'Prism', 'Lumen', 'Aura', 'Facet', 'Echo']);
+	// iter-91: VALID_SCOUT_ROSTER hoisted to module scope (near line 82) so
+	// the iter-91 stream_2 scout_assignments.scout counterpart can share this
+	// one source. Same hoist pattern as iter-90's VALID_EVIDENCE_*.
 	let synthesisAxesValidConfidenceCount = 0;
 	let synthesisScoutAssignmentsValidScoutCount = 0;
 	for (const ev of synthesisEvents) {
@@ -2162,6 +2223,18 @@ async function main() {
 			stream_2_evidence_items_valid_decision_count: stream2.evidence_items_valid_decision_count,
 			stream_2_evidence_items_valid_format_count: stream2.evidence_items_valid_format_count,
 			stream_2_evidence_items_valid_latency_signal_count: stream2.evidence_items_valid_latency_signal_count,
+			// iter-91: stream_2 counterparts for iter-83's primary-bus synthesis-
+			// updated.axes[].confidence typed-union probe AND iter-85's scout_
+			// assignments[].scout roster-membership probe — closes the 3rd and 4th
+			// of iter-88's 5 explicitly-named backlog items (1st: evidence array-
+			// shape iter-89; 2nd: evidence items typed-union iter-90). Extends
+			// iter-88's whole-array length probes on synthesis-updated to within-
+			// item field validation. Establishes cross-stream identity with
+			// primary iter-83/85 under healthy-auth 5-intent baseline: both
+			// _sum=30/_min=6 — matching iter-83's synth_axes_conf_valid and
+			// iter-85's synth_assigns_scout_valid primary values.
+			stream_2_synthesis_axes_valid_confidence_count: stream2.synthesis_axes_valid_confidence_count,
+			stream_2_synthesis_scout_assignments_valid_scout_count: stream2.synthesis_scout_assignments_valid_scout_count,
 			stream_2_first_event_ms_after_open: stream2.first_event_ms_after_open,
 			stream_2_replay_span_ms: stream2.replay_span_ms,
 			stage_changed_event_count: stageChangedEventCount,
@@ -2249,7 +2322,7 @@ async function main() {
 		`s2_drafts=${stream2.draft_updated_count} s2_drafts_p/r=${stream2.draft_placeholder_count}/${stream2.draft_refined_count} ` +
 		`s2_facades=${stream2.facade_ready_count} s2_synth=${stream2.synthesis_updated_count} s2_evidence=${stream2.evidence_updated_count} ` +
 		`s2_facade_fmt_valid=${stream2.facade_format_valid_count} ` +
-		`s2_synth_axes=${stream2.synthesis_axes_count}/min=${stream2.synthesis_axes_min} s2_synth_assigns=${stream2.synthesis_scout_assignments_count}/min=${stream2.synthesis_scout_assignments_min} ` +
+		`s2_synth_axes=${stream2.synthesis_axes_count}/min=${stream2.synthesis_axes_min} s2_synth_axes_conf_valid=${stream2.synthesis_axes_valid_confidence_count} s2_synth_assigns=${stream2.synthesis_scout_assignments_count}/min=${stream2.synthesis_scout_assignments_min} s2_synth_assigns_scout_valid=${stream2.synthesis_scout_assignments_valid_scout_count} ` +
 		`s2_evid_arr_valid=${stream2.evidence_array_valid_count} s2_anti_arr_valid=${stream2.anti_patterns_array_valid_count} s2_evid_len_min/max=${stream2.evidence_length_min}/${stream2.evidence_length_max} ` +
 		`s2_evid_items_dec_valid=${stream2.evidence_items_valid_decision_count} s2_evid_items_fmt_valid=${stream2.evidence_items_valid_format_count} s2_evid_items_lat_valid=${stream2.evidence_items_valid_latency_signal_count} ` +
 		`s2_first=${stream2.first_event_ms_after_open}ms s2_span=${stream2.replay_span_ms}ms ` +

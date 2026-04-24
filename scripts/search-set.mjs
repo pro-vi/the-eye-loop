@@ -198,6 +198,16 @@ function extractMetrics(artifact) {
 		stream_2_evidence_items_valid_decision_count: m.stream_2_evidence_items_valid_decision_count ?? 0,
 		stream_2_evidence_items_valid_format_count: m.stream_2_evidence_items_valid_format_count ?? 0,
 		stream_2_evidence_items_valid_latency_signal_count: m.stream_2_evidence_items_valid_latency_signal_count ?? 0,
+		// iter-91: stream_2 counterparts for iter-83's primary-bus synthesis-updated.
+		// axes[].confidence typed-union probe AND iter-85's scout_assignments[].scout
+		// roster-membership probe — forward-carried so that the aggregate rollups below
+		// can establish cross-stream identity with iter-83/85's primary values under
+		// the healthy-auth 5-intent baseline (each stream_2 metric = its primary-bus
+		// counterpart = 30/_min=6). Extends iter-88's whole-array length mirror to
+		// within-item field validation, closing the 3rd and 4th of iter-88's 5
+		// explicitly-named unclosed stream_2 counterpart backlog items.
+		stream_2_synthesis_axes_valid_confidence_count: m.stream_2_synthesis_axes_valid_confidence_count ?? 0,
+		stream_2_synthesis_scout_assignments_valid_scout_count: m.stream_2_synthesis_scout_assignments_valid_scout_count ?? 0,
 		swipe_decision_valid_count: m.swipe_decision_valid_count ?? 0,
 		swipe_latency_bucket_valid_count: m.swipe_latency_bucket_valid_count ?? 0,
 		synthesis_axes_count: m.synthesis_axes_count ?? 0,
@@ -1477,6 +1487,74 @@ async function main() {
 			stream_2_evidence_items_valid_latency_signal_count_sum: sumMetric('stream_2_evidence_items_valid_latency_signal_count'),
 			stream_2_evidence_items_valid_latency_signal_count_min: perIntent.length
 				? Math.min(...perIntent.map((p) => p.metrics.stream_2_evidence_items_valid_latency_signal_count ?? 0))
+				: 0,
+			// iter-91: stream_2 counterparts for iter-83's primary-bus synthesis-
+			// updated.axes[].confidence typed-union probe AND iter-85's scout_
+			// assignments[].scout roster-membership probe — closes the 3rd and 4th
+			// of iter-88's 5 explicitly-named unclosed stream_2 counterpart backlog
+			// items in a single iteration (iter-89 closed the 1st: evidence array-
+			// shape; iter-90 closed the 2nd: evidence items typed-union; the 5th
+			// named item — swipe-result — is NOT replayed on /api/stream, so no
+			// stream_2 counterpart by construction, closing the backlog).
+			//
+			// Pattern mirrors iter-90's cross-stream identity extension: iter-88
+			// established stream_2 axes/scout_assignments COUNT identity with
+			// primary (iter-72); iter-91 extends to within-item FIELD-validity
+			// identity. Under iter-61 healthy-auth 5-intent 12s-window baseline,
+			// +server.ts:24-26 replays synthesis-updated via JSON.stringify on
+			// context.synthesis; cold-start synthesis fires by ~3-5s and persists
+			// on context, so the replay at ~12s carries the same 6 axes (all
+			// confidence='unprobed' per oracle.ts:332-349 cold-start hard-code)
+			// and 6 scout_assignments (all scout ∈ 6-name roster per oracle.ts:
+			// 58 z.enum and iter-84's synthesisSchema tightening). Identity:
+			//   stream_2_synthesis_axes_valid_confidence_count_sum = 30
+			//     = synthesis_axes_valid_confidence_count_sum (iter-83, primary)
+			//     = stream_2_synthesis_axes_count_sum (iter-88)
+			//     = 6 * synthesis_updated_count_sum (5 intents)
+			//   stream_2_synthesis_axes_valid_confidence_count_min = 6 per intent
+			//   stream_2_synthesis_scout_assignments_valid_scout_count_sum = 30
+			//     = synthesis_scout_assignments_valid_scout_count_sum (iter-85)
+			//     = stream_2_synthesis_scout_assignments_count_sum (iter-88)
+			//     = 6 * synthesis_updated_count_sum (5 intents)
+			//   stream_2_synthesis_scout_assignments_valid_scout_count_min = 6
+			//
+			// Regression classes these rollups catch that iter-88's count probes
+			// alone cannot: a replay-block transform that preserves synthesis-
+			// updated array-shape but corrupts per-item fields (e.g. +server.ts:
+			// 24-26 adds a .map(a => ({...a, confidence: 'unknown'})) — iter-88
+			// stream_2_synthesis_axes_count stays at 6, iter-91 stream_2_synthesis_
+			// axes_valid_confidence_count drops to 0 while primary iter-83 stays
+			// at 6); a serialization that strips typed-union fields on replay-only
+			// payload (stream_2 items_valid drops while primary holds); a payload-
+			// shape divergence where replay synthesizes axes with default values
+			// (stream_2 items_valid may hold by accident if defaults match union
+			// values, but any future broken roster 'confidence' addition to
+			// EmergentAxis type would expose mismatch). Cross-stream divergence
+			// (stream_2 items_valid != primary items_valid under healthy-auth)
+			// pinpoints replay-block item-corruption invisible to iter-88's
+			// whole-array length probes and iter-83/85's primary-only item probes.
+			//
+			// Forward-deploy discriminative signal: under runSynthesis path (4+
+			// swipes, currently unreachable in 12s window) confidence becomes a
+			// mix of 'exploring'/'leaning'/'resolved' per evidence strength. A
+			// replay-block bug that truncates confidence to 'unprobed' universally
+			// (stale-snapshot sync bug) would leave iter-88 axes_count at identity
+			// but flip iter-91 stream_2_axes_valid_confidence_count distribution
+			// from multi-value to single-value — orthogonal to primary iter-83's
+			// detection of the same regression on the live path.
+			//
+			// Under broken-auth baseline: both primary and stream_2 items_valid
+			// _sum=0 because no synthesis-updated event fires on either stream —
+			// the cross-stream identity 0==0 is preserved without being
+			// discriminative on either side. Baseline-regime-invariant just like
+			// iter-67/72/82/88/89/90 probes.
+			stream_2_synthesis_axes_valid_confidence_count_sum: sumMetric('stream_2_synthesis_axes_valid_confidence_count'),
+			stream_2_synthesis_axes_valid_confidence_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.stream_2_synthesis_axes_valid_confidence_count ?? 0))
+				: 0,
+			stream_2_synthesis_scout_assignments_valid_scout_count_sum: sumMetric('stream_2_synthesis_scout_assignments_valid_scout_count'),
+			stream_2_synthesis_scout_assignments_valid_scout_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.stream_2_synthesis_scout_assignments_valid_scout_count ?? 0))
 				: 0,
 			// iter-81: evidence-updated content-validation rollups — first
 			// content-probe aggregates on the evidence-updated event after 80
