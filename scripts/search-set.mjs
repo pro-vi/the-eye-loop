@@ -217,14 +217,27 @@ function extractMetrics(artifact) {
 		// agentId, hypothesis, label, content) so aggregate rollups below can
 		// establish identity with facade_ready_count_sum=35/_min=7 under the
 		// healthy-auth 5-intent baseline. Saturates the Facade 6-way field-
-		// validity matrix alongside iter-67's facade_format_valid probe. Stream_2
-		// counterparts deferred to a follow-on iteration (same pattern as
-		// iter-72→88 synthesis, iter-82→90 evidence items).
+		// validity matrix alongside iter-67's facade_format_valid probe.
+		// iter-99: stream_2 counterparts added below — closes the explicitly-
+		// named deferred follow-on, mirroring iter-82→90 (evidence items) and
+		// iter-83/85→91 (synthesis items) primary-first/stream_2-second pattern.
 		facade_id_present_count: m.facade_id_present_count ?? 0,
 		facade_agent_id_present_count: m.facade_agent_id_present_count ?? 0,
 		facade_hypothesis_present_count: m.facade_hypothesis_present_count ?? 0,
 		facade_label_present_count: m.facade_label_present_count ?? 0,
 		facade_content_present_count: m.facade_content_present_count ?? 0,
+		// iter-99: stream_2 counterparts for iter-98's Facade 5 presence-validity
+		// probes — forward-carried so the aggregate rollups below can establish
+		// cross-stream identity with iter-98's primary values under healthy-auth
+		// 5-intent baseline (each stream_2 metric = stream_2_facade_ready_count
+		// = 30/_min=6, matching iter-67's stream_2_facade_format_valid_count).
+		// Closes iter-98's explicitly-named stream_2 deferred follow-on —
+		// saturates the Facade 6-way field-validity matrix on BOTH streams.
+		stream_2_facade_id_present_count: m.stream_2_facade_id_present_count ?? 0,
+		stream_2_facade_agent_id_present_count: m.stream_2_facade_agent_id_present_count ?? 0,
+		stream_2_facade_hypothesis_present_count: m.stream_2_facade_hypothesis_present_count ?? 0,
+		stream_2_facade_label_present_count: m.stream_2_facade_label_present_count ?? 0,
+		stream_2_facade_content_present_count: m.stream_2_facade_content_present_count ?? 0,
 		// iter-88: stream_2 counterparts for iter-72 primary synthesis content
 		// probes (axes + scout_assignments count/min), forward-carried so that
 		// the aggregate rollups below can establish the cross-stream identity
@@ -1537,6 +1550,72 @@ async function main() {
 			facade_content_present_count_sum: sumMetric('facade_content_present_count'),
 			facade_content_present_count_min: perIntent.length
 				? Math.min(...perIntent.map((p) => p.metrics.facade_content_present_count ?? 0))
+				: 0,
+			// iter-99: stream_2 counterparts for iter-98's 5 Facade presence-
+			// validity rollups — closes the explicitly-named deferred follow-on
+			// and saturates the Facade 6-way field-validity matrix on BOTH
+			// streams. Mirrors iter-67's stream_2_facade_format_valid_count_sum
+			// pattern: primary probe counts all 7 facades per intent while
+			// stream_2 counts only the 6 in context.facades at snapshot time
+			// (last-arriving facade at ~11-12s typically misses the stream_2
+			// window that opens ~12s; see iter-66 for cardinality baseline).
+			// Under iter-61 healthy-auth 5-intent 12s-window baseline the 6-way
+			// cross-stream identity on facade-ready holds:
+			//   stream_2_facade_id_present_count_sum = stream_2_facade_ready_
+			//     count_sum = 30 _min=6
+			//   stream_2_facade_agent_id_present_count_sum = 30 _min=6
+			//   stream_2_facade_hypothesis_present_count_sum = 30 _min=6
+			//   stream_2_facade_label_present_count_sum = 30 _min=6
+			//   stream_2_facade_content_present_count_sum = 30 _min=6
+			// Together with iter-67's stream_2_facade_format_valid_count_sum=30/
+			// _min=6 and iter-66's stream_2_facade_ready_count_sum=30/_min=6,
+			// this establishes a 6-way identity on the stream_2 facade-ready
+			// replay — the exact cross-stream counterpart to the primary 6-way
+			// identity at 35/_min=7. Under broken-auth all 5 = 0 / _min=0.
+			//
+			// Regression classes these stream_2 rollups catch that primary
+			// iter-98 + stream_2_facade_ready_count cannot:
+			//   - /api/stream replay block mutates facade payload in transit
+			//     (a .map transform inserted at +server.ts:36-38, a clone that
+			//     drops specific fields, payload-shape divergence from the
+			//     primary emit): primary iter-98 probes hold at 35 while
+			//     stream_2 probes drop below 30 / _min drops to <6 — uniquely
+			//     pinpoints replay-block corruption invisible to primary probes.
+			//   - /api/stream replay emits facade-ready with all fields intact
+			//     but wraps the facade in an extra envelope (e.g. emits
+			//     {type:'facade-ready', data:{facade:{facade:{...}}}}) breaking
+			//     the e.data?.facade?.id path: stream_2_facade_ready_count
+			//     (iter-66) stays at 30 because type-matching fires, but all
+			//     5 stream_2 presence probes drop to 0 simultaneously.
+			//   - Late-arriving facade DOES land in stream_2 (wider replay
+			//     window) but with missing fields: stream_2_facade_ready_count
+			//     rises to 35 while stream_2 presence probes stay at 30 —
+			//     distinguishes timing-regime shift from field-corruption.
+			//
+			// Forward-deploy under wider stream_2 windows: if VALIDATE_RUN_MS
+			// widens and all 7 facades land in the replay, stream_2_*_sum rises
+			// to 35 matching primary iter-98; 6-way identity re-establishes at
+			// the new 35 baseline. Baseline-regime-invariant (probe = replay
+			// count regardless of how many facades the replay captures).
+			stream_2_facade_id_present_count_sum: sumMetric('stream_2_facade_id_present_count'),
+			stream_2_facade_id_present_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.stream_2_facade_id_present_count ?? 0))
+				: 0,
+			stream_2_facade_agent_id_present_count_sum: sumMetric('stream_2_facade_agent_id_present_count'),
+			stream_2_facade_agent_id_present_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.stream_2_facade_agent_id_present_count ?? 0))
+				: 0,
+			stream_2_facade_hypothesis_present_count_sum: sumMetric('stream_2_facade_hypothesis_present_count'),
+			stream_2_facade_hypothesis_present_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.stream_2_facade_hypothesis_present_count ?? 0))
+				: 0,
+			stream_2_facade_label_present_count_sum: sumMetric('stream_2_facade_label_present_count'),
+			stream_2_facade_label_present_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.stream_2_facade_label_present_count ?? 0))
+				: 0,
+			stream_2_facade_content_present_count_sum: sumMetric('stream_2_facade_content_present_count'),
+			stream_2_facade_content_present_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.stream_2_facade_content_present_count ?? 0))
 				: 0,
 			// iter-80: swipe-result content-validation rollups — first content-probe
 			// aggregates on the swipe-result event type after 79 iterations of

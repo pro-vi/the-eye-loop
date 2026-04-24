@@ -438,6 +438,31 @@ async function main() {
 		// on facade-ready (iter-66 added the count; no content probe existed
 		// prior). ∈ {'word', 'mockup'} per types.ts:24.
 		facade_format_valid_count: 0,
+		// iter-99: stream_2 counterparts for iter-98's primary-bus Facade 5
+		// required-string-field presence-validity probes (id, agentId,
+		// hypothesis, label, content). +server.ts:36-38 replays every facade
+		// in context.facades once per new client — under iter-61 healthy-auth
+		// baseline this replays 6 facades per intent (one late-arriving facade
+		// typically misses the stream_2 snapshot, same timing as iter-66's
+		// stream_2_facade_ready_count=6 vs primary facade_ready_count=7). All
+		// 5 fields are populated by scout emission, so each stream_2 count =
+		// stream_2_facade_ready_count = 6/intent under healthy auth. Cross-stream
+		// identity with primary iter-98: a replay-block bug that preserves
+		// facade-ready count but strips/corrupts per-facade fields (a
+		// .map(f => ({...f, id: undefined})) transform inserted into the
+		// replay loop, a clone that drops fields, payload-shape divergence
+		// from the primary bus) would pass iter-66's stream_2_facade_ready_
+		// count probe while primary iter-98 probes stay at identity — exactly
+		// the cross-stream divergence pattern iter-90 demonstrated for
+		// evidence items and iter-91 for synthesis items. Follows the
+		// established primary-first/stream_2-follow-on pattern (iter-72→88,
+		// iter-82→90, iter-83/85→91) consummating iter-98's explicitly-named
+		// deferred follow-on.
+		facade_id_present_count: 0,
+		facade_agent_id_present_count: 0,
+		facade_hypothesis_present_count: 0,
+		facade_label_present_count: 0,
+		facade_content_present_count: 0,
 		// iter-88: stream_2 counterparts for iter-72's primary-bus synthesis
 		// content probes (synth_axes_count / synth_scout_assignments_count),
 		// closing the last unprobed synthesis cells on the /api/stream replay
@@ -843,6 +868,61 @@ async function main() {
 		const VALID_FACADE_FORMATS = ['word', 'mockup'];
 		stream2.facade_format_valid_count = stream2.events.filter(
 			(e) => e.type === 'facade-ready' && VALID_FACADE_FORMATS.includes(e.data?.facade?.format)
+		).length;
+		// iter-99: stream_2 counterparts for iter-98's primary-bus Facade 5
+		// required-string-field presence-validity probes — saturates the 6-way
+		// Facade field-validity matrix on stream_2 replay. Sibling to iter-67's
+		// facade_format_valid_count on the same event type and replay path
+		// (+server.ts:36-38 per-facade loop). Under iter-61 healthy-auth 5-intent
+		// 12s-window baseline the replay carries 6 facades (stream_2 opens ~12s,
+		// last facade arrives ~10-11s so 6 of 7 primary facades are in context.
+		// facades at snapshot; see iter-66's stream_2_facade_ready_count=30/min=6
+		// baseline) and each replayed facade populates all 5 required string
+		// fields from scout emission, so per-intent identity is:
+		//   stream_2_facade_id_present_count = stream_2_facade_ready_count = 6
+		//   stream_2_facade_agent_id_present_count = 6
+		//   stream_2_facade_hypothesis_present_count = 6
+		//   stream_2_facade_label_present_count = 6
+		//   stream_2_facade_content_present_count = 6
+		// Aggregate 5-intent: each _sum=30 / _min=6 matching stream_2_facade_
+		// ready_count and stream_2_facade_format_valid_count (iter-67) exactly.
+		// This establishes a 6-way cross-stream identity on facade-ready that
+		// primary iter-98 alone cannot provide — a regression in the /api/stream
+		// replay block that preserves stream_2_facade_ready_count (the loop
+		// still fires per context.facade) but corrupts individual fields (a
+		// .map transform, a clone-then-truncate bug, a silent field rename that
+		// misses the replay emit) would leave primary iter-98 at identity while
+		// dropping these stream_2 probes below stream_2_facade_ready_count.
+		// Closes iter-98's explicitly-named deferred stream_2 follow-on.
+		stream2.facade_id_present_count = stream2.events.filter(
+			(e) =>
+				e.type === 'facade-ready' &&
+				typeof e.data?.facade?.id === 'string' &&
+				e.data.facade.id.length > 0
+		).length;
+		stream2.facade_agent_id_present_count = stream2.events.filter(
+			(e) =>
+				e.type === 'facade-ready' &&
+				typeof e.data?.facade?.agentId === 'string' &&
+				e.data.facade.agentId.length > 0
+		).length;
+		stream2.facade_hypothesis_present_count = stream2.events.filter(
+			(e) =>
+				e.type === 'facade-ready' &&
+				typeof e.data?.facade?.hypothesis === 'string' &&
+				e.data.facade.hypothesis.length > 0
+		).length;
+		stream2.facade_label_present_count = stream2.events.filter(
+			(e) =>
+				e.type === 'facade-ready' &&
+				typeof e.data?.facade?.label === 'string' &&
+				e.data.facade.label.length > 0
+		).length;
+		stream2.facade_content_present_count = stream2.events.filter(
+			(e) =>
+				e.type === 'facade-ready' &&
+				typeof e.data?.facade?.content === 'string' &&
+				e.data.facade.content.length > 0
 		).length;
 		// iter-88: synthesis content-validation probes on stream_2 replay —
 		// stream_2 counterparts for iter-72's primary-bus synthesis axes +
@@ -2720,6 +2800,11 @@ async function main() {
 			stream_2_synthesis_updated_count: stream2.synthesis_updated_count,
 			stream_2_evidence_updated_count: stream2.evidence_updated_count,
 			stream_2_facade_format_valid_count: stream2.facade_format_valid_count,
+			stream_2_facade_id_present_count: stream2.facade_id_present_count,
+			stream_2_facade_agent_id_present_count: stream2.facade_agent_id_present_count,
+			stream_2_facade_hypothesis_present_count: stream2.facade_hypothesis_present_count,
+			stream_2_facade_label_present_count: stream2.facade_label_present_count,
+			stream_2_facade_content_present_count: stream2.facade_content_present_count,
 			// iter-88: stream_2 counterparts for iter-72 primary synthesis content
 			// probes — mirrors the axes/scout_assignments count pattern from the
 			// primary bus onto /api/stream replay snapshot, closing a named
@@ -2855,7 +2940,7 @@ async function main() {
 		`s2_agent_status_valid=${stream2.agent_status_valid_count} s2_agent_status_role_valid=${stream2.agent_status_role_valid_count} s2_stage_swipe_valid=${stream2.stage_changed_swipe_count_valid_count} ` +
 		`s2_drafts=${stream2.draft_updated_count} s2_drafts_p/r=${stream2.draft_placeholder_count}/${stream2.draft_refined_count} s2_draft_next_hint=${stream2.draft_next_hint_present_count} s2_draft_accepted_pat=${stream2.draft_accepted_patterns_present_count} s2_draft_rejected_pat=${stream2.draft_rejected_patterns_present_count} ` +
 		`s2_facades=${stream2.facade_ready_count} s2_synth=${stream2.synthesis_updated_count} s2_evidence=${stream2.evidence_updated_count} ` +
-		`s2_facade_fmt_valid=${stream2.facade_format_valid_count} ` +
+		`s2_facade_fmt_valid=${stream2.facade_format_valid_count} s2_facade_id=${stream2.facade_id_present_count} s2_facade_aid=${stream2.facade_agent_id_present_count} s2_facade_hyp=${stream2.facade_hypothesis_present_count} s2_facade_label=${stream2.facade_label_present_count} s2_facade_content=${stream2.facade_content_present_count} ` +
 		`s2_synth_axes=${stream2.synthesis_axes_count}/min=${stream2.synthesis_axes_min} s2_synth_axes_conf_valid=${stream2.synthesis_axes_valid_confidence_count} s2_synth_assigns=${stream2.synthesis_scout_assignments_count}/min=${stream2.synthesis_scout_assignments_min} s2_synth_assigns_scout_valid=${stream2.synthesis_scout_assignments_valid_scout_count} s2_synth_palette=${stream2.synthesis_palette_present_count} ` +
 		`s2_evid_arr_valid=${stream2.evidence_array_valid_count} s2_anti_arr_valid=${stream2.anti_patterns_array_valid_count} s2_evid_len_min/max=${stream2.evidence_length_min}/${stream2.evidence_length_max} ` +
 		`s2_evid_items_dec_valid=${stream2.evidence_items_valid_decision_count} s2_evid_items_fmt_valid=${stream2.evidence_items_valid_format_count} s2_evid_items_lat_valid=${stream2.evidence_items_valid_latency_signal_count} ` +
