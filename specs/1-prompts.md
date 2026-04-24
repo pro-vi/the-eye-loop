@@ -75,11 +75,11 @@ RULES:
 - PROHIBITIONS (anti-patterns) are hard constraints — never violate them
 
 OUTPUT (structured):
-  content: "{the word or HTML}"
-  label: "{short display label for the card}"
-  hypothesis_tested: "{what accept vs reject would tell us}"
-  accept_implies: "{what becomes more likely}"
-  reject_implies: "{what becomes more likely, what gets added to anti-patterns}"
+  content: "{the exact one word, or renderable HTML+CSS for mockup}"
+  label: "{exactly one visible word for the card}"
+  hypothesis_tested: "{the yes/no proposition being tested}"
+  accept_implies: "{what yes/accept means for this one candidate}"
+  reject_implies: "{what no/reject means for this one candidate, what gets added to anti-patterns}"
   format: "word" | "mockup"
   axis_targeted: "{which emergent axis you probed}"
 ```
@@ -95,8 +95,10 @@ Scout prompts receive five injections:
 
 ### Format Instructions (injected by concreteness floor)
 
-- `< 4 swipes`: "This is early exploration — use a single evocative WORD or short phrase."
-- `>= 4 swipes`: "Describe a concrete MOCKUP with layout, typography, and interaction details."
+- `< 4 swipes`: "The visible label and content must be exactly ONE WORD. The user swipes yes/no on that one word."
+- `>= 4 swipes`: "The content field must be complete renderable HTML+CSS for a 375x667 mobile iframe. Do not describe a screen. Do not output a render prompt."
+
+The product is a yes/no swipe interface, not pairwise comparison. Visible scout fields must never say `A vs B`, `A/B`, or `A or B`. Accept means "yes to the single displayed candidate"; reject means "no to that candidate."
 
 The floor is 2-tier, matching `EyeLoopSession.concretenessFloor` in `src/lib/server/session/eye-loop-session.ts` (returns `'word'` when evidence < 4, `'mockup'` otherwise) and `Facade.format` in `src/lib/context/types.ts` (`'word' | 'mockup'`). The session runtime sets the minimum floor; scouts emit the corresponding format.
 
@@ -104,13 +106,13 @@ The floor is 2-tier, matching `EyeLoopSession.concretenessFloor` in `src/lib/ser
 
 The same taste dimension gets probed at increasing fidelity across stages:
 
-| Dimension          | Word Probe                     | Mockup Probe                                  |
-|--------------------|--------------------------------|-----------------------------------------------|
-| information stance | "Dashboard" vs "Story"         | Dense multi-widget vs single-scroll narrative |
-| interaction model  | "Control" vs "Flow"            | Settings panel vs swipe-to-act                |
-| visual heritage    | "Swiss" vs "Craft"             | Helvetica grid vs illustrated organic         |
-| density philosophy | "Observatory" vs "Companion"   | Jira density vs Linear breathing room         |
-| personality        | "Invisible" vs "Expressive"    | System-default chrome vs branded experience   |
+| Dimension          | Word Probe   | Mockup Probe                                  |
+|--------------------|--------------|-----------------------------------------------|
+| information stance | "Dashboard"  | Dense multi-widget dashboard card             |
+| interaction model  | "Control"    | Settings panel with direct manipulation       |
+| visual heritage    | "Swiss"      | Helvetica-grid mobile screen                  |
+| density philosophy | "Observatory"| Dense metrics surface                         |
+| personality        | "Expressive" | Branded animated onboarding screen            |
 
 Later-stage probes build on earlier evidence. If the user accepted "Dashboard" in words, the mockup should test WITHIN that resolved region.
 

@@ -32,6 +32,8 @@ const REVEAL_FORCE_PREP_AT = Math.max(1, AUTO_REVEAL_SWIPE_THRESHOLD - 6);
 const WARMUP_TIMEOUT_MS = 45_000;
 const MAX_CONCURRENT_SCOUTS = 6;
 const MAX_REFILL_BATCHES_WITHOUT_PROGRESS = 2;
+const RENDERABLE_HTML_PATTERN =
+	/<(?:!doctype|html|head|body|style|main|section|article|div|nav|header|footer|button|ul|ol|li)\b/i;
 
 const SCOUT_ROSTER = [
 	{ id: 'scout-01', name: 'Iris' },
@@ -43,29 +45,31 @@ const SCOUT_ROSTER = [
 ] as const;
 
 const SCOUT_LENSES: Record<string, string> = {
-	Iris: 'LOOK AND FEEL: colors, shapes, light vs dark, rounded vs sharp, photos vs illustrations.',
-	Prism: 'LAYOUT AND INTERACTION: sidebar vs tabs, cards vs lists, dense vs spacious, scroll vs pages.',
-	Aura: 'MOOD AND ATMOSPHERE: warm vs cool, calm vs energetic, intimate vs expansive, organic vs digital.',
-	Facet: 'INFORMATION DESIGN: charts vs text, numbers vs narrative, dense data vs key metrics, tables vs cards.',
-	Echo: 'MOTION AND BEHAVIOR: animated vs static, transitions vs instant, gesture vs click, fluid vs snappy.',
-	Lumen: 'VOICE AND PERSONALITY: friendly vs professional, playful vs serious, branded vs neutral.'
+	Iris: 'LOOK AND FEEL: color, shape, contrast, geometry, imagery, material feel.',
+	Prism: 'LAYOUT AND INTERACTION: navigation, cards, density, scrolling, page structure.',
+	Aura: 'MOOD AND ATMOSPHERE: warmth, calm, energy, intimacy, organic or digital feel.',
+	Facet: 'INFORMATION DESIGN: charts, text, metrics, narrative, tables, cards.',
+	Echo: 'MOTION AND BEHAVIOR: animation, transition style, gesture, click behavior, pacing.',
+	Lumen: 'VOICE AND PERSONALITY: friendliness, professionalism, playfulness, seriousness, brand presence.'
 };
 
 const ScoutOutputSchemaWord = z.object({
-	label: z.string(),
-	hypothesis: z.string(),
+	label: z.string().describe('Exactly one visible word. No "vs", "or", slash, colon, or comparison.'),
+	hypothesis: z.string().describe('One yes/no proposition about the single displayed word.'),
 	axis_targeted: z.string(),
-	accept_implies: z.string(),
-	reject_implies: z.string()
+	accept_implies: z.string().describe('What a yes/accept means for this one candidate.'),
+	reject_implies: z.string().describe('What a no/reject means for this one candidate.')
 });
 
 const ScoutOutputSchemaMockup = z.object({
-	label: z.string(),
-	hypothesis: z.string(),
+	label: z.string().describe('Exactly one visible word naming the rendered candidate.'),
+	hypothesis: z.string().describe('One yes/no proposition about the rendered candidate.'),
 	axis_targeted: z.string(),
-	content: z.string(),
-	accept_implies: z.string(),
-	reject_implies: z.string()
+	content: z
+		.string()
+		.describe('Renderable HTML+CSS for iframe srcdoc. No Markdown fences. No natural-language render prompt.'),
+	accept_implies: z.string().describe('What a yes/accept means for this one candidate.'),
+	reject_implies: z.string().describe('What a no/reject means for this one candidate.')
 });
 
 const emergentAxisSchema = z.object({
@@ -135,9 +139,9 @@ const DraftCoreSchema = z.object({
 
 const FORMAT_INSTRUCTIONS: Record<Facade['format'], string> = {
 	word:
-		'FORMAT: word. Output one evocative word or a 2-4 word plain-language phrase. The label is the content.',
+		'FORMAT: word. The visible label and content must be EXACTLY ONE WORD. The user swipes yes/no on that one word.',
 	mockup:
-		'FORMAT: mockup. Describe a specific mobile UI screen with layout, components, colors, and typography.'
+		'FORMAT: mockup. The content field must be complete renderable HTML+CSS for a 375x667 mobile iframe. Do not describe a screen. Do not output a render prompt. Do not use Markdown fences.'
 };
 
 const SCOUT_PROMPT = `You are {SCOUT_NAME}, a taste scout in The Eye Loop.
@@ -167,6 +171,10 @@ Builder brief:
 
 Rules:
 - Make the label understandable in one second.
+- This is a yes/no card. The user is accepting or rejecting ONE candidate.
+- Never write "A vs B", "A/B", "A or B", or pairwise choices in visible fields.
+- The label must be one word. Put the tested idea in hypothesis/implications, not in the label.
+- For mockups, content must be renderable HTML+CSS shown directly in an iframe.
 - Probe a real product-design choice, not an abstract art phrase.
 - Do not duplicate queued axes or labels.
 - Rejected patterns are hard constraints.
@@ -301,7 +309,7 @@ function emitError(session: EyeLoopSession, source: 'scout' | 'oracle' | 'builde
 function getSynthesisText(session: EyeLoopSession): string {
 	if (!session.synthesis) return 'Not yet available.';
 	const axes = session.synthesis.axes
-		.map((a) => `${a.label}: ${a.poleA} vs ${a.poleB} [${a.confidence}]`)
+		.map((a) => `${a.label}: range from ${a.poleA} to ${a.poleB} [${a.confidence}]`)
 		.join('\n');
 	const flags = session.synthesis.edge_case_flags.length
 		? `\nFlags: ${session.synthesis.edge_case_flags.join(', ')}`
@@ -335,6 +343,67 @@ function getProbeBrief(session: EyeLoopSession): string {
 	const probe = session.getNextProbe();
 	if (!probe) return 'None.';
 	return `${probe.brief}\nContext: ${probe.context}`;
+}
+
+function escapeHtml(input: string): string {
+	return input.replace(/[&<>"']/g, (char) => {
+		if (char === '&') return '&amp;';
+		if (char === '<') return '&lt;';
+		if (char === '>') return '&gt;';
+		if (char === '"') return '&quot;';
+		return '&#39;';
+	});
+}
+
+function stripMarkdownFence(input: string): string {
+	const trimmed = input.trim();
+	const fenced = trimmed.match(/^```(?:html)?\s*([\s\S]*?)\s*```$/i);
+	return (fenced?.[1] ?? trimmed).trim();
+}
+
+function extractHtml(input: string): string {
+	const stripped = stripMarkdownFence(input);
+	const tagStart = stripped.search(RENDERABLE_HTML_PATTERN);
+	return tagStart > 0 ? stripped.slice(tagStart).trim() : stripped;
+}
+
+function firstSingleWord(input: string, fallback: string): string {
+	const firstSide = stripMarkdownFence(input).split(/\b(?:vs\.?|versus|or)\b|[\/|]/i)[0] ?? '';
+	const match = firstSide.replace(/["'“”‘’.,:;!?()[\]{}]/g, ' ').match(/[A-Za-z0-9][A-Za-z0-9-]*/);
+	return match?.[0]?.slice(0, 28) || fallback;
+}
+
+function normalizeHypothesis(label: string, hypothesis: string): string {
+	const clean = stripMarkdownFence(hypothesis).replace(/\s+/g, ' ').trim();
+	if (!clean || /\b(?:vs\.?|versus|or)\b|[\/|]/i.test(clean)) {
+		return `Tests whether ${label} belongs in the user's product direction.`;
+	}
+	return clean;
+}
+
+function isRenderableHtml(input: string): boolean {
+	return RENDERABLE_HTML_PATTERN.test(input);
+}
+
+function fallbackMockupHtml(label: string, hypothesis: string): string {
+	const safeLabel = escapeHtml(label);
+	const safeHypothesis = escapeHtml(hypothesis);
+	return `<style>
+*{box-sizing:border-box}body{margin:0;font-family:'Avenir Next','Trebuchet MS',sans-serif;background:#111;color:#f7f2ea}
+.screen{min-height:667px;padding:28px;background:linear-gradient(145deg,#171717,#2b2118)}
+.hero{border-radius:28px;padding:26px;background:rgba(255,255,255,.08);box-shadow:0 24px 60px rgba(0,0,0,.34)}
+.eyebrow{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:#f2b86b}
+h1{margin:18px 0 10px;font-size:42px;line-height:.94;letter-spacing:-.04em}
+p{margin:0;color:#d8cabb;line-height:1.45}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:22px}
+.tile{min-height:118px;border-radius:20px;background:rgba(255,255,255,.1);padding:16px}
+.bar{height:10px;border-radius:999px;background:#f2b86b;margin-top:14px}.bar.small{width:58%;background:#75675c}
+</style><main class="screen"><section class="hero"><div class="eyebrow">Prototype direction</div><h1>${safeLabel}</h1><p>${safeHypothesis}</p><div class="row"><div class="tile"><div class="eyebrow">Signal</div><div class="bar"></div><div class="bar small"></div></div><div class="tile"><div class="eyebrow">Flow</div><div class="bar small"></div><div class="bar"></div></div></div></section></main>`;
+}
+
+function normalizeMockupHtml(content: string, label: string, hypothesis: string): string {
+	const stripped = extractHtml(content);
+	return isRenderableHtml(stripped) ? stripped : fallbackMockupHtml(label, hypothesis);
 }
 
 function shouldAggressivelyRefill(session: EyeLoopSession): boolean {
@@ -389,8 +458,10 @@ async function generateScoutFacade(session: EyeLoopSession, scout: (typeof SCOUT
 			return;
 		}
 
+		const label = firstSingleWord(output.label, scout.name);
+		const hypothesis = normalizeHypothesis(label, output.hypothesis);
 		const axisLower = output.axis_targeted.toLowerCase();
-		const labelLower = output.label.toLowerCase();
+		const labelLower = label.toLowerCase();
 		const duplicate = session.facades.some(
 			(f) =>
 				f.axisTargeted?.toLowerCase() === axisLower ||
@@ -402,16 +473,16 @@ async function generateScoutFacade(session: EyeLoopSession, scout: (typeof SCOUT
 		}
 
 		const content =
-			'content' in output && typeof output.content === 'string'
-				? output.content
-				: output.label;
+			format === 'mockup' && 'content' in output && typeof output.content === 'string'
+				? normalizeMockupHtml(output.content, label, hypothesis)
+				: label;
 		session.addFacade(
 			{
 				id: crypto.randomUUID(),
 				agentId: scout.id,
-				hypothesis: output.hypothesis,
+				hypothesis,
 				axisTargeted: output.axis_targeted,
-				label: output.label,
+				label,
 				content,
 				format,
 				acceptImplies: output.accept_implies,
@@ -419,7 +490,7 @@ async function generateScoutFacade(session: EyeLoopSession, scout: (typeof SCOUT
 			},
 			reason
 		);
-		idleFocus = `"${output.label}" ready`;
+		idleFocus = `"${label}" ready`;
 	} catch (err) {
 		emitError(session, 'scout', err, scout.id);
 		idleFocus = 'provider call failed';

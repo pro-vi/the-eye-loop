@@ -21,8 +21,8 @@ Configured by env vars `SCOUT_MODEL_ID`, `ORACLE_MODEL_ID`, `BUILDER_MODEL_ID`, 
 
 Every swipe-cycle path. Must feel responsive.
 
-- **Scout word facade** — single evocative word or 2-3 word phrase via `Output.object()` + Zod schema in the session runtime
-- **Scout HTML mockup** — free-form HTML+CSS generation when the scout metadata returns `format: 'mockup'`, parsed out of the text response
+- **Scout word facade** — exactly one visible word via `Output.object()` + Zod schema in the session runtime
+- **Scout HTML mockup** — renderable HTML+CSS for the card iframe; natural-language render prompts are rejected by runtime guards
 - **Oracle synthesis** — every 4 swipes, emits `TasteSynthesis` (emergent axes + scout assignments + divergence)
 - **Builder scaffold** — initial draft on session-created, maintains `PrototypeDraft`
 - **Builder incremental rebuild** — on swipe-result, integrates accepted/rejected patterns
@@ -72,7 +72,7 @@ Matches landed call sites in `src/lib/server/session/runtime.ts`:
 | Call site | Temperature | Why |
 |-----------|------------|-----|
 | Scout probe generation | `1.0` | Creative — diverse taste probes |
-| Scout HTML mockup | default | Inherits from `SCOUT_MODEL`, free-form HTML |
+| Scout HTML mockup | default | Inherits from `SCOUT_MODEL`, renderable HTML+CSS |
 | Builder scaffold / rebuild / reveal | `0` | Analytical — integrate evidence deterministically |
 | Oracle synthesis / cold-start | `0` | Analytical — emergent-axis inference |
 

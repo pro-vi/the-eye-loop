@@ -142,8 +142,8 @@ Loop:
 1. read evidence history + oracle synthesis (emergent axes, scout assignment, edge case flags) + queue contents for de-duplication + any builder probe brief
 2. generate one facade targeting the biggest gap in taste knowledge (LLM decides, not code)
    - format chosen by scout based on evidence depth, gated by oracle concreteness floor
-   - **words:** `SCOUT_MODEL` (default: Claude Haiku 4.5) with `Output.object()`
-   - **mockups:** `SCOUT_MODEL` (default: Claude Haiku 4.5) generating HTML
+   - **words:** `SCOUT_MODEL` (default: Claude Haiku 4.5) with `Output.object()`, exactly one visible word for a yes/no card
+   - **mockups:** `SCOUT_MODEL` (default: Claude Haiku 4.5) generating renderable HTML+CSS, not a render prompt
 3. push it into the session reservoir with `tasteVersion`, `createdAt`, and `generationReason`
 4. return; swipe handling is session-owned and never waits on a scout
 
@@ -305,8 +305,10 @@ Concreteness floor is session-owned. See `EyeLoopSession.concretenessFloor` in `
 | >= 4 swipes | `mockup` | mockup only |
 
 Format instruction injected into scout prompt:
-- "You have 2 swipes of evidence. This is early exploration — use a single evocative WORD."
-- "You have 6 swipes. Describe a concrete MOCKUP with layout details."
+- "You have 2 swipes of evidence. Output exactly one visible WORD. The user swipes yes/no on that word."
+- "You have 6 swipes. Output renderable HTML+CSS for the mockup iframe. Do not describe a screen or output a render prompt."
+
+Visible scout fields are never pairwise. Do not show `A vs B`, `A/B`, or `A or B`; accept means yes to the single displayed candidate, reject means no.
 
 Image facades were cut from V0 — benchmarks showed scouts naturally skip the image stage (word → mockup), and the landed runtime has no image-capable provider wired up.
 
@@ -385,7 +387,7 @@ pnpm add ai@6.0.134 @ai-sdk/anthropic@^3.0.64 zod@^3.24.0
 | What | How | Reference |
 |------|-----|-----------|
 | Text facades | `generateText()` with `SCOUT_MODEL` (default: Claude Haiku 4.5) from `$lib/server/ai` | `specs/3-models.md` |
-| HTML mockups | `generateText()` with `SCOUT_MODEL` (default: Claude Haiku 4.5) through structured scout schemas | `src/lib/server/session/runtime.ts` |
+| HTML mockups | `generateText()` with `SCOUT_MODEL` (default: Claude Haiku 4.5) through structured scout schemas; runtime guards convert non-HTML output to a fallback rendered shell | `src/lib/server/session/runtime.ts` |
 | Builder scaffold / rebuild | `generateText()` with `BUILDER_MODEL` (default: Claude Haiku 4.5) | `src/lib/server/session/runtime.ts` |
 | Oracle cold-start / synthesis | `generateText()` with `ORACLE_MODEL` (default: Claude Haiku 4.5) | `src/lib/server/session/runtime.ts` |
 | Quality reveal | `REVEAL_MODEL` (default: Claude Sonnet 4.6) for builder reveal | `src/lib/server/ai.ts` |
