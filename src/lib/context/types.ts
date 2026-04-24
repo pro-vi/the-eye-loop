@@ -24,6 +24,9 @@ export interface Facade {
 	format: 'word' | 'mockup';
 	acceptImplies?: string;   // design implications if user accepts
 	rejectImplies?: string;   // design implications if user rejects
+	tasteVersion?: number;
+	createdAt?: number;
+	generationReason?: string;
 }
 
 export interface SwipeRecord {
@@ -90,6 +93,30 @@ export interface TasteSynthesis {
 	persona_anima_divergence: string | null;
 }
 
+export interface QueueStats {
+	ready: number;
+	target: number;
+	min: number;
+	max: number;
+	lowWater: number;
+	pending: number;
+	stale: number;
+}
+
+export interface SessionBootstrapResponse {
+	intent: string;
+	sessionId: string;
+	facades: Facade[];
+	evidence: SwipeEvidence[];
+	antiPatterns: string[];
+	agents: AgentState[];
+	draft: PrototypeDraft;
+	synthesis: TasteSynthesis | null;
+	stage: Stage;
+	queueStats: QueueStats;
+	revealPrepared: boolean;
+}
+
 export type SSEEvent =
 	| { type: 'facade-ready'; facade: Facade }
 	| { type: 'facade-stale'; facadeId: string }
@@ -101,6 +128,8 @@ export type SSEEvent =
 	| { type: 'stage-changed'; stage: Stage; swipeCount: number }
 	| { type: 'synthesis-updated'; synthesis: TasteSynthesis }
 	| { type: 'session-ready'; intent: string }
+	| { type: 'queue-updated'; queueStats: QueueStats }
+	| { type: 'reveal-prepared'; ready: boolean }
 	| {
 			type: 'error';
 			source: 'scout' | 'oracle' | 'builder';
