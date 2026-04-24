@@ -416,6 +416,23 @@ async function main() {
 		// on facade-ready (iter-66 added the count; no content probe existed
 		// prior). ∈ {'word', 'mockup'} per types.ts:24.
 		facade_format_valid_count: 0,
+		// iter-88: stream_2 counterparts for iter-72's primary-bus synthesis
+		// content probes (synth_axes_count / synth_scout_assignments_count),
+		// closing the last unprobed synthesis cells on the /api/stream replay
+		// matrix. +server.ts:24-26 replays synthesis-updated once per new
+		// client when context.synthesis is set; under iter-61 healthy-auth the
+		// cold-start synthesis (oracle.ts:350, fires at ~3-5s) has landed by
+		// the time stream_2 opens (~12s), so the replay carries 6 axes and
+		// 6 scout_assignments — matching the primary-bus identity. A regression
+		// in the replay block that drops the synthesis emit, mutates
+		// context.synthesis before replay, or diverges the payload shape from
+		// the primary bus would cause these to drop below primary iter-72
+		// values while primary stays at identity — two-sided coverage the
+		// single-stream primary probes cannot provide.
+		synthesis_axes_count: 0,
+		synthesis_axes_min: 0,
+		synthesis_scout_assignments_count: 0,
+		synthesis_scout_assignments_min: 0,
 		first_event_ms_after_open: null,
 		last_event_ms_after_open: null,
 		replay_span_ms: null,
@@ -676,6 +693,59 @@ async function main() {
 		stream2.facade_format_valid_count = stream2.events.filter(
 			(e) => e.type === 'facade-ready' && VALID_FACADE_FORMATS.includes(e.data?.facade?.format)
 		).length;
+		// iter-88: synthesis content-validation probes on stream_2 replay —
+		// stream_2 counterparts for iter-72's primary-bus synthesis axes +
+		// scout_assignments count probes, closing the last synthesis replay
+		// cells on the /api/stream snapshot matrix. Mirror pattern of iter-66
+		// (which closed the stream_2 facade_ready + synthesis_updated +
+		// evidence_updated counts) and iter-67 (which added stream_2 facade
+		// format_valid alongside the primary). Under iter-61 healthy-auth
+		// 5-intent baseline, +server.ts:24-26 replays the cold-start synthesis
+		// payload once per connection (at stream_2 open ~12s, synthesis fired
+		// at ~3-5s so it's already in context), so per-intent identity is:
+		//   stream_2_synthesis_axes_count = 6 (matches iter-72 primary)
+		//   stream_2_synthesis_axes_min = 6
+		//   stream_2_synthesis_scout_assignments_count = 6 (matches primary)
+		//   stream_2_synthesis_scout_assignments_min = 6
+		// Aggregate (5 intents): both _sum=30, both _min=6 — matching
+		// iter-72's primary synthesis_axes_count_sum=30 / _min=6.
+		// Regression classes these probes catch that primary iter-72 alone
+		// cannot: a bug in the replay block that emits synthesis-updated
+		// without the axes array (iter-66's stream_2_synthesis_updated_count
+		// still fires at 1, but axes_count drops to 0); replay serializing
+		// synthesis as {synthesis: null} or omitting the field (axes_count
+		// at 0 but synthesis_updated_count still at 1); replay cloning
+		// synthesis into a stale snapshot that mutates before serialization
+		// (axes_min drops to 5 while primary stays at 6). Orthogonal to the
+		// primary-bus iter-72 probes: primary counts ALL synthesis-updated
+		// payloads as they fire; stream_2 counts only the snapshot at
+		// connect time — cross-stream divergence pinpoints replay-block
+		// bugs invisible to single-stream probes.
+		{
+			const stream2SynthesisEvents = stream2.events.filter(
+				(e) => e.type === 'synthesis-updated'
+			);
+			let s2SynthesisAxesMin = stream2SynthesisEvents.length > 0 ? Infinity : 0;
+			let s2SynthesisScoutAssignmentsMin =
+				stream2SynthesisEvents.length > 0 ? Infinity : 0;
+			for (const ev of stream2SynthesisEvents) {
+				const axes = ev.data?.synthesis?.axes;
+				const assignments = ev.data?.synthesis?.scout_assignments;
+				const axesLen = Array.isArray(axes) ? axes.length : 0;
+				const assignmentsLen = Array.isArray(assignments) ? assignments.length : 0;
+				stream2.synthesis_axes_count += axesLen;
+				stream2.synthesis_scout_assignments_count += assignmentsLen;
+				if (axesLen < s2SynthesisAxesMin) s2SynthesisAxesMin = axesLen;
+				if (assignmentsLen < s2SynthesisScoutAssignmentsMin)
+					s2SynthesisScoutAssignmentsMin = assignmentsLen;
+			}
+			stream2.synthesis_axes_min =
+				s2SynthesisAxesMin === Infinity ? 0 : s2SynthesisAxesMin;
+			stream2.synthesis_scout_assignments_min =
+				s2SynthesisScoutAssignmentsMin === Infinity
+					? 0
+					: s2SynthesisScoutAssignmentsMin;
+		}
 		// iter-65: draft-replay placeholder/refined discriminator (stream_2
 		// mirror of iter-64's primary-stream split). Under iter-61's healthy-auth
 		// regime the /api/stream replay block emits draft-updated when
@@ -1956,6 +2026,14 @@ async function main() {
 			stream_2_synthesis_updated_count: stream2.synthesis_updated_count,
 			stream_2_evidence_updated_count: stream2.evidence_updated_count,
 			stream_2_facade_format_valid_count: stream2.facade_format_valid_count,
+			// iter-88: stream_2 counterparts for iter-72 primary synthesis content
+			// probes — mirrors the axes/scout_assignments count pattern from the
+			// primary bus onto /api/stream replay snapshot, closing a named
+			// harness-completeness gap on the replay matrix.
+			stream_2_synthesis_axes_count: stream2.synthesis_axes_count,
+			stream_2_synthesis_axes_min: stream2.synthesis_axes_min,
+			stream_2_synthesis_scout_assignments_count: stream2.synthesis_scout_assignments_count,
+			stream_2_synthesis_scout_assignments_min: stream2.synthesis_scout_assignments_min,
 			stream_2_first_event_ms_after_open: stream2.first_event_ms_after_open,
 			stream_2_replay_span_ms: stream2.replay_span_ms,
 			stage_changed_event_count: stageChangedEventCount,
@@ -2043,6 +2121,7 @@ async function main() {
 		`s2_drafts=${stream2.draft_updated_count} s2_drafts_p/r=${stream2.draft_placeholder_count}/${stream2.draft_refined_count} ` +
 		`s2_facades=${stream2.facade_ready_count} s2_synth=${stream2.synthesis_updated_count} s2_evidence=${stream2.evidence_updated_count} ` +
 		`s2_facade_fmt_valid=${stream2.facade_format_valid_count} ` +
+		`s2_synth_axes=${stream2.synthesis_axes_count}/min=${stream2.synthesis_axes_min} s2_synth_assigns=${stream2.synthesis_scout_assignments_count}/min=${stream2.synthesis_scout_assignments_min} ` +
 		`s2_first=${stream2.first_event_ms_after_open}ms s2_span=${stream2.replay_span_ms}ms ` +
 		`oracle_cs=${oracleColdStartLatencyMs === null ? '-' : oracleColdStartLatencyMs + 'ms'} ` +
 		`oracle_syn=${oracleSynthesisLatencyMs === null ? '-' : oracleSynthesisLatencyMs + 'ms'} ` +

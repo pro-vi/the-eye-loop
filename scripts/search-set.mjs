@@ -172,6 +172,15 @@ function extractMetrics(artifact) {
 		stream_2_evidence_updated_count: m.stream_2_evidence_updated_count ?? 0,
 		facade_format_valid_count: m.facade_format_valid_count ?? 0,
 		stream_2_facade_format_valid_count: m.stream_2_facade_format_valid_count ?? 0,
+		// iter-88: stream_2 counterparts for iter-72 primary synthesis content
+		// probes (axes + scout_assignments count/min), forward-carried so that
+		// the aggregate rollups below can establish the cross-stream identity
+		// with primary-bus iter-72 values under the healthy-auth 5-intent
+		// baseline (each stream_2 metric = its primary-bus counterpart = 30/6).
+		stream_2_synthesis_axes_count: m.stream_2_synthesis_axes_count ?? 0,
+		stream_2_synthesis_axes_min: m.stream_2_synthesis_axes_min ?? 0,
+		stream_2_synthesis_scout_assignments_count: m.stream_2_synthesis_scout_assignments_count ?? 0,
+		stream_2_synthesis_scout_assignments_min: m.stream_2_synthesis_scout_assignments_min ?? 0,
 		swipe_decision_valid_count: m.swipe_decision_valid_count ?? 0,
 		swipe_latency_bucket_valid_count: m.swipe_latency_bucket_valid_count ?? 0,
 		synthesis_axes_count: m.synthesis_axes_count ?? 0,
@@ -1286,6 +1295,50 @@ async function main() {
 			synthesis_scout_assignments_valid_scout_count_sum: sumMetric('synthesis_scout_assignments_valid_scout_count'),
 			synthesis_scout_assignments_valid_scout_count_min: perIntent.length
 				? Math.min(...perIntent.map((p) => p.metrics.synthesis_scout_assignments_valid_scout_count ?? 0))
+				: 0,
+			// iter-88: stream_2 counterparts for iter-72's primary-bus synthesis
+			// axes + scout_assignments count rollups — closing the last unprobed
+			// synthesis cells on the /api/stream snapshot matrix. Mirror pattern
+			// of iter-66 (which closed stream_2_facade_ready + synthesis_updated
+			// + evidence_updated counts) and iter-67 (which added stream_2 facade
+			// format_valid alongside the primary). Under iter-61 healthy-auth
+			// 5-intent 12s-window baseline the stream_2 replay snapshot captures
+			// the cold-start synthesis payload (fires at ~3-5s, stream_2 opens
+			// at ~12s), so the same primary-bus identity invariants from iter-72
+			// also hold on the replay path:
+			//   stream_2_synthesis_axes_count_sum = 30
+			//     = 6 * stream_2_synthesis_updated_count_sum (iter-66)
+			//     = synthesis_axes_count_sum (iter-72, primary bus)
+			//   stream_2_synthesis_axes_count_min = 6 (per intent)
+			//   stream_2_synthesis_scout_assignments_count_sum = 30
+			//   stream_2_synthesis_scout_assignments_count_min = 6
+			//
+			// Regression classes these aggregate rollups catch that iter-72's
+			// primary rollups cannot: a bug in +server.ts:24-26's replay block
+			// that emits synthesis-updated with axes dropped (stream_2 count
+			// drops to 0 while iter-66 stream_2_synthesis_updated_count holds
+			// at 5); replay serializing synthesis as null (stream_2 axes_count
+			// at 0 but primary synthesis_axes_count_sum stays at 30); a clone-
+			// and-mutate bug where synthesis is cloned then axes truncated on
+			// the way out (_min drops to 5 while primary holds at 6).
+			// Cross-stream divergence (stream_2_axes_count_sum != primary
+			// axes_count_sum under healthy-auth) pinpoints replay-block bugs
+			// invisible to single-stream probes.
+			//
+			// Under broken-auth baseline: both primary and stream_2 synthesis
+			// count _sum=0 because no cold-start fires on the broken-auth
+			// regime — the cross-stream identity 0==0 is preserved without
+			// being discriminative on either side. This makes these probes
+			// baseline-regime-invariant in the same way iter-67's facade_
+			// format_valid probes are (identity holds under any regime, the
+			// absolute values differ).
+			stream_2_synthesis_axes_count_sum: sumMetric('stream_2_synthesis_axes_count'),
+			stream_2_synthesis_axes_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.stream_2_synthesis_axes_min ?? 0))
+				: 0,
+			stream_2_synthesis_scout_assignments_count_sum: sumMetric('stream_2_synthesis_scout_assignments_count'),
+			stream_2_synthesis_scout_assignments_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.stream_2_synthesis_scout_assignments_min ?? 0))
 				: 0,
 			// iter-81: evidence-updated content-validation rollups — first
 			// content-probe aggregates on the evidence-updated event after 80
