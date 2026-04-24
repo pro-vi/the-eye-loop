@@ -854,6 +854,123 @@ async function main() {
 		? refinedHtmlLengthSorted[0]
 		: null;
 
+	// iter-76: scaffold-vs-rebuild source split on refined-draft html lengths.
+	// iter-75 explicitly named this as a deferred opportunity in its learnings
+	// ("a future iteration could split draft_refined_html_length by source") and
+	// the current validate-latest.json carries the anchoring live trace: a
+	// multi-session run observed draft_refined_html_length_min=1498c vs
+	// draft_refined_html_length_max=4222c — a 2.8× gap the collapsed metric
+	// blurs. Classification rule: find the most-recent builder-01 agent-status
+	// 'thinking' event whose ts_ms is <= draft.ts_ms. If focus='generating
+	// initial scaffold' → scaffold-refined; if focus startsWith 'analyzing '
+	// (per iter-70's rebuild-latency focus-prefix matcher) → rebuild-refined;
+	// otherwise 'unknown' (shouldn't fire under the current agent flow but
+	// preserved as a sentinel so a regression that adds a new thinking focus
+	// string doesn't silently mis-classify into scaffold or rebuild).
+	//
+	// Identity invariant under any auth regime:
+	//   draft_refined_scaffold_count + draft_refined_rebuild_count
+	//     + draft_refined_unknown_count === draft_refined_count
+	// The unknown bucket is exposed as a first-class count so future probe
+	// extensions (e.g. reveal-build path adding a 'final prototype synthesis'
+	// focus that routes through buildRevealDraft) will show as unknown until
+	// explicitly classified, surfacing the addition as a probe-coverage gap
+	// rather than silently inflating scaffold or rebuild counts.
+	//
+	// Expected baselines:
+	//   default 12s window, healthy-auth: scaffold_count≈5/_min=1 (iter-74's
+	//     scaffold-refined draft fires per intent), rebuild_count=0/_min=0
+	//     (rebuild typically completes at ~T+20s, past the 12s window).
+	//   multi-session 20s window: scaffold_count includes both sessions'
+	//     scaffolds; rebuild_count includes swipes that triggered rebuild.
+	//     The 1498c/4222c gap from validate-latest.json localizes as:
+	//     scaffold_html_length_min=1498 (session 2 scaffold, 17s after start,
+	//     anomalously short), rebuild_html_length_p50=4222c (rebuild on
+	//     session 2's swipe — healthy output).
+	//
+	// Regression classes this source-split catches that iter-75's collapsed
+	// metric cannot:
+	//   - scaffold-specific length regression (e.g. SCAFFOLD_PROMPT's iter-74
+	//     hint reverted): scaffold_html_length_p50 drops while rebuild holds.
+	//   - rebuild-specific length regression (e.g. SWIPE_PROMPT shortening
+	//     under a future intervention): rebuild_html_length_p50 drops while
+	//     scaffold holds.
+	//   - multi-session stale-scaffold-overwrites-rebuild bug (iter-76's
+	//     anchor trace): scaffold_html_length_min collapses below rebuild's
+	//     p50 (1498 < 4222), while iter-75's collapsed min drops to 1498
+	//     without revealing which source was responsible.
+	//
+	// Forward-deploy: when the reveal path becomes reachable, adding a third
+	// 'reveal' source (via the buildRevealDraft's 'final prototype synthesis'
+	// focus) is a one-line extension — the classifier's unknown bucket will
+	// transition to reveal-specific, preserving existing scaffold/rebuild
+	// invariants byte-equivalent.
+	// Single forward pass over the events array, tracking the most-recent
+	// builder-01 'thinking' focus. Classification is keyed off the focus that
+	// was active AT THE MOMENT the draft-updated event was received — which
+	// matches the actual emit ordering in builder.ts: scaffold/rebuild emit
+	// draft-updated INSIDE the thinking phase, then the finally block flips
+	// to idle, then drainPending may immediately set the next call's thinking
+	// focus. Using array index (forward pass) instead of ts_ms comparison is
+	// load-bearing because scaffold's draft-updated and the next rebuild's
+	// thinking transition routinely land in the same wall-clock millisecond
+	// under SSE flush — a ts_ms<= predicate would tie-break onto rebuild and
+	// mis-classify scaffold's output as rebuild's. The forward-pass invariant:
+	// at the moment of any draft-updated, lastBuilderThinkingFocus reflects
+	// the call that produced it.
+	const scaffoldRefinedLengths = [];
+	const rebuildRefinedLengths = [];
+	let draftRefinedUnknownCount = 0;
+	{
+		let lastBuilderThinkingFocus = null;
+		for (const e of events) {
+			if (
+				e.type === 'agent-status' &&
+				e.data?.agent?.id === 'builder-01' &&
+				e.data?.agent?.status === 'thinking'
+			) {
+				lastBuilderThinkingFocus = e.data?.agent?.focus ?? null;
+				continue;
+			}
+			if (e.type !== 'draft-updated') continue;
+			const html = e.data?.draft?.html;
+			if (typeof html !== 'string') continue;
+			if (html.includes(DRAFT_PLACEHOLDER_SIGNATURE)) continue;
+			const len = html.length;
+			if (lastBuilderThinkingFocus === 'generating initial scaffold') {
+				scaffoldRefinedLengths.push(len);
+			} else if (
+				typeof lastBuilderThinkingFocus === 'string' &&
+				lastBuilderThinkingFocus.startsWith('analyzing ')
+			) {
+				rebuildRefinedLengths.push(len);
+			} else {
+				draftRefinedUnknownCount++;
+			}
+		}
+	}
+	function sortedOrNullInline(arr) {
+		return arr.length ? [...arr].sort((a, b) => a - b) : null;
+	}
+	const scaffoldSorted = sortedOrNullInline(scaffoldRefinedLengths);
+	const rebuildSorted = sortedOrNullInline(rebuildRefinedLengths);
+	const draftRefinedScaffoldCount = scaffoldRefinedLengths.length;
+	const draftRefinedRebuildCount = rebuildRefinedLengths.length;
+	const draftRefinedScaffoldHtmlLengthP50 = scaffoldSorted
+		? scaffoldSorted[Math.floor(scaffoldSorted.length / 2)]
+		: null;
+	const draftRefinedScaffoldHtmlLengthMin = scaffoldSorted ? scaffoldSorted[0] : null;
+	const draftRefinedScaffoldHtmlLengthMax = scaffoldSorted
+		? scaffoldSorted[scaffoldSorted.length - 1]
+		: null;
+	const draftRefinedRebuildHtmlLengthP50 = rebuildSorted
+		? rebuildSorted[Math.floor(rebuildSorted.length / 2)]
+		: null;
+	const draftRefinedRebuildHtmlLengthMin = rebuildSorted ? rebuildSorted[0] : null;
+	const draftRefinedRebuildHtmlLengthMax = rebuildSorted
+		? rebuildSorted[rebuildSorted.length - 1]
+		: null;
+
 	// Reveal reachability — any stage-changed event with stage==='reveal'.
 	const revealReached = events.some(
 		(e) => e.type === 'stage-changed' && e.data?.stage === 'reveal'
@@ -1493,6 +1610,15 @@ async function main() {
 			draft_refined_html_length_p50: draftRefinedHtmlLengthP50,
 			draft_refined_html_length_max: draftRefinedHtmlLengthMax,
 			draft_refined_html_length_min: draftRefinedHtmlLengthMin,
+			draft_refined_scaffold_count: draftRefinedScaffoldCount,
+			draft_refined_rebuild_count: draftRefinedRebuildCount,
+			draft_refined_unknown_count: draftRefinedUnknownCount,
+			draft_refined_scaffold_html_length_p50: draftRefinedScaffoldHtmlLengthP50,
+			draft_refined_scaffold_html_length_min: draftRefinedScaffoldHtmlLengthMin,
+			draft_refined_scaffold_html_length_max: draftRefinedScaffoldHtmlLengthMax,
+			draft_refined_rebuild_html_length_p50: draftRefinedRebuildHtmlLengthP50,
+			draft_refined_rebuild_html_length_min: draftRefinedRebuildHtmlLengthMin,
+			draft_refined_rebuild_html_length_max: draftRefinedRebuildHtmlLengthMax,
 			synthesis_updated_count: synthesisUpdatedCount,
 			swipe_result_count: swipeResultCount,
 			evidence_updated_count: evidenceUpdatedCount,
@@ -1600,6 +1726,9 @@ async function main() {
 		`${sessionSummary} facades=${facadeReadyCount} drafts=${draftUpdatedCount} ` +
 		`drafts_p/r=${draftPlaceholderCount}/${draftRefinedCount} ` +
 		`drafts_r_len=${draftRefinedHtmlLengthP50 === null ? '-' : draftRefinedHtmlLengthP50 + 'c'}/min=${draftRefinedHtmlLengthMin === null ? '-' : draftRefinedHtmlLengthMin + 'c'}/max=${draftRefinedHtmlLengthMax === null ? '-' : draftRefinedHtmlLengthMax + 'c'} ` +
+		`drafts_r_src=s${draftRefinedScaffoldCount}/r${draftRefinedRebuildCount}/u${draftRefinedUnknownCount} ` +
+		`drafts_r_s_len=${draftRefinedScaffoldHtmlLengthP50 === null ? '-' : draftRefinedScaffoldHtmlLengthP50 + 'c'}/min=${draftRefinedScaffoldHtmlLengthMin === null ? '-' : draftRefinedScaffoldHtmlLengthMin + 'c'} ` +
+		`drafts_r_r_len=${draftRefinedRebuildHtmlLengthP50 === null ? '-' : draftRefinedRebuildHtmlLengthP50 + 'c'}/min=${draftRefinedRebuildHtmlLengthMin === null ? '-' : draftRefinedRebuildHtmlLengthMin + 'c'} ` +
 		`synth=${synthesisUpdatedCount} swipe=${swipe.attempted ? swipe.status : 'skipped'} ` +
 		`sse_err=${errorEventCount} auth_err=${agentErrorLines.length} ` +
 		`err_msg=${errorMessagePresentCount} ` +

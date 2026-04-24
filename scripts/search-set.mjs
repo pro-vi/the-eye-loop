@@ -109,6 +109,15 @@ function extractMetrics(artifact) {
 		draft_refined_html_length_p50: m.draft_refined_html_length_p50 ?? null,
 		draft_refined_html_length_max: m.draft_refined_html_length_max ?? null,
 		draft_refined_html_length_min: m.draft_refined_html_length_min ?? null,
+		draft_refined_scaffold_count: m.draft_refined_scaffold_count ?? 0,
+		draft_refined_rebuild_count: m.draft_refined_rebuild_count ?? 0,
+		draft_refined_unknown_count: m.draft_refined_unknown_count ?? 0,
+		draft_refined_scaffold_html_length_p50: m.draft_refined_scaffold_html_length_p50 ?? null,
+		draft_refined_scaffold_html_length_min: m.draft_refined_scaffold_html_length_min ?? null,
+		draft_refined_scaffold_html_length_max: m.draft_refined_scaffold_html_length_max ?? null,
+		draft_refined_rebuild_html_length_p50: m.draft_refined_rebuild_html_length_p50 ?? null,
+		draft_refined_rebuild_html_length_min: m.draft_refined_rebuild_html_length_min ?? null,
+		draft_refined_rebuild_html_length_max: m.draft_refined_rebuild_html_length_max ?? null,
 		synthesis_updated_count: m.synthesis_updated_count ?? 0,
 		swipe_result_count: m.swipe_result_count ?? 0,
 		evidence_updated_count: m.evidence_updated_count ?? 0,
@@ -463,6 +472,88 @@ async function main() {
 			draft_refined_html_length_min: (() => {
 				const vals = perIntent
 					.map((p) => p.metrics.draft_refined_html_length_min)
+					.filter((v) => typeof v === 'number' && Number.isFinite(v));
+				return vals.length ? Math.min(...vals) : null;
+			})(),
+			// iter-76: scaffold-vs-rebuild source split rollups on refined-draft
+			// html length and count. iter-75's collapsed metric was named in its
+			// own learnings as deferring "split draft_refined_html_length by
+			// source (scaffold-refined vs rebuild-refined) to discriminate these
+			// two tails" — iter-76 closes that gap. Anchor: validate-latest.json
+			// from the iter-75 multi-session run shows refined html lengths of
+			// 1498c (rebuild) and 4222c (scaffold) collapsed into the same
+			// distribution, hiding the 2.8× tail divergence. Identity invariant
+			// at aggregate (per intent and across intents):
+			//   draft_refined_scaffold_count_sum + draft_refined_rebuild_count_sum
+			//     + draft_refined_unknown_count_sum === draft_refined_count_sum
+			// Distinct from iter-75's collapsed length probe (no source axis),
+			// iter-67/72's content-validation probes (tracks shape, not source),
+			// and iter-51/70's per-call latency probes (tracks time per source,
+			// not output size per source). Forward-deploy: rebuild_count_min
+			// flips from 0→1 when a future product win brings rebuild completion
+			// inside the default 12s window (e.g. via SWIPE_PROMPT trim), at
+			// which point rebuild_html_length_p50 becomes the discriminative
+			// surface for rebuild-output-quality regressions.
+			//
+			// Expected baselines under iter-74 healthy-auth 12s window:
+			//   scaffold_count_sum=5 _min=1, rebuild_count_sum=0 _min=0,
+			//   unknown_count_sum=0 _min=0; scaffold_html_length_p50≈4988c
+			//   matching iter-75's collapsed p50; rebuild_html_length_*=null
+			//   across the board (no completed rebuilds in 12s window).
+			// Expected baselines under multi-session 20s window: scaffold_count_
+			// sum=2 (both sessions), rebuild_count_sum=1 (one swipe-triggered
+			// rebuild), scaffold_html_length_min=1498c (iter-76 anchor — the
+			// session-2 stale-scaffold-overwrites-rebuild bug surfaces here),
+			// rebuild_html_length_p50=4222c.
+			draft_refined_scaffold_count_sum: sumMetric('draft_refined_scaffold_count'),
+			draft_refined_scaffold_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.draft_refined_scaffold_count ?? 0))
+				: 0,
+			draft_refined_rebuild_count_sum: sumMetric('draft_refined_rebuild_count'),
+			draft_refined_rebuild_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.draft_refined_rebuild_count ?? 0))
+				: 0,
+			draft_refined_unknown_count_sum: sumMetric('draft_refined_unknown_count'),
+			draft_refined_unknown_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.draft_refined_unknown_count ?? 0))
+				: 0,
+			draft_refined_scaffold_html_length_p50: percentile(
+				perIntent.map((p) => p.metrics.draft_refined_scaffold_html_length_p50),
+				50
+			),
+			draft_refined_scaffold_html_length_p90: percentile(
+				perIntent.map((p) => p.metrics.draft_refined_scaffold_html_length_p50),
+				90
+			),
+			draft_refined_scaffold_html_length_max: (() => {
+				const vals = perIntent
+					.map((p) => p.metrics.draft_refined_scaffold_html_length_max)
+					.filter((v) => typeof v === 'number' && Number.isFinite(v));
+				return vals.length ? Math.max(...vals) : null;
+			})(),
+			draft_refined_scaffold_html_length_min: (() => {
+				const vals = perIntent
+					.map((p) => p.metrics.draft_refined_scaffold_html_length_min)
+					.filter((v) => typeof v === 'number' && Number.isFinite(v));
+				return vals.length ? Math.min(...vals) : null;
+			})(),
+			draft_refined_rebuild_html_length_p50: percentile(
+				perIntent.map((p) => p.metrics.draft_refined_rebuild_html_length_p50),
+				50
+			),
+			draft_refined_rebuild_html_length_p90: percentile(
+				perIntent.map((p) => p.metrics.draft_refined_rebuild_html_length_p50),
+				90
+			),
+			draft_refined_rebuild_html_length_max: (() => {
+				const vals = perIntent
+					.map((p) => p.metrics.draft_refined_rebuild_html_length_max)
+					.filter((v) => typeof v === 'number' && Number.isFinite(v));
+				return vals.length ? Math.max(...vals) : null;
+			})(),
+			draft_refined_rebuild_html_length_min: (() => {
+				const vals = perIntent
+					.map((p) => p.metrics.draft_refined_rebuild_html_length_min)
 					.filter((v) => typeof v === 'number' && Number.isFinite(v));
 				return vals.length ? Math.min(...vals) : null;
 			})(),
