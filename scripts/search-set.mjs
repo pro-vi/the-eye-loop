@@ -214,6 +214,12 @@ function extractMetrics(artifact) {
 		// explicitly-named unclosed stream_2 counterpart backlog items.
 		stream_2_synthesis_axes_valid_confidence_count: m.stream_2_synthesis_axes_valid_confidence_count ?? 0,
 		stream_2_synthesis_scout_assignments_valid_scout_count: m.stream_2_synthesis_scout_assignments_valid_scout_count ?? 0,
+		// iter-94: stream_2 counterpart for iter-94's primary-bus synthesis
+		// palette-presence probe. Under iter-61 healthy-auth 5-intent 12s-window
+		// baseline (cold-start synthesis only, no palette): stream_2 _sum=0
+		// matching primary. A SHOULD-BE-ZERO cross-stream identity paired with
+		// the primary-bus counterpart.
+		stream_2_synthesis_palette_present_count: m.stream_2_synthesis_palette_present_count ?? 0,
 		swipe_decision_valid_count: m.swipe_decision_valid_count ?? 0,
 		swipe_latency_bucket_valid_count: m.swipe_latency_bucket_valid_count ?? 0,
 		synthesis_axes_count: m.synthesis_axes_count ?? 0,
@@ -222,6 +228,7 @@ function extractMetrics(artifact) {
 		synthesis_scout_assignments_count: m.synthesis_scout_assignments_count ?? 0,
 		synthesis_scout_assignments_min: m.synthesis_scout_assignments_min ?? 0,
 		synthesis_scout_assignments_valid_scout_count: m.synthesis_scout_assignments_valid_scout_count ?? 0,
+		synthesis_palette_present_count: m.synthesis_palette_present_count ?? 0,
 		evidence_array_valid_count: m.evidence_array_valid_count ?? 0,
 		anti_patterns_array_valid_count: m.anti_patterns_array_valid_count ?? 0,
 		evidence_length_min: m.evidence_length_min ?? 0,
@@ -1329,6 +1336,65 @@ async function main() {
 			synthesis_scout_assignments_valid_scout_count_min: perIntent.length
 				? Math.min(...perIntent.map((p) => p.metrics.synthesis_scout_assignments_valid_scout_count ?? 0))
 				: 0,
+			// iter-94: synthesis-updated.palette presence-validity rollup on the
+			// primary bus. TasteSynthesis.palette? (types.ts:85 iter-73) is an
+			// optional 6-field object (paletteSchema at oracle.ts:37-44 with bg,
+			// card, accent, text, muted, radius as strings). The emission topology
+			// creates a discriminative two-regime baseline keyed on WHICH synthesis
+			// path fires:
+			//
+			//   cold-start (oracle.ts:339-355, fires once per session at ~3-5s):
+			//     synthesis object is constructed manually WITHOUT a palette
+			//     property, so palette is undefined on the wire.
+			//   runSynthesis (oracle.ts:176, fires every 4 swipes post-swipe-4):
+			//     synthesisSchema.palette is required (oracle.ts:49), so the zod
+			//     Output.object layer enforces a full 6-string-field palette
+			//     object on every successful emit.
+			//
+			// Under iter-61 healthy-auth 5-intent 12s-window baseline (cold-start
+			// only, runSynthesis unreachable because REVEAL_THRESHOLD=15 evidence
+			// beyond the 1-swipe per-intent budget):
+			//   synthesis_palette_present_count_sum = 0
+			//   synthesis_palette_present_count_min = 0
+			// Under broken-auth baseline: both still 0 (no synthesis fires at all).
+			//
+			// A SHOULD-BE-ZERO invariant in the current regime — parallel to iter-93's
+			// facade_stale_count_sum=0 and builder_hint_count_sum=0 which also hold
+			// at zero under the current baseline and transition to positive under
+			// widened-window / multi-swipe regimes.
+			//
+			// Regression classes this catches that iter-72/83 primary probes cannot:
+			//   (a) cold-start accidentally starts emitting a palette object (someone
+			//       extends coldStartSchema with a palette field, or runColdStart's
+			//       manual synthesis construction adds a palette literal). The current
+			//       iter-72/83 probes cannot see this: axes_count stays at 30 and
+			//       axes_valid_confidence_count stays at 30 but palette_present_count
+			//       would flip 0→5 under this regression, a unique direct signal.
+			//   (b) palette emitted as wrong shape/type (string/array/partial). Typed
+			//       6-field check fails and count stays at 0 under forward-deploy
+			//       while synthesis_updated_count grows — the gap directly counts
+			//       malformed payloads.
+			//
+			// Forward-deploy regime transition: under widened VALIDATE_RUN_MS window
+			// (4+ swipes per intent land before window close) or a multi-swipe
+			// validator mode, runSynthesis emissions carry palette and count flips
+			// from 0 to match runSynthesis-emission-count per intent. The identity
+			// invariant shifts from 'palette_present == 0' to 'palette_present ==
+			// (synthesis_updated_count - cold_start_synthesis_count)'.
+			//
+			// Orthogonal to iter-72's length probes (axes_count, scout_assignments_
+			// count) and iter-83/85's within-element typed-union probes (axes[].
+			// confidence, scout_assignments[].scout) — those test payload dimensions
+			// that are populated in BOTH cold-start and runSynthesis paths, so they
+			// cannot discriminate between the two emission origins. palette_present
+			// is the FIRST field-level probe on synthesis-updated that distinguishes
+			// cold-start-emitted synthesis from runSynthesis-emitted synthesis — a
+			// cross-path discriminative signal that none of the previous 94 iterations'
+			// synthesis probes could provide.
+			synthesis_palette_present_count_sum: sumMetric('synthesis_palette_present_count'),
+			synthesis_palette_present_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.synthesis_palette_present_count ?? 0))
+				: 0,
 			// iter-88: stream_2 counterparts for iter-72's primary-bus synthesis
 			// axes + scout_assignments count rollups — closing the last unprobed
 			// synthesis cells on the /api/stream snapshot matrix. Mirror pattern
@@ -1561,6 +1627,22 @@ async function main() {
 			stream_2_synthesis_scout_assignments_valid_scout_count_sum: sumMetric('stream_2_synthesis_scout_assignments_valid_scout_count'),
 			stream_2_synthesis_scout_assignments_valid_scout_count_min: perIntent.length
 				? Math.min(...perIntent.map((p) => p.metrics.stream_2_synthesis_scout_assignments_valid_scout_count ?? 0))
+				: 0,
+			// iter-94: stream_2 counterpart rollup for iter-94's primary-bus
+			// synthesis_palette_present_count. Paired with the primary rollup
+			// above as a cross-stream identity — under any regime the stream_2
+			// replay snapshot of synthesis.palette should match the primary-bus
+			// emit's palette on every replayed synthesis event. Under iter-61
+			// healthy-auth 5-intent 12s-window baseline both hold at 0. A replay-
+			// block regression that emits synthesis-updated with palette dropped
+			// while primary retains it would drop stream_2_palette_present below
+			// primary_palette_present under forward-deploy runSynthesis regimes.
+			// Baseline-regime-invariant structure (identity 0==0 under current
+			// baseline, positive identity under forward-deploy) parallel to the
+			// iter-88/89/90/91 cross-stream synthesis/evidence rollups.
+			stream_2_synthesis_palette_present_count_sum: sumMetric('stream_2_synthesis_palette_present_count'),
+			stream_2_synthesis_palette_present_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.stream_2_synthesis_palette_present_count ?? 0))
 				: 0,
 			// iter-81: evidence-updated content-validation rollups — first
 			// content-probe aggregates on the evidence-updated event after 80

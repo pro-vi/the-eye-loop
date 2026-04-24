@@ -519,6 +519,26 @@ async function main() {
 		//   stream_2_synthesis_scout_assignments_valid_scout_count = 6/intent (sum=30/_min=6)
 		synthesis_axes_valid_confidence_count: 0,
 		synthesis_scout_assignments_valid_scout_count: 0,
+		// iter-94: synthesis-updated.palette presence-validity probe on stream_2
+		// replay. Extends iter-88's stream_2 synthesis content-probe matrix to
+		// the TasteSynthesis.palette? optional field (types.ts:85 iter-73; oracle
+		// paletteSchema at oracle.ts:37-44; zod-inferred object with 6 string fields
+		// bg/card/accent/text/muted/radius). Under iter-61 healthy-auth baseline the
+		// replay carries the cold-start synthesis (oracle.ts:339-355) which omits
+		// palette entirely, so per-intent identity is 0 (palette never present in
+		// cold-start emits). A SHOULD-BE-ZERO invariant analogous to iter-93's
+		// facade_stale_count/builder_hint_count probes, paired with a cross-stream
+		// identity with iter-94's primary synthesis_palette_present_count. Forward-
+		// deploy transition: when runSynthesis (oracle.ts:176) fires under a multi-
+		// swipe / widened-window regime, its synthesisSchema REQUIRES palette, so
+		// this count flips from 0 to match stream_2_synthesis_updated_count for
+		// post-4-swipe emissions. Regression classes: (a) cold-start starts
+		// emitting a malformed palette object (count flips 0→1 inappropriately);
+		// (b) runSynthesis replay drops palette while primary keeps it (stream_2
+		// palette_present drops below primary palette_present); (c) replay
+		// serializes palette as string/array instead of object (count drops to 0
+		// while primary holds positive under forward-deploy).
+		synthesis_palette_present_count: 0,
 		first_event_ms_after_open: null,
 		last_event_ms_after_open: null,
 		replay_span_ms: null,
@@ -826,6 +846,7 @@ async function main() {
 			for (const ev of stream2SynthesisEvents) {
 				const axes = ev.data?.synthesis?.axes;
 				const assignments = ev.data?.synthesis?.scout_assignments;
+				const palette = ev.data?.synthesis?.palette;
 				const axesLen = Array.isArray(axes) ? axes.length : 0;
 				const assignmentsLen = Array.isArray(assignments) ? assignments.length : 0;
 				stream2.synthesis_axes_count += axesLen;
@@ -846,6 +867,24 @@ async function main() {
 							stream2.synthesis_scout_assignments_valid_scout_count++;
 						}
 					}
+				}
+				// iter-94: palette presence-validity — typed shape check for the
+				// 6-field palette object (paletteSchema at oracle.ts:37-44). A full-
+				// shape check (not just typeof object) catches partial-palette
+				// regressions where one field is missing/non-string, which a minimal
+				// presence check would miss.
+				if (
+					palette &&
+					typeof palette === 'object' &&
+					!Array.isArray(palette) &&
+					typeof palette.bg === 'string' &&
+					typeof palette.card === 'string' &&
+					typeof palette.accent === 'string' &&
+					typeof palette.text === 'string' &&
+					typeof palette.muted === 'string' &&
+					typeof palette.radius === 'string'
+				) {
+					stream2.synthesis_palette_present_count++;
 				}
 			}
 			stream2.synthesis_axes_min =
@@ -1921,9 +1960,47 @@ async function main() {
 	// one source. Same hoist pattern as iter-90's VALID_EVIDENCE_*.
 	let synthesisAxesValidConfidenceCount = 0;
 	let synthesisScoutAssignmentsValidScoutCount = 0;
+	// iter-94: synthesis-updated.palette presence-validity on the primary bus.
+	// TasteSynthesis.palette? is optional (types.ts:85 iter-73); oracle
+	// paletteSchema defines 6 string fields (bg, card, accent, text, muted,
+	// radius) at oracle.ts:37-44 and synthesisSchema REQUIRES it. The emission
+	// topology creates a discriminative two-regime baseline:
+	//   cold-start path (oracle.ts:339-355, fires once per session at ~3-5s):
+	//     synthesis constructed WITHOUT palette — palette field absent from
+	//     the synthesis object entirely, so palette_present_count = 0.
+	//   runSynthesis path (oracle.ts:176, fires every 4 swipes post-swipe-4):
+	//     synthesis carries the required palette object, so palette_present_
+	//     count = runSynthesis-emission-count.
+	// Under iter-61 healthy-auth 12s-window baseline (cold-start only, no
+	// runSynthesis reachable): palette_present_count = 0 per intent.
+	// A SHOULD-BE-ZERO invariant in the current regime — parallel to iter-93's
+	// facade_stale_count and builder_hint_count probes which also hold at 0
+	// under the current baseline and flip positive under widened-window /
+	// multi-swipe regimes.
+	// Regression classes this catches that iter-72/83 primary probes cannot:
+	//   (a) cold-start accidentally starts including palette (e.g. someone
+	//       copy-pastes synthesisSchema's palette field into coldStartSchema
+	//       by mistake, or runColdStart's synthesis construction adds palette
+	//       property) — count flips 0 → 1 per intent, visible at aggregate
+	//       _sum > 0 under current baseline.
+	//   (b) runSynthesis drops palette from emission despite schema requirement
+	//       (e.g. a JSON transformation stripping the field, a payload builder
+	//       omitting it) — under forward-deploy multi-swipe regime, count stays
+	//       at cold-start-only baseline (0) while synthesis_updated_count grows
+	//       past 1, breaking the identity palette_present_count == (synthesis_
+	//       updated_count - cold_start_count) under widened window.
+	//   (c) palette serialized as string/array/null instead of object — typed
+	//       shape check fails, count drops below the expected identity.
+	// Uses full 6-field typed shape check (not just typeof object) to catch
+	// partial-palette regressions where one color field is missing/non-string,
+	// which iter-54-style simple presence check would miss. Same rigor as
+	// iter-67/80/82/83 typed-union probes where each field is independently
+	// validated.
+	let synthesisPalettePresentCount = 0;
 	for (const ev of synthesisEvents) {
 		const axes = ev.data?.synthesis?.axes;
 		const assignments = ev.data?.synthesis?.scout_assignments;
+		const palette = ev.data?.synthesis?.palette;
 		const axesLen = Array.isArray(axes) ? axes.length : 0;
 		const assignmentsLen = Array.isArray(assignments) ? assignments.length : 0;
 		synthesisAxesCount += axesLen;
@@ -1941,6 +2018,19 @@ async function main() {
 					synthesisScoutAssignmentsValidScoutCount++;
 				}
 			}
+		}
+		if (
+			palette &&
+			typeof palette === 'object' &&
+			!Array.isArray(palette) &&
+			typeof palette.bg === 'string' &&
+			typeof palette.card === 'string' &&
+			typeof palette.accent === 'string' &&
+			typeof palette.text === 'string' &&
+			typeof palette.muted === 'string' &&
+			typeof palette.radius === 'string'
+		) {
+			synthesisPalettePresentCount++;
 		}
 	}
 	if (synthesisAxesMin === Infinity) synthesisAxesMin = 0;
@@ -2275,6 +2365,7 @@ async function main() {
 			// iter-85's synth_assigns_scout_valid primary values.
 			stream_2_synthesis_axes_valid_confidence_count: stream2.synthesis_axes_valid_confidence_count,
 			stream_2_synthesis_scout_assignments_valid_scout_count: stream2.synthesis_scout_assignments_valid_scout_count,
+			stream_2_synthesis_palette_present_count: stream2.synthesis_palette_present_count,
 			stream_2_first_event_ms_after_open: stream2.first_event_ms_after_open,
 			stream_2_replay_span_ms: stream2.replay_span_ms,
 			stage_changed_event_count: stageChangedEventCount,
@@ -2295,6 +2386,7 @@ async function main() {
 			synthesis_scout_assignments_count: synthesisScoutAssignmentsCount,
 			synthesis_scout_assignments_min: synthesisScoutAssignmentsMin,
 			synthesis_scout_assignments_valid_scout_count: synthesisScoutAssignmentsValidScoutCount,
+			synthesis_palette_present_count: synthesisPalettePresentCount,
 			evidence_array_valid_count: evidenceArrayValidCount,
 			anti_patterns_array_valid_count: antiPatternsArrayValidCount,
 			evidence_length_min: evidenceLengthMin,
@@ -2353,7 +2445,7 @@ async function main() {
 		`agent_status_valid=${agentStatusValidCount} agent_status_role_valid=${agentStatusRoleValidCount} stage_swipe_valid=${stageChangedSwipeCountValidCount} ` +
 		`facade_fmt_valid=${facadeFormatValidCount} ` +
 		`swipe_dec_valid=${swipeDecisionValidCount} swipe_bkt_valid=${swipeLatencyBucketValidCount} ` +
-		`synth_axes=${synthesisAxesCount}/min=${synthesisAxesMin} synth_axes_conf_valid=${synthesisAxesValidConfidenceCount} synth_assigns=${synthesisScoutAssignmentsCount}/min=${synthesisScoutAssignmentsMin} synth_assigns_scout_valid=${synthesisScoutAssignmentsValidScoutCount} ` +
+		`synth_axes=${synthesisAxesCount}/min=${synthesisAxesMin} synth_axes_conf_valid=${synthesisAxesValidConfidenceCount} synth_assigns=${synthesisScoutAssignmentsCount}/min=${synthesisScoutAssignmentsMin} synth_assigns_scout_valid=${synthesisScoutAssignmentsValidScoutCount} synth_palette=${synthesisPalettePresentCount} ` +
 		`evid_arr_valid=${evidenceArrayValidCount} anti_arr_valid=${antiPatternsArrayValidCount} evid_len_min/max=${evidenceLengthMin}/${evidenceLengthMax} ` +
 		`evid_items_dec_valid=${evidenceItemsValidDecisionCount} evid_items_fmt_valid=${evidenceItemsValidFormatCount} evid_items_lat_valid=${evidenceItemsValidLatencySignalCount} ` +
 		`s2_err=${stream2.error_event_count} s2_agents=${stream2.agent_status_count} s2_stage=${stream2.stage_changed_count} s2_diag=${stream2.diagnostic_preserved_count} s2_err_auth=${stream2.error_provider_auth_count} ` +
@@ -2363,7 +2455,7 @@ async function main() {
 		`s2_drafts=${stream2.draft_updated_count} s2_drafts_p/r=${stream2.draft_placeholder_count}/${stream2.draft_refined_count} ` +
 		`s2_facades=${stream2.facade_ready_count} s2_synth=${stream2.synthesis_updated_count} s2_evidence=${stream2.evidence_updated_count} ` +
 		`s2_facade_fmt_valid=${stream2.facade_format_valid_count} ` +
-		`s2_synth_axes=${stream2.synthesis_axes_count}/min=${stream2.synthesis_axes_min} s2_synth_axes_conf_valid=${stream2.synthesis_axes_valid_confidence_count} s2_synth_assigns=${stream2.synthesis_scout_assignments_count}/min=${stream2.synthesis_scout_assignments_min} s2_synth_assigns_scout_valid=${stream2.synthesis_scout_assignments_valid_scout_count} ` +
+		`s2_synth_axes=${stream2.synthesis_axes_count}/min=${stream2.synthesis_axes_min} s2_synth_axes_conf_valid=${stream2.synthesis_axes_valid_confidence_count} s2_synth_assigns=${stream2.synthesis_scout_assignments_count}/min=${stream2.synthesis_scout_assignments_min} s2_synth_assigns_scout_valid=${stream2.synthesis_scout_assignments_valid_scout_count} s2_synth_palette=${stream2.synthesis_palette_present_count} ` +
 		`s2_evid_arr_valid=${stream2.evidence_array_valid_count} s2_anti_arr_valid=${stream2.anti_patterns_array_valid_count} s2_evid_len_min/max=${stream2.evidence_length_min}/${stream2.evidence_length_max} ` +
 		`s2_evid_items_dec_valid=${stream2.evidence_items_valid_decision_count} s2_evid_items_fmt_valid=${stream2.evidence_items_valid_format_count} s2_evid_items_lat_valid=${stream2.evidence_items_valid_latency_signal_count} ` +
 		`s2_first=${stream2.first_event_ms_after_open}ms s2_span=${stream2.replay_span_ms}ms ` +
