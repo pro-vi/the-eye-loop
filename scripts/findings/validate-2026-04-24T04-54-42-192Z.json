@@ -1,0 +1,1271 @@
+{
+  "started_at": "2026-04-24T04:54:27.707Z",
+  "finished_at": "2026-04-24T04:54:42.192Z",
+  "elapsed_ms": 14485,
+  "result": "PASS",
+  "reason": "facade_and_draft_observed",
+  "intent": "ai workspace",
+  "dev_url": "http://localhost:36605",
+  "session": {
+    "rtt_ms": 9,
+    "status": 200,
+    "body": {
+      "intent": "ai workspace",
+      "sessionId": "5ca147bb-2688-46c1-b8f3-0acd15a2bc12"
+    },
+    "error": null
+  },
+  "session_2": {
+    "attempted": false,
+    "intent": null,
+    "rtt_ms": null,
+    "status": null,
+    "body": null,
+    "error": null,
+    "posted_at_ms": null,
+    "waited_ms": null
+  },
+  "stream": {
+    "opened_at_ms": 864,
+    "error": null,
+    "event_counts": {
+      "agent-status": 21,
+      "stage-changed": 1,
+      "draft-updated": 2,
+      "session-ready": 1,
+      "facade-ready": 7,
+      "swipe-result": 1,
+      "evidence-updated": 1,
+      "synthesis-updated": 1
+    },
+    "first_event_ms": {
+      "agent-status": 869,
+      "stage-changed": 869,
+      "draft-updated": 1382,
+      "session-ready": 1382,
+      "facade-ready": 3679,
+      "swipe-result": 3815,
+      "evidence-updated": 3815,
+      "synthesis-updated": 4675
+    },
+    "events": [
+      {
+        "ts_ms": 869,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "oracle",
+            "name": "Oracle",
+            "role": "oracle",
+            "status": "idle",
+            "focus": "monitoring"
+          }
+        }
+      },
+      {
+        "ts_ms": 869,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "idle",
+            "focus": "waiting for session"
+          }
+        }
+      },
+      {
+        "ts_ms": 869,
+        "type": "stage-changed",
+        "data": {
+          "type": "stage-changed",
+          "stage": "words",
+          "swipeCount": 0
+        }
+      },
+      {
+        "ts_ms": 1382,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "thinking",
+            "focus": "generating initial scaffold"
+          }
+        }
+      },
+      {
+        "ts_ms": 1382,
+        "type": "draft-updated",
+        "data": {
+          "type": "draft-updated",
+          "draft": {
+            "title": "ai workspace",
+            "summary": "Drafting your prototype from the swipes…",
+            "html": "<div style=\"padding:2rem;text-align:center;color:var(--muted,#8a7f78);opacity:0.75\"><h2 style=\"margin:0 0 1rem;font-weight:400\">ai workspace</h2><p style=\"margin:0\">Building your first draft…</p></div>",
+            "acceptedPatterns": [],
+            "rejectedPatterns": []
+          }
+        }
+      },
+      {
+        "ts_ms": 1382,
+        "type": "session-ready",
+        "data": {
+          "type": "session-ready",
+          "intent": "ai workspace"
+        }
+      },
+      {
+        "ts_ms": 1382,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "oracle",
+            "name": "Oracle",
+            "role": "oracle",
+            "status": "thinking",
+            "focus": "cold-start analysis"
+          }
+        }
+      },
+      {
+        "ts_ms": 1382,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-01",
+            "name": "Iris",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1382,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-02",
+            "name": "Prism",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1382,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-03",
+            "name": "Lumen",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1382,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-04",
+            "name": "Aura",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1382,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-05",
+            "name": "Facet",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1382,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-06",
+            "name": "Echo",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 3679,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "3fb8d206-3047-447f-8f34-530fbeb564d2",
+            "agentId": "scout-01",
+            "hypothesis": "Users building AI workspaces prefer dark color schemes for reduced eye strain and modern aesthetic",
+            "axisTargeted": "Light vs Dark",
+            "label": "Dark mode interface",
+            "content": "Dark mode interface",
+            "format": "word",
+            "acceptImplies": "Explore darker palettes, high contrast text, glow effects for accent elements",
+            "rejectImplies": "Explore bright/light backgrounds, softer contrast, natural daylight-inspired color schemes"
+          }
+        }
+      },
+      {
+        "ts_ms": 3679,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-01",
+            "name": "Iris",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Dark mode interface\"",
+            "lastFacadeId": "3fb8d206-3047-447f-8f34-530fbeb564d2"
+          }
+        }
+      },
+      {
+        "ts_ms": 3815,
+        "type": "swipe-result",
+        "data": {
+          "type": "swipe-result",
+          "record": {
+            "facadeId": "3fb8d206-3047-447f-8f34-530fbeb564d2",
+            "agentId": "scout-01",
+            "decision": "accept",
+            "latencyMs": 600,
+            "latencyBucket": "slow"
+          }
+        }
+      },
+      {
+        "ts_ms": 3815,
+        "type": "evidence-updated",
+        "data": {
+          "type": "evidence-updated",
+          "evidence": [
+            {
+              "facadeId": "3fb8d206-3047-447f-8f34-530fbeb564d2",
+              "content": "Dark mode interface",
+              "hypothesis": "Users building AI workspaces prefer dark color schemes for reduced eye strain and modern aesthetic",
+              "decision": "accept",
+              "latencySignal": "slow",
+              "format": "word",
+              "implication": "Explore darker palettes, high contrast text, glow effects for accent elements"
+            }
+          ],
+          "antiPatterns": []
+        }
+      },
+      {
+        "ts_ms": 3815,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-01",
+            "name": "Iris",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe",
+            "lastFacadeId": "3fb8d206-3047-447f-8f34-530fbeb564d2"
+          }
+        }
+      },
+      {
+        "ts_ms": 4160,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "bb665f52-71f3-45ab-b9c4-30c4005e1383",
+            "agentId": "scout-02",
+            "hypothesis": "Users prefer a persistent left navigation paired with a central canvas of draggable, stacked cards over a tabbed or full-width list approach",
+            "axisTargeted": "Navigation anchoring (sidebar vs tabs) + content density (cards vs lists)",
+            "label": "Sidebar with floating cards",
+            "content": "Sidebar with floating cards",
+            "format": "word",
+            "acceptImplies": "Explore variants: collapsible sidebar, card grouping, drag-and-drop workflows",
+            "rejectImplies": "Test tab-based navigation or a single unified list layout next"
+          }
+        }
+      },
+      {
+        "ts_ms": 4160,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-02",
+            "name": "Prism",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Sidebar with floating cards\"",
+            "lastFacadeId": "bb665f52-71f3-45ab-b9c4-30c4005e1383"
+          }
+        }
+      },
+      {
+        "ts_ms": 4675,
+        "type": "synthesis-updated",
+        "data": {
+          "type": "synthesis-updated",
+          "synthesis": {
+            "axes": [
+              {
+                "label": "Whether user prefers minimal/clean aesthetic vs rich/detailed visual design for their workspace",
+                "poleA": "Minimal or detailed",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user wants tools always visible vs hidden/revealed on demand in their interface layout",
+                "poleA": "Always visible tools",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user responds to encouraging/motivational tone vs neutral/professional communication style",
+                "poleA": "Encouraging tone",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user wants a calm/focused atmosphere vs energetic/stimulating workspace mood",
+                "poleA": "Calm focus",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user prefers data-heavy dashboards vs simple, task-focused information display",
+                "poleA": "Show all data",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user likes smooth/animated transitions vs instant/snappy interface responses",
+                "poleA": "Smooth animations",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              }
+            ],
+            "edge_case_flags": [],
+            "scout_assignments": [
+              {
+                "scout": "Iris",
+                "probe_axis": "Whether user prefers minimal/clean aesthetic vs rich/detailed visual design for their workspace",
+                "reason": "Cold start: first question for Iris"
+              },
+              {
+                "scout": "Prism",
+                "probe_axis": "Whether user wants tools always visible vs hidden/revealed on demand in their interface layout",
+                "reason": "Cold start: first question for Prism"
+              },
+              {
+                "scout": "Lumen",
+                "probe_axis": "Whether user responds to encouraging/motivational tone vs neutral/professional communication style",
+                "reason": "Cold start: first question for Lumen"
+              },
+              {
+                "scout": "Aura",
+                "probe_axis": "Whether user wants a calm/focused atmosphere vs energetic/stimulating workspace mood",
+                "reason": "Cold start: first question for Aura"
+              },
+              {
+                "scout": "Facet",
+                "probe_axis": "Whether user prefers data-heavy dashboards vs simple, task-focused information display",
+                "reason": "Cold start: first question for Facet"
+              },
+              {
+                "scout": "Echo",
+                "probe_axis": "Whether user likes smooth/animated transitions vs instant/snappy interface responses",
+                "reason": "Cold start: first question for Echo"
+              }
+            ],
+            "persona_anima_divergence": null
+          }
+        }
+      },
+      {
+        "ts_ms": 4675,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "oracle",
+            "name": "Oracle",
+            "role": "oracle",
+            "status": "idle",
+            "focus": "monitoring"
+          }
+        }
+      },
+      {
+        "ts_ms": 4711,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "ef156962-85c0-425f-b8ae-883dbfce3292",
+            "agentId": "scout-05",
+            "hypothesis": "Users want key metrics visible at a glance rather than buried in detailed reports",
+            "axisTargeted": "Dense data vs key metrics",
+            "label": "Dashboard numbers",
+            "content": "Dashboard numbers",
+            "format": "word",
+            "acceptImplies": "Prioritize scannable KPIs, gauges, and summary stats over comprehensive tables and narratives",
+            "rejectImplies": "Users need full context and detail—lean into longer-form explanations and complete datasets"
+          }
+        }
+      },
+      {
+        "ts_ms": 4711,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-05",
+            "name": "Facet",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Dashboard numbers\"",
+            "lastFacadeId": "ef156962-85c0-425f-b8ae-883dbfce3292"
+          }
+        }
+      },
+      {
+        "ts_ms": 7270,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "0550a442-4104-4a1f-95e4-ec61db070863",
+            "agentId": "scout-01",
+            "hypothesis": "AI workspace users prefer soft elevation and spatial separation of interface elements to reduce cognitive load and create visual hierarchy",
+            "axisTargeted": "Depth and layering (light vs heavy visual weight)",
+            "label": "Floating cards",
+            "content": "Floating cards",
+            "format": "word",
+            "acceptImplies": "Explore subtle shadow systems, floating panels, generous negative space, and layered card-based layouts with soft depth cues",
+            "rejectImplies": "Users may prefer flat, unified surfaces without elevation effects; consider inline content organization and reduced shadow/3D effects"
+          }
+        }
+      },
+      {
+        "ts_ms": 7270,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-01",
+            "name": "Iris",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Floating cards\"",
+            "lastFacadeId": "0550a442-4104-4a1f-95e4-ec61db070863"
+          }
+        }
+      },
+      {
+        "ts_ms": 8893,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "5b08bf7f-e84b-4c0e-8e3a-02aec3809d41",
+            "agentId": "scout-06",
+            "hypothesis": "Users building an AI workspace prefer fluid, continuous motion over snappy, instant state changes when manipulating interface elements.",
+            "axisTargeted": "Fluid vs Snappy",
+            "label": "Smooth drag interactions",
+            "content": "Smooth drag interactions",
+            "format": "word",
+            "acceptImplies": "Prioritize easing curves, momentum scrolling, and gesture-based transitions; design for continuous feedback rather than discrete clicks.",
+            "rejectImplies": "Favor instant feedback, crisp state changes, and minimal transition overhead; optimize for predictability and quick visual confirmation over motion."
+          }
+        }
+      },
+      {
+        "ts_ms": 8893,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-06",
+            "name": "Echo",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Smooth drag interactions\"",
+            "lastFacadeId": "5b08bf7f-e84b-4c0e-8e3a-02aec3809d41"
+          }
+        }
+      },
+      {
+        "ts_ms": 9210,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "8a671a00-25a2-40a6-95d5-e7323c01658a",
+            "agentId": "scout-04",
+            "hypothesis": "The user may prefer interfaces with subtle depth and layering over flat, harsh contrast",
+            "axisTargeted": "warm vs cool (and implicitly: organic vs digital)",
+            "label": "Soft shadows",
+            "content": "Soft shadows",
+            "format": "word",
+            "acceptImplies": "User leans toward ambient, diffused visual language—possibly calming, possibly depth-rich. Signals comfort with gentle visual hierarchy.",
+            "rejectImplies": "User may prefer clarity through contrast, boldness, or flatness. Possibly energetic or minimalist taste. Signals skepticism of subtle effects."
+          }
+        }
+      },
+      {
+        "ts_ms": 9210,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-04",
+            "name": "Aura",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Soft shadows\"",
+            "lastFacadeId": "8a671a00-25a2-40a6-95d5-e7323c01658a"
+          }
+        }
+      },
+      {
+        "ts_ms": 10585,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "009aaeff-b6e1-48b7-8a58-f01ac92f4728",
+            "agentId": "scout-03",
+            "hypothesis": "Users building AI workspaces prefer conversational, personality-driven interfaces over sterile technical tones",
+            "axisTargeted": "friendly vs professional",
+            "label": "Chatty assistant voice",
+            "content": "Chatty assistant voice",
+            "format": "word",
+            "acceptImplies": "Design should emphasize warm, human-like communication; use contractions, casual language, character-driven copy",
+            "rejectImplies": "Design should lean toward clear, direct, no-nonsense language; minimize personality in favor of functional clarity"
+          }
+        }
+      },
+      {
+        "ts_ms": 10585,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-03",
+            "name": "Lumen",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Chatty assistant voice\"",
+            "lastFacadeId": "009aaeff-b6e1-48b7-8a58-f01ac92f4728"
+          }
+        }
+      },
+      {
+        "ts_ms": 11492,
+        "type": "draft-updated",
+        "data": {
+          "type": "draft-updated",
+          "draft": {
+            "title": "AI Workspace Hub",
+            "summary": "A focused workspace interface for managing AI tasks, projects, and collaborative workflows. Clean, minimal design with warm neutrals and intuitive navigation.",
+            "html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>AI Workspace</title>\n  <style>\n    :root {\n      --bg: #FFF8F0;\n      --card: #FFF;\n      --accent: #FF8C69;\n      --text: #4A3E38;\n      --muted: #A1887F;\n      --radius: 16px;\n      --space: 20px;\n    }\n    * {\n      margin: 0;\n      padding: 0;\n      box-sizing: border-box;\n    }\n    body {\n      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;\n      background: var(--bg);\n      color: var(--text);\n      font-size: 16px;\n      line-height: 1.5;\n    }\n    .container {\n      width: 100%;\n      max-width: 375px;\n      margin: 0 auto;\n      padding: var(--space);\n      min-height: 100vh;\n      display: flex;\n      flex-direction: column;\n      gap: var(--space);\n    }\n    .header {\n      display: flex;\n      justify-content: space-between;\n      align-items: center;\n      padding-bottom: var(--space);\n      border-bottom: 1px solid rgba(74, 62, 56, 0.1);\n    }\n    .header h1 {\n      font-size: 28px;\n      font-weight: 600;\n    }\n    .header-action {\n      width: 40px;\n      height: 40px;\n      border-radius: 50%;\n      background: var(--card);\n      border: 1px solid rgba(74, 62, 56, 0.15);\n      display: flex;\n      align-items: center;\n      justify-content: center;\n      font-size: 14px;\n      cursor: pointer;\n      color: var(--muted);\n    }\n    .section {\n      display: flex;\n      flex-direction: column;\n      gap: 12px;\n    }\n    .section-title {\n      font-size: 14px;\n      font-weight: 600;\n      text-transform: uppercase;\n      letter-spacing: 0.5px;\n      color: var(--muted);\n    }\n    .card {\n      background: var(--card);\n      border-radius: var(--radius);\n      padding: var(--space);\n      border: 1px solid rgba(74, 62, 56, 0.08);\n      display: flex;\n      flex-direction: column;\n      gap: 8px;\n    }\n    .card-title {\n      font-size: 16px;\n      font-weight: 600;\n      color: var(--text);\n    }\n    .card-desc {\n      font-size: 14px;\n      color: var(--muted);\n    }\n    .card-meta {\n      display: flex;\n      gap: 8px;\n      margin-top: 4px;\n    }\n    .tag {\n      font-size: 12px;\n      padding: 4px 10px;\n      background: rgba(255, 140, 105, 0.1);\n      color: var(--accent);\n      border-radius: 8px;\n      width: fit-content;\n    }\n    .quick-actions {\n      display: grid;\n      grid-template-columns: 1fr 1fr;\n      gap: 12px;\n    }\n    .action-btn {\n      background: var(--card);\n      border: 1px solid rgba(74, 62, 56, 0.12);\n      border-radius: var(--radius);\n      padding: 16px;\n      text-align: center;\n      font-size: 14px;\n      font-weight: 500;\n      color: var(--text);\n      cursor: pointer;\n      transition: all 0.2s;\n    }\n    .action-btn:hover {\n      background: rgba(255, 140, 105, 0.05);\n      border-color: var(--accent);\n    }\n    .primary-btn {\n      background: var(--accent);\n      color: #FFF;\n      border: none;\n      padding: 14px 20px;\n      border-radius: var(--radius);\n      font-size: 16px;\n      font-weight: 600;\n      cursor: pointer;\n      width: 100%;\n      margin-top: 8px;\n    }\n    .primary-btn:hover {\n      opacity: 0.9;\n    }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <div class=\"header\">\n      <h1>Workspace</h1>\n      <div class=\"header-action\">⚙</div>\n    </div>\n\n    <div class=\"section\">\n      <div class=\"section-title\">Active Projects</div>\n      <div class=\"card\">\n        <div class=\"card-title\">Content Strategy Q1</div>\n        <div class=\"card-desc\">Outline and research phase</div>\n        <div class=\"card-meta\">\n          <span class=\"tag\">In Progress</span>\n          <span class=\"tag\">3 days left</span>\n        </div>\n      </div>\n      <div class=\"card\">\n        <div class=\"card-title\">API Documentation</div>\n        <div class=\"card-desc\">Writing and review</div>\n        <div class=\"card-meta\">\n          <span class=\"tag\">Blocked</span>\n          <span class=\"tag\">Waiting</span>\n        </div>\n      </div>\n    </div>\n\n    <div class=\"section\">\n      <div class=\"section-title\">Quick Actions</div>\n      <div class=\"quick-actions\">\n        <div class=\"action-btn\">New Task</div>\n        <div class=\"action-btn\">New Project</div>\n        <div class=\"action-btn\">Templates</div>\n        <div class=\"action-btn\">Collaborate</div>\n      </div>\n    </div>\n\n    <div class=\"section\">\n      <div class=\"section-title\">Upcoming</div>\n      <div class=\"card\">\n        <div class=\"card-title\">Team Sync</div>\n        <div class=\"card-desc\">Tomorrow at 2:00 PM</div>\n      </div>\n      <button class=\"primary-btn\">Start New Workspace</button>\n    </div>\n  </div>\n</body>\n</html>",
+            "acceptedPatterns": [],
+            "rejectedPatterns": []
+          }
+        }
+      },
+      {
+        "ts_ms": 11492,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "idle",
+            "focus": "watching for swipes"
+          }
+        }
+      },
+      {
+        "ts_ms": 11492,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "thinking",
+            "focus": "analyzing accept on \"Dark mode interface\""
+          }
+        }
+      }
+    ]
+  },
+  "stream_2": {
+    "attempted": true,
+    "opened_at_ms": 13378,
+    "elapsed_ms": 805,
+    "event_counts": {
+      "synthesis-updated": 1,
+      "draft-updated": 1,
+      "evidence-updated": 1,
+      "agent-status": 8,
+      "facade-ready": 6,
+      "stage-changed": 1
+    },
+    "error_event_count": 0,
+    "agent_status_count": 8,
+    "stage_changed_count": 1,
+    "draft_updated_count": 1,
+    "draft_placeholder_count": 0,
+    "draft_refined_count": 1,
+    "facade_ready_count": 6,
+    "synthesis_updated_count": 1,
+    "evidence_updated_count": 1,
+    "diagnostic_preserved_count": 0,
+    "error_provider_auth_count": 0,
+    "agent_status_scout_count": 6,
+    "agent_status_oracle_count": 1,
+    "agent_status_builder_count": 1,
+    "stage_valid_count": 1,
+    "error_source_valid_count": 0,
+    "error_code_valid_count": 0,
+    "error_message_present_count": 0,
+    "agent_status_valid_count": 8,
+    "agent_status_role_valid_count": 8,
+    "stage_changed_swipe_count_valid_count": 1,
+    "facade_format_valid_count": 6,
+    "facade_id_present_count": 6,
+    "facade_agent_id_present_count": 6,
+    "facade_hypothesis_present_count": 6,
+    "facade_label_present_count": 6,
+    "facade_content_present_count": 6,
+    "synthesis_axes_count": 6,
+    "synthesis_axes_min": 6,
+    "synthesis_scout_assignments_count": 6,
+    "synthesis_scout_assignments_min": 6,
+    "evidence_array_valid_count": 1,
+    "anti_patterns_array_valid_count": 1,
+    "evidence_length_min": 1,
+    "evidence_length_max": 1,
+    "evidence_items_valid_decision_count": 1,
+    "evidence_items_valid_format_count": 1,
+    "evidence_items_valid_latency_signal_count": 1,
+    "synthesis_axes_valid_confidence_count": 6,
+    "synthesis_scout_assignments_valid_scout_count": 6,
+    "synthesis_palette_present_count": 0,
+    "draft_next_hint_present_count": 0,
+    "draft_accepted_patterns_present_count": 0,
+    "draft_rejected_patterns_present_count": 0,
+    "draft_title_present_count": 1,
+    "draft_summary_present_count": 1,
+    "draft_html_present_count": 1,
+    "first_event_ms_after_open": 2,
+    "last_event_ms_after_open": 2,
+    "replay_span_ms": 0,
+    "events": [
+      {
+        "ts_ms": 13380,
+        "type": "synthesis-updated",
+        "data": {
+          "type": "synthesis-updated",
+          "synthesis": {
+            "axes": [
+              {
+                "label": "Whether user prefers minimal/clean aesthetic vs rich/detailed visual design for their workspace",
+                "poleA": "Minimal or detailed",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user wants tools always visible vs hidden/revealed on demand in their interface layout",
+                "poleA": "Always visible tools",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user responds to encouraging/motivational tone vs neutral/professional communication style",
+                "poleA": "Encouraging tone",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user wants a calm/focused atmosphere vs energetic/stimulating workspace mood",
+                "poleA": "Calm focus",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user prefers data-heavy dashboards vs simple, task-focused information display",
+                "poleA": "Show all data",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user likes smooth/animated transitions vs instant/snappy interface responses",
+                "poleA": "Smooth animations",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              }
+            ],
+            "edge_case_flags": [],
+            "scout_assignments": [
+              {
+                "scout": "Iris",
+                "probe_axis": "Whether user prefers minimal/clean aesthetic vs rich/detailed visual design for their workspace",
+                "reason": "Cold start: first question for Iris"
+              },
+              {
+                "scout": "Prism",
+                "probe_axis": "Whether user wants tools always visible vs hidden/revealed on demand in their interface layout",
+                "reason": "Cold start: first question for Prism"
+              },
+              {
+                "scout": "Lumen",
+                "probe_axis": "Whether user responds to encouraging/motivational tone vs neutral/professional communication style",
+                "reason": "Cold start: first question for Lumen"
+              },
+              {
+                "scout": "Aura",
+                "probe_axis": "Whether user wants a calm/focused atmosphere vs energetic/stimulating workspace mood",
+                "reason": "Cold start: first question for Aura"
+              },
+              {
+                "scout": "Facet",
+                "probe_axis": "Whether user prefers data-heavy dashboards vs simple, task-focused information display",
+                "reason": "Cold start: first question for Facet"
+              },
+              {
+                "scout": "Echo",
+                "probe_axis": "Whether user likes smooth/animated transitions vs instant/snappy interface responses",
+                "reason": "Cold start: first question for Echo"
+              }
+            ],
+            "persona_anima_divergence": null
+          }
+        }
+      },
+      {
+        "ts_ms": 13380,
+        "type": "draft-updated",
+        "data": {
+          "type": "draft-updated",
+          "draft": {
+            "title": "AI Workspace Hub",
+            "summary": "A focused workspace interface for managing AI tasks, projects, and collaborative workflows. Clean, minimal design with warm neutrals and intuitive navigation.",
+            "html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>AI Workspace</title>\n  <style>\n    :root {\n      --bg: #FFF8F0;\n      --card: #FFF;\n      --accent: #FF8C69;\n      --text: #4A3E38;\n      --muted: #A1887F;\n      --radius: 16px;\n      --space: 20px;\n    }\n    * {\n      margin: 0;\n      padding: 0;\n      box-sizing: border-box;\n    }\n    body {\n      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;\n      background: var(--bg);\n      color: var(--text);\n      font-size: 16px;\n      line-height: 1.5;\n    }\n    .container {\n      width: 100%;\n      max-width: 375px;\n      margin: 0 auto;\n      padding: var(--space);\n      min-height: 100vh;\n      display: flex;\n      flex-direction: column;\n      gap: var(--space);\n    }\n    .header {\n      display: flex;\n      justify-content: space-between;\n      align-items: center;\n      padding-bottom: var(--space);\n      border-bottom: 1px solid rgba(74, 62, 56, 0.1);\n    }\n    .header h1 {\n      font-size: 28px;\n      font-weight: 600;\n    }\n    .header-action {\n      width: 40px;\n      height: 40px;\n      border-radius: 50%;\n      background: var(--card);\n      border: 1px solid rgba(74, 62, 56, 0.15);\n      display: flex;\n      align-items: center;\n      justify-content: center;\n      font-size: 14px;\n      cursor: pointer;\n      color: var(--muted);\n    }\n    .section {\n      display: flex;\n      flex-direction: column;\n      gap: 12px;\n    }\n    .section-title {\n      font-size: 14px;\n      font-weight: 600;\n      text-transform: uppercase;\n      letter-spacing: 0.5px;\n      color: var(--muted);\n    }\n    .card {\n      background: var(--card);\n      border-radius: var(--radius);\n      padding: var(--space);\n      border: 1px solid rgba(74, 62, 56, 0.08);\n      display: flex;\n      flex-direction: column;\n      gap: 8px;\n    }\n    .card-title {\n      font-size: 16px;\n      font-weight: 600;\n      color: var(--text);\n    }\n    .card-desc {\n      font-size: 14px;\n      color: var(--muted);\n    }\n    .card-meta {\n      display: flex;\n      gap: 8px;\n      margin-top: 4px;\n    }\n    .tag {\n      font-size: 12px;\n      padding: 4px 10px;\n      background: rgba(255, 140, 105, 0.1);\n      color: var(--accent);\n      border-radius: 8px;\n      width: fit-content;\n    }\n    .quick-actions {\n      display: grid;\n      grid-template-columns: 1fr 1fr;\n      gap: 12px;\n    }\n    .action-btn {\n      background: var(--card);\n      border: 1px solid rgba(74, 62, 56, 0.12);\n      border-radius: var(--radius);\n      padding: 16px;\n      text-align: center;\n      font-size: 14px;\n      font-weight: 500;\n      color: var(--text);\n      cursor: pointer;\n      transition: all 0.2s;\n    }\n    .action-btn:hover {\n      background: rgba(255, 140, 105, 0.05);\n      border-color: var(--accent);\n    }\n    .primary-btn {\n      background: var(--accent);\n      color: #FFF;\n      border: none;\n      padding: 14px 20px;\n      border-radius: var(--radius);\n      font-size: 16px;\n      font-weight: 600;\n      cursor: pointer;\n      width: 100%;\n      margin-top: 8px;\n    }\n    .primary-btn:hover {\n      opacity: 0.9;\n    }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <div class=\"header\">\n      <h1>Workspace</h1>\n      <div class=\"header-action\">⚙</div>\n    </div>\n\n    <div class=\"section\">\n      <div class=\"section-title\">Active Projects</div>\n      <div class=\"card\">\n        <div class=\"card-title\">Content Strategy Q1</div>\n        <div class=\"card-desc\">Outline and research phase</div>\n        <div class=\"card-meta\">\n          <span class=\"tag\">In Progress</span>\n          <span class=\"tag\">3 days left</span>\n        </div>\n      </div>\n      <div class=\"card\">\n        <div class=\"card-title\">API Documentation</div>\n        <div class=\"card-desc\">Writing and review</div>\n        <div class=\"card-meta\">\n          <span class=\"tag\">Blocked</span>\n          <span class=\"tag\">Waiting</span>\n        </div>\n      </div>\n    </div>\n\n    <div class=\"section\">\n      <div class=\"section-title\">Quick Actions</div>\n      <div class=\"quick-actions\">\n        <div class=\"action-btn\">New Task</div>\n        <div class=\"action-btn\">New Project</div>\n        <div class=\"action-btn\">Templates</div>\n        <div class=\"action-btn\">Collaborate</div>\n      </div>\n    </div>\n\n    <div class=\"section\">\n      <div class=\"section-title\">Upcoming</div>\n      <div class=\"card\">\n        <div class=\"card-title\">Team Sync</div>\n        <div class=\"card-desc\">Tomorrow at 2:00 PM</div>\n      </div>\n      <button class=\"primary-btn\">Start New Workspace</button>\n    </div>\n  </div>\n</body>\n</html>",
+            "acceptedPatterns": [],
+            "rejectedPatterns": []
+          }
+        }
+      },
+      {
+        "ts_ms": 13380,
+        "type": "evidence-updated",
+        "data": {
+          "type": "evidence-updated",
+          "evidence": [
+            {
+              "facadeId": "3fb8d206-3047-447f-8f34-530fbeb564d2",
+              "content": "Dark mode interface",
+              "hypothesis": "Users building AI workspaces prefer dark color schemes for reduced eye strain and modern aesthetic",
+              "decision": "accept",
+              "latencySignal": "slow",
+              "format": "word",
+              "implication": "Explore darker palettes, high contrast text, glow effects for accent elements"
+            }
+          ],
+          "antiPatterns": []
+        }
+      },
+      {
+        "ts_ms": 13380,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "thinking",
+            "focus": "analyzing accept on \"Dark mode interface\""
+          }
+        }
+      },
+      {
+        "ts_ms": 13380,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "oracle",
+            "name": "Oracle",
+            "role": "oracle",
+            "status": "idle",
+            "focus": "monitoring"
+          }
+        }
+      },
+      {
+        "ts_ms": 13380,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-01",
+            "name": "Iris",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Floating cards\"",
+            "lastFacadeId": "0550a442-4104-4a1f-95e4-ec61db070863"
+          }
+        }
+      },
+      {
+        "ts_ms": 13380,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-02",
+            "name": "Prism",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Sidebar with floating cards\"",
+            "lastFacadeId": "bb665f52-71f3-45ab-b9c4-30c4005e1383"
+          }
+        }
+      },
+      {
+        "ts_ms": 13380,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-03",
+            "name": "Lumen",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Chatty assistant voice\"",
+            "lastFacadeId": "009aaeff-b6e1-48b7-8a58-f01ac92f4728"
+          }
+        }
+      },
+      {
+        "ts_ms": 13380,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-04",
+            "name": "Aura",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Soft shadows\"",
+            "lastFacadeId": "8a671a00-25a2-40a6-95d5-e7323c01658a"
+          }
+        }
+      },
+      {
+        "ts_ms": 13380,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-05",
+            "name": "Facet",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Dashboard numbers\"",
+            "lastFacadeId": "ef156962-85c0-425f-b8ae-883dbfce3292"
+          }
+        }
+      },
+      {
+        "ts_ms": 13380,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-06",
+            "name": "Echo",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Smooth drag interactions\"",
+            "lastFacadeId": "5b08bf7f-e84b-4c0e-8e3a-02aec3809d41"
+          }
+        }
+      },
+      {
+        "ts_ms": 13380,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "bb665f52-71f3-45ab-b9c4-30c4005e1383",
+            "agentId": "scout-02",
+            "hypothesis": "Users prefer a persistent left navigation paired with a central canvas of draggable, stacked cards over a tabbed or full-width list approach",
+            "axisTargeted": "Navigation anchoring (sidebar vs tabs) + content density (cards vs lists)",
+            "label": "Sidebar with floating cards",
+            "content": "Sidebar with floating cards",
+            "format": "word",
+            "acceptImplies": "Explore variants: collapsible sidebar, card grouping, drag-and-drop workflows",
+            "rejectImplies": "Test tab-based navigation or a single unified list layout next"
+          }
+        }
+      },
+      {
+        "ts_ms": 13380,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "ef156962-85c0-425f-b8ae-883dbfce3292",
+            "agentId": "scout-05",
+            "hypothesis": "Users want key metrics visible at a glance rather than buried in detailed reports",
+            "axisTargeted": "Dense data vs key metrics",
+            "label": "Dashboard numbers",
+            "content": "Dashboard numbers",
+            "format": "word",
+            "acceptImplies": "Prioritize scannable KPIs, gauges, and summary stats over comprehensive tables and narratives",
+            "rejectImplies": "Users need full context and detail—lean into longer-form explanations and complete datasets"
+          }
+        }
+      },
+      {
+        "ts_ms": 13380,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "0550a442-4104-4a1f-95e4-ec61db070863",
+            "agentId": "scout-01",
+            "hypothesis": "AI workspace users prefer soft elevation and spatial separation of interface elements to reduce cognitive load and create visual hierarchy",
+            "axisTargeted": "Depth and layering (light vs heavy visual weight)",
+            "label": "Floating cards",
+            "content": "Floating cards",
+            "format": "word",
+            "acceptImplies": "Explore subtle shadow systems, floating panels, generous negative space, and layered card-based layouts with soft depth cues",
+            "rejectImplies": "Users may prefer flat, unified surfaces without elevation effects; consider inline content organization and reduced shadow/3D effects"
+          }
+        }
+      },
+      {
+        "ts_ms": 13380,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "5b08bf7f-e84b-4c0e-8e3a-02aec3809d41",
+            "agentId": "scout-06",
+            "hypothesis": "Users building an AI workspace prefer fluid, continuous motion over snappy, instant state changes when manipulating interface elements.",
+            "axisTargeted": "Fluid vs Snappy",
+            "label": "Smooth drag interactions",
+            "content": "Smooth drag interactions",
+            "format": "word",
+            "acceptImplies": "Prioritize easing curves, momentum scrolling, and gesture-based transitions; design for continuous feedback rather than discrete clicks.",
+            "rejectImplies": "Favor instant feedback, crisp state changes, and minimal transition overhead; optimize for predictability and quick visual confirmation over motion."
+          }
+        }
+      },
+      {
+        "ts_ms": 13380,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "8a671a00-25a2-40a6-95d5-e7323c01658a",
+            "agentId": "scout-04",
+            "hypothesis": "The user may prefer interfaces with subtle depth and layering over flat, harsh contrast",
+            "axisTargeted": "warm vs cool (and implicitly: organic vs digital)",
+            "label": "Soft shadows",
+            "content": "Soft shadows",
+            "format": "word",
+            "acceptImplies": "User leans toward ambient, diffused visual language—possibly calming, possibly depth-rich. Signals comfort with gentle visual hierarchy.",
+            "rejectImplies": "User may prefer clarity through contrast, boldness, or flatness. Possibly energetic or minimalist taste. Signals skepticism of subtle effects."
+          }
+        }
+      },
+      {
+        "ts_ms": 13380,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "009aaeff-b6e1-48b7-8a58-f01ac92f4728",
+            "agentId": "scout-03",
+            "hypothesis": "Users building AI workspaces prefer conversational, personality-driven interfaces over sterile technical tones",
+            "axisTargeted": "friendly vs professional",
+            "label": "Chatty assistant voice",
+            "content": "Chatty assistant voice",
+            "format": "word",
+            "acceptImplies": "Design should emphasize warm, human-like communication; use contractions, casual language, character-driven copy",
+            "rejectImplies": "Design should lean toward clear, direct, no-nonsense language; minimize personality in favor of functional clarity"
+          }
+        }
+      },
+      {
+        "ts_ms": 13380,
+        "type": "stage-changed",
+        "data": {
+          "type": "stage-changed",
+          "stage": "words",
+          "swipeCount": 1
+        }
+      }
+    ],
+    "error": null
+  },
+  "facade_visible": {
+    "attempted": true,
+    "status": 200,
+    "error": null,
+    "rtt_ms": 3
+  },
+  "swipe": {
+    "attempted": true,
+    "facadeId": "3fb8d206-3047-447f-8f34-530fbeb564d2",
+    "facade_ready_at_ms": 3679,
+    "posted_at_ms": 3810,
+    "rtt_ms": 4,
+    "status": 200,
+    "body": {
+      "ok": true,
+      "swipeCount": 1,
+      "stage": "words"
+    },
+    "error": null
+  },
+  "metrics": {
+    "time_to_first_facade_ms": 3679,
+    "time_to_first_draft_ms": 1382,
+    "time_to_first_synthesis_ms": 4675,
+    "time_to_first_draft_after_swipe_ms": 7682,
+    "time_to_first_evidence_after_swipe_ms": 5,
+    "time_to_session_ready_ms": 1382,
+    "time_to_first_error_ms": null,
+    "time_from_session_to_first_facade_ms": 2297,
+    "time_from_session_to_first_draft_ms": 0,
+    "time_from_session_to_first_error_ms": null,
+    "facade_ready_count": 7,
+    "draft_updated_count": 2,
+    "draft_placeholder_count": 1,
+    "draft_refined_count": 1,
+    "draft_next_hint_present_count": 0,
+    "draft_accepted_patterns_present_count": 0,
+    "draft_rejected_patterns_present_count": 0,
+    "draft_title_present_count": 2,
+    "draft_summary_present_count": 2,
+    "draft_html_present_count": 2,
+    "draft_refined_html_length_p50": 4683,
+    "draft_refined_html_length_max": 4683,
+    "draft_refined_html_length_min": 4683,
+    "draft_refined_scaffold_count": 1,
+    "draft_refined_rebuild_count": 0,
+    "draft_refined_unknown_count": 0,
+    "draft_refined_scaffold_html_length_p50": 4683,
+    "draft_refined_scaffold_html_length_min": 4683,
+    "draft_refined_scaffold_html_length_max": 4683,
+    "draft_refined_rebuild_html_length_p50": null,
+    "draft_refined_rebuild_html_length_min": null,
+    "draft_refined_rebuild_html_length_max": null,
+    "synthesis_updated_count": 1,
+    "swipe_result_count": 1,
+    "evidence_updated_count": 1,
+    "facade_stale_count": 0,
+    "builder_hint_count": 0,
+    "reveal_reached": false,
+    "error_event_count": 0,
+    "error_code_counts": {},
+    "error_source_counts": {},
+    "error_agent_counts": {},
+    "distinct_error_agent_count": 0,
+    "error_source_scout_count": 0,
+    "error_source_oracle_count": 0,
+    "error_source_builder_count": 0,
+    "provider_auth_failure_count": 0,
+    "error_message_present_count": 0,
+    "auth_diagnostic_preserved_count": 0,
+    "agent_status_event_count": 21,
+    "agent_status_scout_count": 14,
+    "agent_status_oracle_count": 3,
+    "agent_status_builder_count": 4,
+    "agent_error_signal_count": 0,
+    "scout_started_count": 6,
+    "first_scout_started_ms": 1382,
+    "last_scout_started_ms": 1382,
+    "scout_start_spread_ms": 0,
+    "first_error_event_ms": null,
+    "last_error_event_ms": null,
+    "error_event_spread_ms": null,
+    "session_ready_count": 1,
+    "distinct_session_ready_intent_count": 1,
+    "session_ready_intent_present_count": 1,
+    "error_event_count_before_session_2": null,
+    "error_event_count_after_session_2": null,
+    "time_from_session_2_to_first_error_ms": null,
+    "stream_2_error_event_count": 0,
+    "stream_2_agent_status_count": 8,
+    "stream_2_stage_changed_count": 1,
+    "stream_2_diagnostic_preserved_count": 0,
+    "stream_2_error_provider_auth_count": 0,
+    "stream_2_agent_status_scout_count": 6,
+    "stream_2_agent_status_oracle_count": 1,
+    "stream_2_agent_status_builder_count": 1,
+    "stream_2_stage_valid_count": 1,
+    "stream_2_error_source_valid_count": 0,
+    "stream_2_error_code_valid_count": 0,
+    "stream_2_error_message_present_count": 0,
+    "stream_2_agent_status_valid_count": 8,
+    "stream_2_agent_status_role_valid_count": 8,
+    "stream_2_stage_changed_swipe_count_valid_count": 1,
+    "stream_2_draft_updated_count": 1,
+    "stream_2_draft_placeholder_count": 0,
+    "stream_2_draft_refined_count": 1,
+    "stream_2_draft_next_hint_present_count": 0,
+    "stream_2_draft_accepted_patterns_present_count": 0,
+    "stream_2_draft_rejected_patterns_present_count": 0,
+    "stream_2_draft_title_present_count": 1,
+    "stream_2_draft_summary_present_count": 1,
+    "stream_2_draft_html_present_count": 1,
+    "stream_2_facade_ready_count": 6,
+    "stream_2_synthesis_updated_count": 1,
+    "stream_2_evidence_updated_count": 1,
+    "stream_2_facade_format_valid_count": 6,
+    "stream_2_facade_id_present_count": 6,
+    "stream_2_facade_agent_id_present_count": 6,
+    "stream_2_facade_hypothesis_present_count": 6,
+    "stream_2_facade_label_present_count": 6,
+    "stream_2_facade_content_present_count": 6,
+    "stream_2_synthesis_axes_count": 6,
+    "stream_2_synthesis_axes_min": 6,
+    "stream_2_synthesis_scout_assignments_count": 6,
+    "stream_2_synthesis_scout_assignments_min": 6,
+    "stream_2_evidence_array_valid_count": 1,
+    "stream_2_anti_patterns_array_valid_count": 1,
+    "stream_2_evidence_length_min": 1,
+    "stream_2_evidence_length_max": 1,
+    "stream_2_evidence_items_valid_decision_count": 1,
+    "stream_2_evidence_items_valid_format_count": 1,
+    "stream_2_evidence_items_valid_latency_signal_count": 1,
+    "stream_2_synthesis_axes_valid_confidence_count": 6,
+    "stream_2_synthesis_scout_assignments_valid_scout_count": 6,
+    "stream_2_synthesis_palette_present_count": 0,
+    "stream_2_first_event_ms_after_open": 2,
+    "stream_2_replay_span_ms": 0,
+    "stage_changed_event_count": 1,
+    "time_to_first_stage_changed_ms": 869,
+    "stage_changed_before_session_ready": 1,
+    "stage_valid_count": 1,
+    "error_source_valid_count": 0,
+    "error_code_valid_count": 0,
+    "agent_status_valid_count": 21,
+    "agent_status_role_valid_count": 21,
+    "stage_changed_swipe_count_valid_count": 1,
+    "facade_format_valid_count": 7,
+    "facade_id_present_count": 7,
+    "facade_agent_id_present_count": 7,
+    "facade_hypothesis_present_count": 7,
+    "facade_label_present_count": 7,
+    "facade_content_present_count": 7,
+    "swipe_decision_valid_count": 1,
+    "swipe_latency_bucket_valid_count": 1,
+    "swipe_facade_id_present_count": 1,
+    "swipe_agent_id_present_count": 1,
+    "swipe_latency_ms_valid_count": 1,
+    "synthesis_axes_count": 6,
+    "synthesis_axes_min": 6,
+    "synthesis_axes_valid_confidence_count": 6,
+    "synthesis_scout_assignments_count": 6,
+    "synthesis_scout_assignments_min": 6,
+    "synthesis_scout_assignments_valid_scout_count": 6,
+    "synthesis_palette_present_count": 0,
+    "evidence_array_valid_count": 1,
+    "anti_patterns_array_valid_count": 1,
+    "evidence_length_min": 1,
+    "evidence_length_max": 1,
+    "evidence_items_valid_decision_count": 1,
+    "evidence_items_valid_format_count": 1,
+    "evidence_items_valid_latency_signal_count": 1,
+    "oracle_cold_start_latency_ms": 3293,
+    "oracle_synthesis_latency_ms": null,
+    "oracle_reveal_build_latency_ms": null,
+    "oracle_cold_start_count": 1,
+    "oracle_synthesis_count": 0,
+    "oracle_reveal_build_count": 0,
+    "scout_probe_latency_ms_p50": 3455,
+    "scout_probe_latency_ms_max": 9203,
+    "scout_probe_count": 7,
+    "builder_scaffold_latency_ms": 10110,
+    "builder_scaffold_count": 1,
+    "builder_rebuild_latency_ms": null,
+    "builder_rebuild_latency_ms_p50": null,
+    "builder_rebuild_latency_ms_max": null,
+    "builder_rebuild_count": 0
+  },
+  "error_event_samples": [],
+  "provider_error_samples": [],
+  "stderr_tail": "",
+  "artifact_path": "/Users/provi/Development/_projs/the-eye-loop-gnhf-worktrees/you-are-running-an-e-2c98fb/scripts/findings/validate-2026-04-24T04-54-42-192Z.json"
+}

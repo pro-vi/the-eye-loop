@@ -1,0 +1,602 @@
+{
+  "started_at": "2026-04-24T04:54:13.196Z",
+  "finished_at": "2026-04-24T04:54:27.684Z",
+  "elapsed_ms": 14488,
+  "result": "FAIL",
+  "reason": "no_facade_ready",
+  "intent": "weather app for runners",
+  "dev_url": "http://localhost:37918",
+  "session": {
+    "rtt_ms": 9,
+    "status": 200,
+    "body": {
+      "intent": "weather app for runners",
+      "sessionId": "f6138aba-aa3a-41a8-bf71-74c29d6a9b7f"
+    },
+    "error": null
+  },
+  "session_2": {
+    "attempted": false,
+    "intent": null,
+    "rtt_ms": null,
+    "status": null,
+    "body": null,
+    "error": null,
+    "posted_at_ms": null,
+    "waited_ms": null
+  },
+  "stream": {
+    "opened_at_ms": 868,
+    "error": null,
+    "event_counts": {
+      "agent-status": 10,
+      "stage-changed": 1,
+      "draft-updated": 1,
+      "session-ready": 1
+    },
+    "first_event_ms": {
+      "agent-status": 873,
+      "stage-changed": 873,
+      "draft-updated": 1385,
+      "session-ready": 1385
+    },
+    "events": [
+      {
+        "ts_ms": 873,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "oracle",
+            "name": "Oracle",
+            "role": "oracle",
+            "status": "idle",
+            "focus": "monitoring"
+          }
+        }
+      },
+      {
+        "ts_ms": 873,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "idle",
+            "focus": "waiting for session"
+          }
+        }
+      },
+      {
+        "ts_ms": 873,
+        "type": "stage-changed",
+        "data": {
+          "type": "stage-changed",
+          "stage": "words",
+          "swipeCount": 0
+        }
+      },
+      {
+        "ts_ms": 1385,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "thinking",
+            "focus": "generating initial scaffold"
+          }
+        }
+      },
+      {
+        "ts_ms": 1385,
+        "type": "draft-updated",
+        "data": {
+          "type": "draft-updated",
+          "draft": {
+            "title": "weather app for runners",
+            "summary": "Drafting your prototype from the swipes…",
+            "html": "<div style=\"padding:2rem;text-align:center;color:var(--muted,#8a7f78);opacity:0.75\"><h2 style=\"margin:0 0 1rem;font-weight:400\">weather app for runners</h2><p style=\"margin:0\">Building your first draft…</p></div>",
+            "acceptedPatterns": [],
+            "rejectedPatterns": []
+          }
+        }
+      },
+      {
+        "ts_ms": 1385,
+        "type": "session-ready",
+        "data": {
+          "type": "session-ready",
+          "intent": "weather app for runners"
+        }
+      },
+      {
+        "ts_ms": 1385,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "oracle",
+            "name": "Oracle",
+            "role": "oracle",
+            "status": "thinking",
+            "focus": "cold-start analysis"
+          }
+        }
+      },
+      {
+        "ts_ms": 1385,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-01",
+            "name": "Iris",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1385,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-02",
+            "name": "Prism",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1385,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-03",
+            "name": "Lumen",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1385,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-04",
+            "name": "Aura",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1385,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-05",
+            "name": "Facet",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1385,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-06",
+            "name": "Echo",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      }
+    ]
+  },
+  "stream_2": {
+    "attempted": true,
+    "opened_at_ms": 13380,
+    "elapsed_ms": 805,
+    "event_counts": {
+      "draft-updated": 1,
+      "agent-status": 8,
+      "stage-changed": 1
+    },
+    "error_event_count": 0,
+    "agent_status_count": 8,
+    "stage_changed_count": 1,
+    "draft_updated_count": 1,
+    "draft_placeholder_count": 1,
+    "draft_refined_count": 0,
+    "facade_ready_count": 0,
+    "synthesis_updated_count": 0,
+    "evidence_updated_count": 0,
+    "diagnostic_preserved_count": 0,
+    "error_provider_auth_count": 0,
+    "agent_status_scout_count": 6,
+    "agent_status_oracle_count": 1,
+    "agent_status_builder_count": 1,
+    "stage_valid_count": 1,
+    "error_source_valid_count": 0,
+    "error_code_valid_count": 0,
+    "error_message_present_count": 0,
+    "agent_status_valid_count": 8,
+    "agent_status_role_valid_count": 8,
+    "stage_changed_swipe_count_valid_count": 1,
+    "facade_format_valid_count": 0,
+    "facade_id_present_count": 0,
+    "facade_agent_id_present_count": 0,
+    "facade_hypothesis_present_count": 0,
+    "facade_label_present_count": 0,
+    "facade_content_present_count": 0,
+    "synthesis_axes_count": 0,
+    "synthesis_axes_min": 0,
+    "synthesis_scout_assignments_count": 0,
+    "synthesis_scout_assignments_min": 0,
+    "evidence_array_valid_count": 0,
+    "anti_patterns_array_valid_count": 0,
+    "evidence_length_min": 0,
+    "evidence_length_max": 0,
+    "evidence_items_valid_decision_count": 0,
+    "evidence_items_valid_format_count": 0,
+    "evidence_items_valid_latency_signal_count": 0,
+    "synthesis_axes_valid_confidence_count": 0,
+    "synthesis_scout_assignments_valid_scout_count": 0,
+    "synthesis_palette_present_count": 0,
+    "draft_next_hint_present_count": 0,
+    "draft_accepted_patterns_present_count": 0,
+    "draft_rejected_patterns_present_count": 0,
+    "draft_title_present_count": 1,
+    "draft_summary_present_count": 1,
+    "draft_html_present_count": 1,
+    "first_event_ms_after_open": 3,
+    "last_event_ms_after_open": 3,
+    "replay_span_ms": 0,
+    "events": [
+      {
+        "ts_ms": 13383,
+        "type": "draft-updated",
+        "data": {
+          "type": "draft-updated",
+          "draft": {
+            "title": "weather app for runners",
+            "summary": "Drafting your prototype from the swipes…",
+            "html": "<div style=\"padding:2rem;text-align:center;color:var(--muted,#8a7f78);opacity:0.75\"><h2 style=\"margin:0 0 1rem;font-weight:400\">weather app for runners</h2><p style=\"margin:0\">Building your first draft…</p></div>",
+            "acceptedPatterns": [],
+            "rejectedPatterns": []
+          }
+        }
+      },
+      {
+        "ts_ms": 13383,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "thinking",
+            "focus": "generating initial scaffold"
+          }
+        }
+      },
+      {
+        "ts_ms": 13383,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "oracle",
+            "name": "Oracle",
+            "role": "oracle",
+            "status": "thinking",
+            "focus": "cold-start analysis"
+          }
+        }
+      },
+      {
+        "ts_ms": 13383,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-01",
+            "name": "Iris",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 13383,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-02",
+            "name": "Prism",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 13383,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-03",
+            "name": "Lumen",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 13383,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-04",
+            "name": "Aura",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 13383,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-05",
+            "name": "Facet",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 13383,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-06",
+            "name": "Echo",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 13383,
+        "type": "stage-changed",
+        "data": {
+          "type": "stage-changed",
+          "stage": "words",
+          "swipeCount": 0
+        }
+      }
+    ],
+    "error": null
+  },
+  "facade_visible": {
+    "attempted": false,
+    "status": null,
+    "error": null,
+    "rtt_ms": null
+  },
+  "swipe": {
+    "attempted": false,
+    "facadeId": null,
+    "facade_ready_at_ms": null,
+    "posted_at_ms": null,
+    "rtt_ms": null,
+    "status": null,
+    "body": null,
+    "error": null
+  },
+  "metrics": {
+    "time_to_first_facade_ms": null,
+    "time_to_first_draft_ms": 1385,
+    "time_to_first_synthesis_ms": null,
+    "time_to_first_draft_after_swipe_ms": null,
+    "time_to_first_evidence_after_swipe_ms": null,
+    "time_to_session_ready_ms": 1385,
+    "time_to_first_error_ms": null,
+    "time_from_session_to_first_facade_ms": null,
+    "time_from_session_to_first_draft_ms": 0,
+    "time_from_session_to_first_error_ms": null,
+    "facade_ready_count": 0,
+    "draft_updated_count": 1,
+    "draft_placeholder_count": 1,
+    "draft_refined_count": 0,
+    "draft_next_hint_present_count": 0,
+    "draft_accepted_patterns_present_count": 0,
+    "draft_rejected_patterns_present_count": 0,
+    "draft_title_present_count": 1,
+    "draft_summary_present_count": 1,
+    "draft_html_present_count": 1,
+    "draft_refined_html_length_p50": null,
+    "draft_refined_html_length_max": null,
+    "draft_refined_html_length_min": null,
+    "draft_refined_scaffold_count": 0,
+    "draft_refined_rebuild_count": 0,
+    "draft_refined_unknown_count": 0,
+    "draft_refined_scaffold_html_length_p50": null,
+    "draft_refined_scaffold_html_length_min": null,
+    "draft_refined_scaffold_html_length_max": null,
+    "draft_refined_rebuild_html_length_p50": null,
+    "draft_refined_rebuild_html_length_min": null,
+    "draft_refined_rebuild_html_length_max": null,
+    "synthesis_updated_count": 0,
+    "swipe_result_count": 0,
+    "evidence_updated_count": 0,
+    "facade_stale_count": 0,
+    "builder_hint_count": 0,
+    "reveal_reached": false,
+    "error_event_count": 0,
+    "error_code_counts": {},
+    "error_source_counts": {},
+    "error_agent_counts": {},
+    "distinct_error_agent_count": 0,
+    "error_source_scout_count": 0,
+    "error_source_oracle_count": 0,
+    "error_source_builder_count": 0,
+    "provider_auth_failure_count": 0,
+    "error_message_present_count": 0,
+    "auth_diagnostic_preserved_count": 0,
+    "agent_status_event_count": 10,
+    "agent_status_scout_count": 6,
+    "agent_status_oracle_count": 2,
+    "agent_status_builder_count": 2,
+    "agent_error_signal_count": 0,
+    "scout_started_count": 6,
+    "first_scout_started_ms": 1385,
+    "last_scout_started_ms": 1385,
+    "scout_start_spread_ms": 0,
+    "first_error_event_ms": null,
+    "last_error_event_ms": null,
+    "error_event_spread_ms": null,
+    "session_ready_count": 1,
+    "distinct_session_ready_intent_count": 1,
+    "session_ready_intent_present_count": 1,
+    "error_event_count_before_session_2": null,
+    "error_event_count_after_session_2": null,
+    "time_from_session_2_to_first_error_ms": null,
+    "stream_2_error_event_count": 0,
+    "stream_2_agent_status_count": 8,
+    "stream_2_stage_changed_count": 1,
+    "stream_2_diagnostic_preserved_count": 0,
+    "stream_2_error_provider_auth_count": 0,
+    "stream_2_agent_status_scout_count": 6,
+    "stream_2_agent_status_oracle_count": 1,
+    "stream_2_agent_status_builder_count": 1,
+    "stream_2_stage_valid_count": 1,
+    "stream_2_error_source_valid_count": 0,
+    "stream_2_error_code_valid_count": 0,
+    "stream_2_error_message_present_count": 0,
+    "stream_2_agent_status_valid_count": 8,
+    "stream_2_agent_status_role_valid_count": 8,
+    "stream_2_stage_changed_swipe_count_valid_count": 1,
+    "stream_2_draft_updated_count": 1,
+    "stream_2_draft_placeholder_count": 1,
+    "stream_2_draft_refined_count": 0,
+    "stream_2_draft_next_hint_present_count": 0,
+    "stream_2_draft_accepted_patterns_present_count": 0,
+    "stream_2_draft_rejected_patterns_present_count": 0,
+    "stream_2_draft_title_present_count": 1,
+    "stream_2_draft_summary_present_count": 1,
+    "stream_2_draft_html_present_count": 1,
+    "stream_2_facade_ready_count": 0,
+    "stream_2_synthesis_updated_count": 0,
+    "stream_2_evidence_updated_count": 0,
+    "stream_2_facade_format_valid_count": 0,
+    "stream_2_facade_id_present_count": 0,
+    "stream_2_facade_agent_id_present_count": 0,
+    "stream_2_facade_hypothesis_present_count": 0,
+    "stream_2_facade_label_present_count": 0,
+    "stream_2_facade_content_present_count": 0,
+    "stream_2_synthesis_axes_count": 0,
+    "stream_2_synthesis_axes_min": 0,
+    "stream_2_synthesis_scout_assignments_count": 0,
+    "stream_2_synthesis_scout_assignments_min": 0,
+    "stream_2_evidence_array_valid_count": 0,
+    "stream_2_anti_patterns_array_valid_count": 0,
+    "stream_2_evidence_length_min": 0,
+    "stream_2_evidence_length_max": 0,
+    "stream_2_evidence_items_valid_decision_count": 0,
+    "stream_2_evidence_items_valid_format_count": 0,
+    "stream_2_evidence_items_valid_latency_signal_count": 0,
+    "stream_2_synthesis_axes_valid_confidence_count": 0,
+    "stream_2_synthesis_scout_assignments_valid_scout_count": 0,
+    "stream_2_synthesis_palette_present_count": 0,
+    "stream_2_first_event_ms_after_open": 3,
+    "stream_2_replay_span_ms": 0,
+    "stage_changed_event_count": 1,
+    "time_to_first_stage_changed_ms": 873,
+    "stage_changed_before_session_ready": 1,
+    "stage_valid_count": 1,
+    "error_source_valid_count": 0,
+    "error_code_valid_count": 0,
+    "agent_status_valid_count": 10,
+    "agent_status_role_valid_count": 10,
+    "stage_changed_swipe_count_valid_count": 1,
+    "facade_format_valid_count": 0,
+    "facade_id_present_count": 0,
+    "facade_agent_id_present_count": 0,
+    "facade_hypothesis_present_count": 0,
+    "facade_label_present_count": 0,
+    "facade_content_present_count": 0,
+    "swipe_decision_valid_count": 0,
+    "swipe_latency_bucket_valid_count": 0,
+    "swipe_facade_id_present_count": 0,
+    "swipe_agent_id_present_count": 0,
+    "swipe_latency_ms_valid_count": 0,
+    "synthesis_axes_count": 0,
+    "synthesis_axes_min": 0,
+    "synthesis_axes_valid_confidence_count": 0,
+    "synthesis_scout_assignments_count": 0,
+    "synthesis_scout_assignments_min": 0,
+    "synthesis_scout_assignments_valid_scout_count": 0,
+    "synthesis_palette_present_count": 0,
+    "evidence_array_valid_count": 0,
+    "anti_patterns_array_valid_count": 0,
+    "evidence_length_min": 0,
+    "evidence_length_max": 0,
+    "evidence_items_valid_decision_count": 0,
+    "evidence_items_valid_format_count": 0,
+    "evidence_items_valid_latency_signal_count": 0,
+    "oracle_cold_start_latency_ms": null,
+    "oracle_synthesis_latency_ms": null,
+    "oracle_reveal_build_latency_ms": null,
+    "oracle_cold_start_count": 0,
+    "oracle_synthesis_count": 0,
+    "oracle_reveal_build_count": 0,
+    "scout_probe_latency_ms_p50": null,
+    "scout_probe_latency_ms_max": null,
+    "scout_probe_count": 0,
+    "builder_scaffold_latency_ms": null,
+    "builder_scaffold_count": 0,
+    "builder_rebuild_latency_ms": null,
+    "builder_rebuild_latency_ms_p50": null,
+    "builder_rebuild_latency_ms_max": null,
+    "builder_rebuild_count": 0
+  },
+  "error_event_samples": [],
+  "provider_error_samples": [],
+  "stderr_tail": "",
+  "artifact_path": "/Users/provi/Development/_projs/the-eye-loop-gnhf-worktrees/you-are-running-an-e-2c98fb/scripts/findings/validate-2026-04-24T04-54-27-684Z.json"
+}

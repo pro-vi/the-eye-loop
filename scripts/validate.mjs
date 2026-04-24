@@ -609,6 +609,38 @@ async function main() {
 		// the primary iter-96 probes.
 		draft_accepted_patterns_present_count: 0,
 		draft_rejected_patterns_present_count: 0,
+		// iter-100: stream_2 counterparts for iter-100's primary-bus draft.title
+		// / .summary / .html presence-validity probes. The three REQUIRED-string
+		// fields of PrototypeDraft (types.ts:47-49) that iter-64/65's html-shape
+		// probe and iter-95/96's SHOULD-BE-ZERO probes did NOT cover. All 4
+		// draft-emission paths populate these three fields with non-empty strings:
+		//   placeholder (builder.ts:454-461, sync pre-scaffold): title=intent,
+		//     summary='Drafting your prototype from the swipes…', html=placeholder
+		//     wrapper div (iter-63 sync seed).
+		//   scaffold success (builder.ts:524-528): ScaffoldSchema.{title,summary,
+		//     html} from Haiku output.
+		//   rebuild success (builder.ts:319-323): DraftUpdateSchema.{title,
+		//     summary,html} from Haiku output (plus other fields).
+		//   reveal success (builder.ts:708-712): RevealSchema.{title,summary,
+		//     html} from Sonnet output.
+		// Under iter-61 healthy-auth 5-intent 12s-window baseline the /api/stream
+		// replay snapshot captures context.draft AFTER scaffold has populated
+		// all three fields — so each stream_2 count = stream_2_draft_updated_
+		// count = 5/_min=1. POSITIVE-IDENTITY cross-stream invariants with
+		// primary iter-100 paired via +server.ts:27-29's single draft-updated
+		// snapshot replay from context.draft. A replay bug that drops title/
+		// summary/html from the payload while primary retains them (field-level
+		// divergence invisible to iter-64/65's html-shape probe that still
+		// passes because html is present) splits the cross-stream identity.
+		//
+		// Saturates the PrototypeDraft 6-way field-validity matrix on BOTH
+		// streams: 3 POSITIVE-IDENTITY (title/summary/html, iter-100) + 3
+		// SHOULD-BE-ZERO (nextHint/acceptedPatterns/rejectedPatterns, iter-95/96)
+		// — the draft-updated counterpart to iter-98/99's Facade 6-way
+		// saturation on facade-ready.
+		draft_title_present_count: 0,
+		draft_summary_present_count: 0,
+		draft_html_present_count: 0,
 		first_event_ms_after_open: null,
 		last_event_ms_after_open: null,
 		replay_span_ms: null,
@@ -1161,6 +1193,40 @@ async function main() {
 				Array.isArray(e.data?.draft?.rejectedPatterns) &&
 				e.data.draft.rejectedPatterns.length > 0
 		).length;
+		// iter-100: stream_2 counterparts for iter-100's primary-bus draft.title
+		// / .summary / .html presence-validity probes on draft-updated events.
+		// Mirrors the primary-bus iter-100 probes onto the /api/stream replay
+		// snapshot — same typeof === 'string' && length > 0 predicate as primary.
+		// Under iter-61 healthy-auth 5-intent 12s-window baseline: stream_2
+		// replay at ~12s captures context.draft after scaffold populated all
+		// three required fields, so each count = stream_2_draft_updated_count
+		// = 5 per 5-intent run (/_min=1 per intent). POSITIVE-IDENTITY cross-
+		// stream invariants with primary iter-100 — the third 3-field probe
+		// family on draft-updated (iter-64/65 html-shape, iter-95/96 SHOULD-
+		// BE-ZERO, iter-100 POSITIVE-IDENTITY). Regression classes uniquely
+		// catchable by stream_2: replay-block field-corruption (e.g. a
+		// .map(d => ({...d, title: undefined})) transform), envelope-wrapping
+		// drift (payload shape divergence from primary bus), timing-regime
+		// shift (a scaffold-never-completes regime would drop stream_2 count
+		// below primary while primary tracks placeholder emits).
+		stream2.draft_title_present_count = stream2.events.filter(
+			(e) =>
+				e.type === 'draft-updated' &&
+				typeof e.data?.draft?.title === 'string' &&
+				e.data.draft.title.length > 0
+		).length;
+		stream2.draft_summary_present_count = stream2.events.filter(
+			(e) =>
+				e.type === 'draft-updated' &&
+				typeof e.data?.draft?.summary === 'string' &&
+				e.data.draft.summary.length > 0
+		).length;
+		stream2.draft_html_present_count = stream2.events.filter(
+			(e) =>
+				e.type === 'draft-updated' &&
+				typeof e.data?.draft?.html === 'string' &&
+				e.data.draft.html.length > 0
+		).length;
 		// Replay-tightness probe — closes iter-34's explicitly-deferred "assert
 		// p90-p50<20ms as an additional stability invariant" opportunity, but
 		// generalized: the /api/stream start() block emits ALL replay events
@@ -1435,6 +1501,76 @@ async function main() {
 	const draftRejectedPatternsPresentCount = draftUpdatedEvents.filter((e) => {
 		const rejected = e.data?.draft?.rejectedPatterns;
 		return Array.isArray(rejected) && rejected.length > 0;
+	}).length;
+
+	// iter-100: draft.title / .summary / .html presence-validity probes on
+	// the primary bus. PrototypeDraft (types.ts:46-53) has 3 REQUIRED-string
+	// fields (title, summary, html) — context.ts:31-34 initializes them to ''
+	// but ALL 4 emission paths populate them with non-empty strings:
+	//   placeholder (builder.ts:454-461, sync pre-scaffold): title=intent,
+	//     summary='Drafting your prototype from the swipes…', html=placeholder
+	//     wrapper div with 'Building your first draft…' signature (iter-63).
+	//   scaffold success (builder.ts:524-528): ScaffoldSchema.{title,summary,
+	//     html} from Haiku output (iter-71 dedicated 3-field schema vs full
+	//     DraftUpdateSchema trimmed Haiku token overhead).
+	//   rebuild success (builder.ts:319-323): DraftUpdateSchema.{title,summary,
+	//     html} from Haiku output (plus changeNote/patterns/probeBriefs/
+	//     nextHint beyond the 3 required fields).
+	//   reveal success (builder.ts:708-712): RevealSchema.{title,summary,html}
+	//     from Sonnet output (iter-77 dedicated 3-field schema trimmed from
+	//     DraftUpdateSchema filler).
+	// All 4 schemas (DraftUpdateSchema, ScaffoldSchema, RevealSchema, plus
+	// sync placeholder) guarantee title/summary/html are typed strings at
+	// emit time — zod parsing rejects missing/non-string fields before the
+	// merge runs. Under iter-61 healthy-auth 5-intent 12s-window baseline
+	// each draft-updated emit carries non-empty strings for all three fields:
+	// per-intent count = draft_updated_count = 2 (1 placeholder + 1 refined);
+	// aggregate = draft_updated_count_sum = 10.
+	//
+	// POSITIVE-IDENTITY probe family continuation from iter-97 (SwipeRecord
+	// 5-way matrix) and iter-98/99 (Facade 6-way matrix on both streams);
+	// distinct from iter-95/96's SHOULD-BE-ZERO family on draft-updated
+	// (nextHint / acceptedPatterns / rejectedPatterns, all baseline=0 under
+	// current 12s/1-swipe regime). Saturates the PrototypeDraft 6-way field-
+	// validity matrix: 3 POSITIVE-IDENTITY fields (iter-100) + 3 SHOULD-BE-
+	// ZERO fields (iter-95/96) — the draft-updated counterpart to iter-98/99's
+	// Facade 6-way saturation on facade-ready.
+	//
+	// Regression classes this catches that iter-64/65/75/76/95/96 cannot:
+	//   (a) placeholder path accidentally clears one of the three fields (e.g.
+	//     a refactor moves the draft.title=intent assignment out of the sync
+	//     block but keeps the emit). iter-64 placeholder_count still matches
+	//     the html-signature but title_present or summary_present drops —
+	//     pinpoints the field-level placeholder regression.
+	//   (b) scaffold LLM output produces an empty string on one field (e.g. a
+	//     zod default override or prompt-driven empty response). iter-64
+	//     refined_count holds (the signature is present/absent on html) but
+	//     title_present or summary_present drops — pinpoints scaffold-path
+	//     per-field regression.
+	//   (c) rebuild merge corrupts a field (e.g. typo: title = output.ttile,
+	//     gracefully undefined in JS). Under forward-deploy rebuild-reachable
+	//     regime, iter-93 builder_hint_count tracks rebuild-with-hint but
+	//     title_present drops below refined_count — the per-field corruption
+	//     is visible only at iter-100.
+	//   (d) reveal path emits with missing field (RevealSchema parses but the
+	//     merge truncates one field). Under forward-deploy reveal-reachable
+	//     regime, iter-74 refined_count flips but title_present / summary_
+	//     present / html_present stays at the pre-reveal baseline — pinpoints
+	//     reveal-specific field drop.
+	// Stream_2 counterpart paired in-iteration (same pattern as iter-96's
+	// accepted/rejected) — 3 fields × 2 streams = 6 probes total, manageable
+	// without splitting into two iterations given shared filter scaffold.
+	const draftTitlePresentCount = draftUpdatedEvents.filter((e) => {
+		const title = e.data?.draft?.title;
+		return typeof title === 'string' && title.length > 0;
+	}).length;
+	const draftSummaryPresentCount = draftUpdatedEvents.filter((e) => {
+		const summary = e.data?.draft?.summary;
+		return typeof summary === 'string' && summary.length > 0;
+	}).length;
+	const draftHtmlPresentCount = draftUpdatedEvents.filter((e) => {
+		const html = e.data?.draft?.html;
+		return typeof html === 'string' && html.length > 0;
 	}).length;
 
 	// iter-75: draft refined html length distribution probe. iter-74 reduced
@@ -2720,6 +2856,17 @@ async function main() {
 			draft_next_hint_present_count: draftNextHintPresentCount,
 			draft_accepted_patterns_present_count: draftAcceptedPatternsPresentCount,
 			draft_rejected_patterns_present_count: draftRejectedPatternsPresentCount,
+			// iter-100: draft.title / .summary / .html presence-validity probes
+			// on the primary bus (3 required string fields of PrototypeDraft
+			// populated by ALL 4 emission paths — placeholder/scaffold/rebuild/
+			// reveal). POSITIVE-IDENTITY invariants: each = draft_updated_count
+			// = 10/_min=2 per 5-intent healthy-auth baseline. Saturates the
+			// PrototypeDraft 6-way field-validity matrix alongside iter-95/96's
+			// SHOULD-BE-ZERO probes — the draft-updated counterpart to iter-98/99's
+			// Facade 6-way saturation.
+			draft_title_present_count: draftTitlePresentCount,
+			draft_summary_present_count: draftSummaryPresentCount,
+			draft_html_present_count: draftHtmlPresentCount,
 			draft_refined_html_length_p50: draftRefinedHtmlLengthP50,
 			draft_refined_html_length_max: draftRefinedHtmlLengthMax,
 			draft_refined_html_length_min: draftRefinedHtmlLengthMin,
@@ -2794,6 +2941,15 @@ async function main() {
 			stream_2_draft_next_hint_present_count: stream2.draft_next_hint_present_count,
 			stream_2_draft_accepted_patterns_present_count: stream2.draft_accepted_patterns_present_count,
 			stream_2_draft_rejected_patterns_present_count: stream2.draft_rejected_patterns_present_count,
+			// iter-100: stream_2 counterparts for primary-bus draft.title /
+			// .summary / .html presence-validity probes. Cross-stream POSITIVE-
+			// IDENTITY: each = stream_2_draft_updated_count = 5/_min=1 per
+			// 5-intent healthy-auth baseline (replay snapshot captures context.
+			// draft after scaffold populated all three fields). Saturates the
+			// PrototypeDraft 6-way field-validity matrix on BOTH streams.
+			stream_2_draft_title_present_count: stream2.draft_title_present_count,
+			stream_2_draft_summary_present_count: stream2.draft_summary_present_count,
+			stream_2_draft_html_present_count: stream2.draft_html_present_count,
 			// iter-66: final three unprobed cells on stream_2 replay (iter-65
 			// explicitly named these as remaining harness-completeness gaps).
 			stream_2_facade_ready_count: stream2.facade_ready_count,
@@ -2914,7 +3070,7 @@ async function main() {
 	console.log(
 		`[validate] result=${artifact.result} reason=${reason} ` +
 		`${sessionSummary} facades=${facadeReadyCount} drafts=${draftUpdatedCount} ` +
-		`drafts_p/r=${draftPlaceholderCount}/${draftRefinedCount} draft_next_hint=${draftNextHintPresentCount} draft_accepted_pat=${draftAcceptedPatternsPresentCount} draft_rejected_pat=${draftRejectedPatternsPresentCount} ` +
+		`drafts_p/r=${draftPlaceholderCount}/${draftRefinedCount} draft_next_hint=${draftNextHintPresentCount} draft_accepted_pat=${draftAcceptedPatternsPresentCount} draft_rejected_pat=${draftRejectedPatternsPresentCount} draft_title=${draftTitlePresentCount} draft_summary=${draftSummaryPresentCount} draft_html=${draftHtmlPresentCount} ` +
 		`drafts_r_len=${draftRefinedHtmlLengthP50 === null ? '-' : draftRefinedHtmlLengthP50 + 'c'}/min=${draftRefinedHtmlLengthMin === null ? '-' : draftRefinedHtmlLengthMin + 'c'}/max=${draftRefinedHtmlLengthMax === null ? '-' : draftRefinedHtmlLengthMax + 'c'} ` +
 		`drafts_r_src=s${draftRefinedScaffoldCount}/r${draftRefinedRebuildCount}/u${draftRefinedUnknownCount} ` +
 		`drafts_r_s_len=${draftRefinedScaffoldHtmlLengthP50 === null ? '-' : draftRefinedScaffoldHtmlLengthP50 + 'c'}/min=${draftRefinedScaffoldHtmlLengthMin === null ? '-' : draftRefinedScaffoldHtmlLengthMin + 'c'} ` +
@@ -2938,7 +3094,7 @@ async function main() {
 		`s2_roles=s${stream2.agent_status_scout_count}/o${stream2.agent_status_oracle_count}/b${stream2.agent_status_builder_count} ` +
 		`s2_stage_valid=${stream2.stage_valid_count} s2_err_src_valid=${stream2.error_source_valid_count} s2_err_code_valid=${stream2.error_code_valid_count} s2_err_msg=${stream2.error_message_present_count} ` +
 		`s2_agent_status_valid=${stream2.agent_status_valid_count} s2_agent_status_role_valid=${stream2.agent_status_role_valid_count} s2_stage_swipe_valid=${stream2.stage_changed_swipe_count_valid_count} ` +
-		`s2_drafts=${stream2.draft_updated_count} s2_drafts_p/r=${stream2.draft_placeholder_count}/${stream2.draft_refined_count} s2_draft_next_hint=${stream2.draft_next_hint_present_count} s2_draft_accepted_pat=${stream2.draft_accepted_patterns_present_count} s2_draft_rejected_pat=${stream2.draft_rejected_patterns_present_count} ` +
+		`s2_drafts=${stream2.draft_updated_count} s2_drafts_p/r=${stream2.draft_placeholder_count}/${stream2.draft_refined_count} s2_draft_next_hint=${stream2.draft_next_hint_present_count} s2_draft_accepted_pat=${stream2.draft_accepted_patterns_present_count} s2_draft_rejected_pat=${stream2.draft_rejected_patterns_present_count} s2_draft_title=${stream2.draft_title_present_count} s2_draft_summary=${stream2.draft_summary_present_count} s2_draft_html=${stream2.draft_html_present_count} ` +
 		`s2_facades=${stream2.facade_ready_count} s2_synth=${stream2.synthesis_updated_count} s2_evidence=${stream2.evidence_updated_count} ` +
 		`s2_facade_fmt_valid=${stream2.facade_format_valid_count} s2_facade_id=${stream2.facade_id_present_count} s2_facade_aid=${stream2.facade_agent_id_present_count} s2_facade_hyp=${stream2.facade_hypothesis_present_count} s2_facade_label=${stream2.facade_label_present_count} s2_facade_content=${stream2.facade_content_present_count} ` +
 		`s2_synth_axes=${stream2.synthesis_axes_count}/min=${stream2.synthesis_axes_min} s2_synth_axes_conf_valid=${stream2.synthesis_axes_valid_confidence_count} s2_synth_assigns=${stream2.synthesis_scout_assignments_count}/min=${stream2.synthesis_scout_assignments_min} s2_synth_assigns_scout_valid=${stream2.synthesis_scout_assignments_valid_scout_count} s2_synth_palette=${stream2.synthesis_palette_present_count} ` +

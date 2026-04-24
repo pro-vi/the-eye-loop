@@ -1,0 +1,1271 @@
+{
+  "started_at": "2026-04-24T04:53:52.579Z",
+  "finished_at": "2026-04-24T04:54:07.063Z",
+  "elapsed_ms": 14484,
+  "result": "PASS",
+  "reason": "facade_and_draft_observed",
+  "intent": "a cozy coffee shop menu",
+  "dev_url": "http://localhost:32286",
+  "session": {
+    "rtt_ms": 9,
+    "status": 200,
+    "body": {
+      "intent": "a cozy coffee shop menu",
+      "sessionId": "d9316664-d7c0-402e-aa6b-12becb885f1b"
+    },
+    "error": null
+  },
+  "session_2": {
+    "attempted": false,
+    "intent": null,
+    "rtt_ms": null,
+    "status": null,
+    "body": null,
+    "error": null,
+    "posted_at_ms": null,
+    "waited_ms": null
+  },
+  "stream": {
+    "opened_at_ms": 864,
+    "error": null,
+    "event_counts": {
+      "agent-status": 21,
+      "stage-changed": 1,
+      "draft-updated": 2,
+      "session-ready": 1,
+      "facade-ready": 7,
+      "swipe-result": 1,
+      "evidence-updated": 1,
+      "synthesis-updated": 1
+    },
+    "first_event_ms": {
+      "agent-status": 870,
+      "stage-changed": 870,
+      "draft-updated": 1382,
+      "session-ready": 1382,
+      "facade-ready": 4086,
+      "swipe-result": 4118,
+      "evidence-updated": 4118,
+      "synthesis-updated": 5035
+    },
+    "events": [
+      {
+        "ts_ms": 870,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "oracle",
+            "name": "Oracle",
+            "role": "oracle",
+            "status": "idle",
+            "focus": "monitoring"
+          }
+        }
+      },
+      {
+        "ts_ms": 870,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "idle",
+            "focus": "waiting for session"
+          }
+        }
+      },
+      {
+        "ts_ms": 870,
+        "type": "stage-changed",
+        "data": {
+          "type": "stage-changed",
+          "stage": "words",
+          "swipeCount": 0
+        }
+      },
+      {
+        "ts_ms": 1382,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "thinking",
+            "focus": "generating initial scaffold"
+          }
+        }
+      },
+      {
+        "ts_ms": 1382,
+        "type": "draft-updated",
+        "data": {
+          "type": "draft-updated",
+          "draft": {
+            "title": "a cozy coffee shop menu",
+            "summary": "Drafting your prototype from the swipes…",
+            "html": "<div style=\"padding:2rem;text-align:center;color:var(--muted,#8a7f78);opacity:0.75\"><h2 style=\"margin:0 0 1rem;font-weight:400\">a cozy coffee shop menu</h2><p style=\"margin:0\">Building your first draft…</p></div>",
+            "acceptedPatterns": [],
+            "rejectedPatterns": []
+          }
+        }
+      },
+      {
+        "ts_ms": 1382,
+        "type": "session-ready",
+        "data": {
+          "type": "session-ready",
+          "intent": "a cozy coffee shop menu"
+        }
+      },
+      {
+        "ts_ms": 1382,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "oracle",
+            "name": "Oracle",
+            "role": "oracle",
+            "status": "thinking",
+            "focus": "cold-start analysis"
+          }
+        }
+      },
+      {
+        "ts_ms": 1382,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-01",
+            "name": "Iris",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1382,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-02",
+            "name": "Prism",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1382,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-03",
+            "name": "Lumen",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1382,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-04",
+            "name": "Aura",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1382,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-05",
+            "name": "Facet",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1382,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-06",
+            "name": "Echo",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 4086,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "ba2b9e73-1ecf-4cae-9acf-7dbc356f9d50",
+            "agentId": "scout-04",
+            "hypothesis": "Users building cozy coffee shop menus gravitate toward warm, organic, sensory-forward atmospheres over clinical or digital ones",
+            "axisTargeted": "Organic vs Digital",
+            "label": "Steamed milk and wood",
+            "content": "Steamed milk and wood",
+            "format": "word",
+            "acceptImplies": "Menu should emphasize natural textures, handwritten elements, warm lighting, real materials—photos of actual drinks, pressed paper, wood surfaces",
+            "rejectImplies": "Menu might benefit from cleaner typography, modern photography, minimalist aesthetic, or digital-first presentation"
+          }
+        }
+      },
+      {
+        "ts_ms": 4086,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-04",
+            "name": "Aura",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Steamed milk and wood\"",
+            "lastFacadeId": "ba2b9e73-1ecf-4cae-9acf-7dbc356f9d50"
+          }
+        }
+      },
+      {
+        "ts_ms": 4087,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "5439cb38-920f-4b85-b058-89f2d29c6ff6",
+            "agentId": "scout-01",
+            "hypothesis": "Warm, muted color palette with cream, tan, and deep brown tones creates immediate coziness and coffee shop authenticity",
+            "axisTargeted": "Color warmth and saturation",
+            "label": "Cream and espresso",
+            "content": "Cream and espresso",
+            "format": "word",
+            "acceptImplies": "User gravitates toward nostalgic, analog color schemes; likely wants vintage or traditional coffee shop aesthetic rather than modern minimalism",
+            "rejectImplies": "User may prefer cooler tones, higher contrast, or more contemporary palettes; wants to avoid looking dated or too brown-heavy"
+          }
+        }
+      },
+      {
+        "ts_ms": 4087,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-01",
+            "name": "Iris",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Cream and espresso\"",
+            "lastFacadeId": "5439cb38-920f-4b85-b058-89f2d29c6ff6"
+          }
+        }
+      },
+      {
+        "ts_ms": 4118,
+        "type": "swipe-result",
+        "data": {
+          "type": "swipe-result",
+          "record": {
+            "facadeId": "ba2b9e73-1ecf-4cae-9acf-7dbc356f9d50",
+            "agentId": "scout-04",
+            "decision": "accept",
+            "latencyMs": 600,
+            "latencyBucket": "slow"
+          }
+        }
+      },
+      {
+        "ts_ms": 4118,
+        "type": "evidence-updated",
+        "data": {
+          "type": "evidence-updated",
+          "evidence": [
+            {
+              "facadeId": "ba2b9e73-1ecf-4cae-9acf-7dbc356f9d50",
+              "content": "Steamed milk and wood",
+              "hypothesis": "Users building cozy coffee shop menus gravitate toward warm, organic, sensory-forward atmospheres over clinical or digital ones",
+              "decision": "accept",
+              "latencySignal": "slow",
+              "format": "word",
+              "implication": "Menu should emphasize natural textures, handwritten elements, warm lighting, real materials—photos of actual drinks, pressed paper, wood surfaces"
+            }
+          ],
+          "antiPatterns": []
+        }
+      },
+      {
+        "ts_ms": 4118,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-04",
+            "name": "Aura",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe",
+            "lastFacadeId": "ba2b9e73-1ecf-4cae-9acf-7dbc356f9d50"
+          }
+        }
+      },
+      {
+        "ts_ms": 4165,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "8caa3ed6-cd18-48cb-8e39-8082af5ef5b4",
+            "agentId": "scout-03",
+            "hypothesis": "A cozy coffee shop menu benefits from personal, human-made aesthetics — handwritten fonts, imperfect typography, and warm color palettes that feel curated by the owner rather than mass-produced.",
+            "axisTargeted": "friendly/playful vs professional/neutral",
+            "label": "Warm and handwritten",
+            "content": "Warm and handwritten",
+            "format": "word",
+            "acceptImplies": "User values personality and authenticity. Menu should lean into owner's voice, hand-drawn elements, imperfect charm, casual tone.",
+            "rejectImplies": "User prefers clarity and polish. Menu should use clean typography, consistent formatting, professional visual hierarchy, neutral warmth rather than personality-driven design."
+          }
+        }
+      },
+      {
+        "ts_ms": 4165,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-03",
+            "name": "Lumen",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Warm and handwritten\"",
+            "lastFacadeId": "8caa3ed6-cd18-48cb-8e39-8082af5ef5b4"
+          }
+        }
+      },
+      {
+        "ts_ms": 4216,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "636673c6-fb24-46f2-9e5c-55cd7c28a138",
+            "agentId": "scout-05",
+            "hypothesis": "Users prefer seeing all items at once in a structured table vs scrolling through narrative descriptions",
+            "axisTargeted": "Information density — chart/grid vs narrative flow",
+            "label": "Dense menu grid",
+            "content": "Dense menu grid",
+            "format": "word",
+            "acceptImplies": "Menu favors comprehensive visual scanning, category-based layout, nutritional/price data visible upfront",
+            "rejectImplies": "Menu favors storytelling, seasonal highlights, item descriptions, human voice over exhaustive data"
+          }
+        }
+      },
+      {
+        "ts_ms": 4216,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-05",
+            "name": "Facet",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Dense menu grid\"",
+            "lastFacadeId": "636673c6-fb24-46f2-9e5c-55cd7c28a138"
+          }
+        }
+      },
+      {
+        "ts_ms": 4235,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "804e598e-baf2-4bb6-8700-b10799ebf665",
+            "agentId": "scout-02",
+            "hypothesis": "A persistent left sidebar displaying coffee categories (Espresso, Pour Over, Pastries) with the main content area showing detailed item cards for the selected category.",
+            "axisTargeted": "Navigation structure: sidebar persistence vs. tab-based switching",
+            "label": "Sidebar with menu",
+            "content": "Sidebar with menu",
+            "format": "word",
+            "acceptImplies": "The user values consistent, always-visible navigation and structured category browsing—likely prefers desktop-first or hybrid layouts where categories remain accessible while scrolling through items.",
+            "rejectImplies": "The user may prefer tab-based navigation, modal overlays, or dropdown menus that keep the interface less compartmentalized and more focused on the menu items themselves."
+          }
+        }
+      },
+      {
+        "ts_ms": 4235,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-02",
+            "name": "Prism",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Sidebar with menu\"",
+            "lastFacadeId": "804e598e-baf2-4bb6-8700-b10799ebf665"
+          }
+        }
+      },
+      {
+        "ts_ms": 4487,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "07e660b1-4160-4d44-8de5-56b0c3f5b711",
+            "agentId": "scout-06",
+            "hypothesis": "Users prefer fluid animated transitions between menu sections over instant jumps",
+            "axisTargeted": "MOTION: animated transitions vs instant state changes",
+            "label": "Page slides in smoothly",
+            "content": "Page slides in smoothly",
+            "format": "word",
+            "acceptImplies": "Build page flows with easing curves and cross-fades; prioritize motion as part of the cozy experience",
+            "rejectImplies": "Keep interactions snappy and direct; avoid unnecessary animation that might feel slow or precious"
+          }
+        }
+      },
+      {
+        "ts_ms": 4487,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-06",
+            "name": "Echo",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Page slides in smoothly\"",
+            "lastFacadeId": "07e660b1-4160-4d44-8de5-56b0c3f5b711"
+          }
+        }
+      },
+      {
+        "ts_ms": 5035,
+        "type": "synthesis-updated",
+        "data": {
+          "type": "synthesis-updated",
+          "synthesis": {
+            "axes": [
+              {
+                "label": "Whether user prefers warm, inviting visual aesthetics (earthy tones, soft lighting) vs clean, minimalist design (bright, stark)",
+                "poleA": "Warm or bright?",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user wants items organized by category/type vs browsing as a flowing list or grid",
+                "poleA": "Organized sections?",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user expects playful, casual tone vs professional, straightforward descriptions of menu items",
+                "poleA": "Playful or serious?",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user seeks cozy, intimate feeling vs energetic, social atmosphere in the space",
+                "poleA": "Quiet retreat?",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user wants detailed descriptions (ingredients, origins) vs simple, minimal item names",
+                "poleA": "Detailed descriptions?",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user prefers smooth, instant interactions vs animations that reveal items gradually",
+                "poleA": "Instant or animated?",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              }
+            ],
+            "edge_case_flags": [],
+            "scout_assignments": [
+              {
+                "scout": "Iris",
+                "probe_axis": "Whether user prefers warm, inviting visual aesthetics (earthy tones, soft lighting) vs clean, minimalist design (bright, stark)",
+                "reason": "Cold start: first question for Iris"
+              },
+              {
+                "scout": "Prism",
+                "probe_axis": "Whether user wants items organized by category/type vs browsing as a flowing list or grid",
+                "reason": "Cold start: first question for Prism"
+              },
+              {
+                "scout": "Lumen",
+                "probe_axis": "Whether user expects playful, casual tone vs professional, straightforward descriptions of menu items",
+                "reason": "Cold start: first question for Lumen"
+              },
+              {
+                "scout": "Aura",
+                "probe_axis": "Whether user seeks cozy, intimate feeling vs energetic, social atmosphere in the space",
+                "reason": "Cold start: first question for Aura"
+              },
+              {
+                "scout": "Facet",
+                "probe_axis": "Whether user wants detailed descriptions (ingredients, origins) vs simple, minimal item names",
+                "reason": "Cold start: first question for Facet"
+              },
+              {
+                "scout": "Echo",
+                "probe_axis": "Whether user prefers smooth, instant interactions vs animations that reveal items gradually",
+                "reason": "Cold start: first question for Echo"
+              }
+            ],
+            "persona_anima_divergence": null
+          }
+        }
+      },
+      {
+        "ts_ms": 5035,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "oracle",
+            "name": "Oracle",
+            "role": "oracle",
+            "status": "idle",
+            "focus": "monitoring"
+          }
+        }
+      },
+      {
+        "ts_ms": 7894,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "2934ffa3-ae69-4513-b99b-1ff9ecde5c81",
+            "agentId": "scout-04",
+            "hypothesis": "Users building cozy coffee shop menus prefer personal, human-made touches over polished uniformity, and will accept slightly imperfect handwritten elements as more authentic and intimate than printed typography",
+            "axisTargeted": "organic vs digital",
+            "label": "Handwritten menu labels",
+            "content": "Handwritten menu labels",
+            "format": "word",
+            "acceptImplies": "Menu should feature cursive script, irregular spacing, visible pen strokes, and human imperfections—perhaps menu items labeled by hand or menu boards with chalk or marker lettering",
+            "rejectImplies": "Users may prefer consistent, professionally typeset menus with uniform fonts and aligned layouts, suggesting the cozy aesthetic works better through material choices (wood, paper texture) than through handmade typography"
+          }
+        }
+      },
+      {
+        "ts_ms": 7894,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-04",
+            "name": "Aura",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Handwritten menu labels\"",
+            "lastFacadeId": "2934ffa3-ae69-4513-b99b-1ff9ecde5c81"
+          }
+        }
+      },
+      {
+        "ts_ms": 9310,
+        "type": "draft-updated",
+        "data": {
+          "type": "draft-updated",
+          "draft": {
+            "title": "Cozy Coffee Shop Menu",
+            "summary": "A warm, inviting digital menu for a coffee shop featuring drinks, pastries, and a welcoming aesthetic with earthy tones and comfortable spacing.",
+            "html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>Coffee Shop Menu</title>\n  <style>\n    :root {\n      --bg: #FFF8F0;\n      --card: #FFF;\n      --accent: #D4845C;\n      --text: #3E3530;\n      --muted: #9B8B82;\n      --radius: 12px;\n      --space: 16px;\n    }\n    * {\n      margin: 0;\n      padding: 0;\n      box-sizing: border-box;\n    }\n    body {\n      font-family: 'Georgia', serif;\n      background-color: var(--bg);\n      color: var(--text);\n      line-height: 1.6;\n    }\n    .container {\n      width: 100%;\n      max-width: 375px;\n      margin: 0 auto;\n      padding: var(--space);\n    }\n    .header {\n      text-align: center;\n      padding: calc(var(--space) * 1.5) 0;\n      border-bottom: 2px solid var(--accent);\n      margin-bottom: calc(var(--space) * 1.5);\n    }\n    .header h1 {\n      font-size: 32px;\n      color: var(--text);\n      margin-bottom: 8px;\n    }\n    .header p {\n      font-size: 14px;\n      color: var(--muted);\n    }\n    .section-title {\n      font-size: 20px;\n      color: var(--text);\n      margin: calc(var(--space) * 1.5) 0 var(--space) 0;\n      font-weight: normal;\n      border-left: 4px solid var(--accent);\n      padding-left: 12px;\n    }\n    .menu-item {\n      background-color: var(--card);\n      border-radius: var(--radius);\n      padding: var(--space);\n      margin-bottom: var(--space);\n      border: 1px solid #F0E6DC;\n    }\n    .item-header {\n      display: flex;\n      justify-content: space-between;\n      align-items: baseline;\n      margin-bottom: 6px;\n    }\n    .item-name {\n      font-size: 16px;\n      color: var(--text);\n      font-weight: 500;\n    }\n    .item-price {\n      font-size: 16px;\n      color: var(--accent);\n      font-weight: 500;\n    }\n    .item-desc {\n      font-size: 13px;\n      color: var(--muted);\n      line-height: 1.5;\n    }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <div class=\"header\">\n      <h1>Brew & Crumb</h1>\n      <p>Handcrafted coffee & pastries</p>\n    </div>\n\n    <div class=\"section-title\">Hot Drinks</div>\n    <div class=\"menu-item\">\n      <div class=\"item-header\">\n        <span class=\"item-name\">Espresso</span>\n        <span class=\"item-price\">$3.50</span>\n      </div>\n      <div class=\"item-desc\">Rich, bold single or double shot</div>\n    </div>\n    <div class=\"menu-item\">\n      <div class=\"item-header\">\n        <span class=\"item-name\">Cappuccino</span>\n        <span class=\"item-price\">$5.00</span>\n      </div>\n      <div class=\"item-desc\">Espresso with steamed milk and foam</div>\n    </div>\n    <div class=\"menu-item\">\n      <div class=\"item-header\">\n        <span class=\"item-name\">Latte</span>\n        <span class=\"item-price\">$5.50</span>\n      </div>\n      <div class=\"item-desc\">Smooth espresso with velvety steamed milk</div>\n    </div>\n\n    <div class=\"section-title\">Pastries</div>\n    <div class=\"menu-item\">\n      <div class=\"item-header\">\n        <span class=\"item-name\">Croissant</span>\n        <span class=\"item-price\">$4.00</span>\n      </div>\n      <div class=\"item-desc\">Buttery, flaky layers of pastry</div>\n    </div>\n    <div class=\"menu-item\">\n      <div class=\"item-header\">\n        <span class=\"item-name\">Blueberry Muffin</span>\n        <span class=\"item-price\">$4.50</span>\n      </div>\n      <div class=\"item-desc\">Fresh blueberries in a tender crumb</div>\n    </div>\n  </div>\n</body>\n</html>",
+            "acceptedPatterns": [],
+            "rejectedPatterns": []
+          }
+        }
+      },
+      {
+        "ts_ms": 9310,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "idle",
+            "focus": "watching for swipes"
+          }
+        }
+      },
+      {
+        "ts_ms": 9310,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "thinking",
+            "focus": "analyzing accept on \"Steamed milk and wood\""
+          }
+        }
+      }
+    ]
+  },
+  "stream_2": {
+    "attempted": true,
+    "opened_at_ms": 13376,
+    "elapsed_ms": 806,
+    "event_counts": {
+      "synthesis-updated": 1,
+      "draft-updated": 1,
+      "evidence-updated": 1,
+      "agent-status": 8,
+      "facade-ready": 6,
+      "stage-changed": 1
+    },
+    "error_event_count": 0,
+    "agent_status_count": 8,
+    "stage_changed_count": 1,
+    "draft_updated_count": 1,
+    "draft_placeholder_count": 0,
+    "draft_refined_count": 1,
+    "facade_ready_count": 6,
+    "synthesis_updated_count": 1,
+    "evidence_updated_count": 1,
+    "diagnostic_preserved_count": 0,
+    "error_provider_auth_count": 0,
+    "agent_status_scout_count": 6,
+    "agent_status_oracle_count": 1,
+    "agent_status_builder_count": 1,
+    "stage_valid_count": 1,
+    "error_source_valid_count": 0,
+    "error_code_valid_count": 0,
+    "error_message_present_count": 0,
+    "agent_status_valid_count": 8,
+    "agent_status_role_valid_count": 8,
+    "stage_changed_swipe_count_valid_count": 1,
+    "facade_format_valid_count": 6,
+    "facade_id_present_count": 6,
+    "facade_agent_id_present_count": 6,
+    "facade_hypothesis_present_count": 6,
+    "facade_label_present_count": 6,
+    "facade_content_present_count": 6,
+    "synthesis_axes_count": 6,
+    "synthesis_axes_min": 6,
+    "synthesis_scout_assignments_count": 6,
+    "synthesis_scout_assignments_min": 6,
+    "evidence_array_valid_count": 1,
+    "anti_patterns_array_valid_count": 1,
+    "evidence_length_min": 1,
+    "evidence_length_max": 1,
+    "evidence_items_valid_decision_count": 1,
+    "evidence_items_valid_format_count": 1,
+    "evidence_items_valid_latency_signal_count": 1,
+    "synthesis_axes_valid_confidence_count": 6,
+    "synthesis_scout_assignments_valid_scout_count": 6,
+    "synthesis_palette_present_count": 0,
+    "draft_next_hint_present_count": 0,
+    "draft_accepted_patterns_present_count": 0,
+    "draft_rejected_patterns_present_count": 0,
+    "draft_title_present_count": 1,
+    "draft_summary_present_count": 1,
+    "draft_html_present_count": 1,
+    "first_event_ms_after_open": 3,
+    "last_event_ms_after_open": 3,
+    "replay_span_ms": 0,
+    "events": [
+      {
+        "ts_ms": 13379,
+        "type": "synthesis-updated",
+        "data": {
+          "type": "synthesis-updated",
+          "synthesis": {
+            "axes": [
+              {
+                "label": "Whether user prefers warm, inviting visual aesthetics (earthy tones, soft lighting) vs clean, minimalist design (bright, stark)",
+                "poleA": "Warm or bright?",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user wants items organized by category/type vs browsing as a flowing list or grid",
+                "poleA": "Organized sections?",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user expects playful, casual tone vs professional, straightforward descriptions of menu items",
+                "poleA": "Playful or serious?",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user seeks cozy, intimate feeling vs energetic, social atmosphere in the space",
+                "poleA": "Quiet retreat?",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user wants detailed descriptions (ingredients, origins) vs simple, minimal item names",
+                "poleA": "Detailed descriptions?",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user prefers smooth, instant interactions vs animations that reveal items gradually",
+                "poleA": "Instant or animated?",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              }
+            ],
+            "edge_case_flags": [],
+            "scout_assignments": [
+              {
+                "scout": "Iris",
+                "probe_axis": "Whether user prefers warm, inviting visual aesthetics (earthy tones, soft lighting) vs clean, minimalist design (bright, stark)",
+                "reason": "Cold start: first question for Iris"
+              },
+              {
+                "scout": "Prism",
+                "probe_axis": "Whether user wants items organized by category/type vs browsing as a flowing list or grid",
+                "reason": "Cold start: first question for Prism"
+              },
+              {
+                "scout": "Lumen",
+                "probe_axis": "Whether user expects playful, casual tone vs professional, straightforward descriptions of menu items",
+                "reason": "Cold start: first question for Lumen"
+              },
+              {
+                "scout": "Aura",
+                "probe_axis": "Whether user seeks cozy, intimate feeling vs energetic, social atmosphere in the space",
+                "reason": "Cold start: first question for Aura"
+              },
+              {
+                "scout": "Facet",
+                "probe_axis": "Whether user wants detailed descriptions (ingredients, origins) vs simple, minimal item names",
+                "reason": "Cold start: first question for Facet"
+              },
+              {
+                "scout": "Echo",
+                "probe_axis": "Whether user prefers smooth, instant interactions vs animations that reveal items gradually",
+                "reason": "Cold start: first question for Echo"
+              }
+            ],
+            "persona_anima_divergence": null
+          }
+        }
+      },
+      {
+        "ts_ms": 13379,
+        "type": "draft-updated",
+        "data": {
+          "type": "draft-updated",
+          "draft": {
+            "title": "Cozy Coffee Shop Menu",
+            "summary": "A warm, inviting digital menu for a coffee shop featuring drinks, pastries, and a welcoming aesthetic with earthy tones and comfortable spacing.",
+            "html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>Coffee Shop Menu</title>\n  <style>\n    :root {\n      --bg: #FFF8F0;\n      --card: #FFF;\n      --accent: #D4845C;\n      --text: #3E3530;\n      --muted: #9B8B82;\n      --radius: 12px;\n      --space: 16px;\n    }\n    * {\n      margin: 0;\n      padding: 0;\n      box-sizing: border-box;\n    }\n    body {\n      font-family: 'Georgia', serif;\n      background-color: var(--bg);\n      color: var(--text);\n      line-height: 1.6;\n    }\n    .container {\n      width: 100%;\n      max-width: 375px;\n      margin: 0 auto;\n      padding: var(--space);\n    }\n    .header {\n      text-align: center;\n      padding: calc(var(--space) * 1.5) 0;\n      border-bottom: 2px solid var(--accent);\n      margin-bottom: calc(var(--space) * 1.5);\n    }\n    .header h1 {\n      font-size: 32px;\n      color: var(--text);\n      margin-bottom: 8px;\n    }\n    .header p {\n      font-size: 14px;\n      color: var(--muted);\n    }\n    .section-title {\n      font-size: 20px;\n      color: var(--text);\n      margin: calc(var(--space) * 1.5) 0 var(--space) 0;\n      font-weight: normal;\n      border-left: 4px solid var(--accent);\n      padding-left: 12px;\n    }\n    .menu-item {\n      background-color: var(--card);\n      border-radius: var(--radius);\n      padding: var(--space);\n      margin-bottom: var(--space);\n      border: 1px solid #F0E6DC;\n    }\n    .item-header {\n      display: flex;\n      justify-content: space-between;\n      align-items: baseline;\n      margin-bottom: 6px;\n    }\n    .item-name {\n      font-size: 16px;\n      color: var(--text);\n      font-weight: 500;\n    }\n    .item-price {\n      font-size: 16px;\n      color: var(--accent);\n      font-weight: 500;\n    }\n    .item-desc {\n      font-size: 13px;\n      color: var(--muted);\n      line-height: 1.5;\n    }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <div class=\"header\">\n      <h1>Brew & Crumb</h1>\n      <p>Handcrafted coffee & pastries</p>\n    </div>\n\n    <div class=\"section-title\">Hot Drinks</div>\n    <div class=\"menu-item\">\n      <div class=\"item-header\">\n        <span class=\"item-name\">Espresso</span>\n        <span class=\"item-price\">$3.50</span>\n      </div>\n      <div class=\"item-desc\">Rich, bold single or double shot</div>\n    </div>\n    <div class=\"menu-item\">\n      <div class=\"item-header\">\n        <span class=\"item-name\">Cappuccino</span>\n        <span class=\"item-price\">$5.00</span>\n      </div>\n      <div class=\"item-desc\">Espresso with steamed milk and foam</div>\n    </div>\n    <div class=\"menu-item\">\n      <div class=\"item-header\">\n        <span class=\"item-name\">Latte</span>\n        <span class=\"item-price\">$5.50</span>\n      </div>\n      <div class=\"item-desc\">Smooth espresso with velvety steamed milk</div>\n    </div>\n\n    <div class=\"section-title\">Pastries</div>\n    <div class=\"menu-item\">\n      <div class=\"item-header\">\n        <span class=\"item-name\">Croissant</span>\n        <span class=\"item-price\">$4.00</span>\n      </div>\n      <div class=\"item-desc\">Buttery, flaky layers of pastry</div>\n    </div>\n    <div class=\"menu-item\">\n      <div class=\"item-header\">\n        <span class=\"item-name\">Blueberry Muffin</span>\n        <span class=\"item-price\">$4.50</span>\n      </div>\n      <div class=\"item-desc\">Fresh blueberries in a tender crumb</div>\n    </div>\n  </div>\n</body>\n</html>",
+            "acceptedPatterns": [],
+            "rejectedPatterns": []
+          }
+        }
+      },
+      {
+        "ts_ms": 13379,
+        "type": "evidence-updated",
+        "data": {
+          "type": "evidence-updated",
+          "evidence": [
+            {
+              "facadeId": "ba2b9e73-1ecf-4cae-9acf-7dbc356f9d50",
+              "content": "Steamed milk and wood",
+              "hypothesis": "Users building cozy coffee shop menus gravitate toward warm, organic, sensory-forward atmospheres over clinical or digital ones",
+              "decision": "accept",
+              "latencySignal": "slow",
+              "format": "word",
+              "implication": "Menu should emphasize natural textures, handwritten elements, warm lighting, real materials—photos of actual drinks, pressed paper, wood surfaces"
+            }
+          ],
+          "antiPatterns": []
+        }
+      },
+      {
+        "ts_ms": 13379,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "thinking",
+            "focus": "analyzing accept on \"Steamed milk and wood\""
+          }
+        }
+      },
+      {
+        "ts_ms": 13379,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "oracle",
+            "name": "Oracle",
+            "role": "oracle",
+            "status": "idle",
+            "focus": "monitoring"
+          }
+        }
+      },
+      {
+        "ts_ms": 13379,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-01",
+            "name": "Iris",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Cream and espresso\"",
+            "lastFacadeId": "5439cb38-920f-4b85-b058-89f2d29c6ff6"
+          }
+        }
+      },
+      {
+        "ts_ms": 13379,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-02",
+            "name": "Prism",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Sidebar with menu\"",
+            "lastFacadeId": "804e598e-baf2-4bb6-8700-b10799ebf665"
+          }
+        }
+      },
+      {
+        "ts_ms": 13379,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-03",
+            "name": "Lumen",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Warm and handwritten\"",
+            "lastFacadeId": "8caa3ed6-cd18-48cb-8e39-8082af5ef5b4"
+          }
+        }
+      },
+      {
+        "ts_ms": 13379,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-04",
+            "name": "Aura",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Handwritten menu labels\"",
+            "lastFacadeId": "2934ffa3-ae69-4513-b99b-1ff9ecde5c81"
+          }
+        }
+      },
+      {
+        "ts_ms": 13379,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-05",
+            "name": "Facet",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Dense menu grid\"",
+            "lastFacadeId": "636673c6-fb24-46f2-9e5c-55cd7c28a138"
+          }
+        }
+      },
+      {
+        "ts_ms": 13379,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-06",
+            "name": "Echo",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Page slides in smoothly\"",
+            "lastFacadeId": "07e660b1-4160-4d44-8de5-56b0c3f5b711"
+          }
+        }
+      },
+      {
+        "ts_ms": 13379,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "5439cb38-920f-4b85-b058-89f2d29c6ff6",
+            "agentId": "scout-01",
+            "hypothesis": "Warm, muted color palette with cream, tan, and deep brown tones creates immediate coziness and coffee shop authenticity",
+            "axisTargeted": "Color warmth and saturation",
+            "label": "Cream and espresso",
+            "content": "Cream and espresso",
+            "format": "word",
+            "acceptImplies": "User gravitates toward nostalgic, analog color schemes; likely wants vintage or traditional coffee shop aesthetic rather than modern minimalism",
+            "rejectImplies": "User may prefer cooler tones, higher contrast, or more contemporary palettes; wants to avoid looking dated or too brown-heavy"
+          }
+        }
+      },
+      {
+        "ts_ms": 13379,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "8caa3ed6-cd18-48cb-8e39-8082af5ef5b4",
+            "agentId": "scout-03",
+            "hypothesis": "A cozy coffee shop menu benefits from personal, human-made aesthetics — handwritten fonts, imperfect typography, and warm color palettes that feel curated by the owner rather than mass-produced.",
+            "axisTargeted": "friendly/playful vs professional/neutral",
+            "label": "Warm and handwritten",
+            "content": "Warm and handwritten",
+            "format": "word",
+            "acceptImplies": "User values personality and authenticity. Menu should lean into owner's voice, hand-drawn elements, imperfect charm, casual tone.",
+            "rejectImplies": "User prefers clarity and polish. Menu should use clean typography, consistent formatting, professional visual hierarchy, neutral warmth rather than personality-driven design."
+          }
+        }
+      },
+      {
+        "ts_ms": 13379,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "636673c6-fb24-46f2-9e5c-55cd7c28a138",
+            "agentId": "scout-05",
+            "hypothesis": "Users prefer seeing all items at once in a structured table vs scrolling through narrative descriptions",
+            "axisTargeted": "Information density — chart/grid vs narrative flow",
+            "label": "Dense menu grid",
+            "content": "Dense menu grid",
+            "format": "word",
+            "acceptImplies": "Menu favors comprehensive visual scanning, category-based layout, nutritional/price data visible upfront",
+            "rejectImplies": "Menu favors storytelling, seasonal highlights, item descriptions, human voice over exhaustive data"
+          }
+        }
+      },
+      {
+        "ts_ms": 13379,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "804e598e-baf2-4bb6-8700-b10799ebf665",
+            "agentId": "scout-02",
+            "hypothesis": "A persistent left sidebar displaying coffee categories (Espresso, Pour Over, Pastries) with the main content area showing detailed item cards for the selected category.",
+            "axisTargeted": "Navigation structure: sidebar persistence vs. tab-based switching",
+            "label": "Sidebar with menu",
+            "content": "Sidebar with menu",
+            "format": "word",
+            "acceptImplies": "The user values consistent, always-visible navigation and structured category browsing—likely prefers desktop-first or hybrid layouts where categories remain accessible while scrolling through items.",
+            "rejectImplies": "The user may prefer tab-based navigation, modal overlays, or dropdown menus that keep the interface less compartmentalized and more focused on the menu items themselves."
+          }
+        }
+      },
+      {
+        "ts_ms": 13379,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "07e660b1-4160-4d44-8de5-56b0c3f5b711",
+            "agentId": "scout-06",
+            "hypothesis": "Users prefer fluid animated transitions between menu sections over instant jumps",
+            "axisTargeted": "MOTION: animated transitions vs instant state changes",
+            "label": "Page slides in smoothly",
+            "content": "Page slides in smoothly",
+            "format": "word",
+            "acceptImplies": "Build page flows with easing curves and cross-fades; prioritize motion as part of the cozy experience",
+            "rejectImplies": "Keep interactions snappy and direct; avoid unnecessary animation that might feel slow or precious"
+          }
+        }
+      },
+      {
+        "ts_ms": 13379,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "2934ffa3-ae69-4513-b99b-1ff9ecde5c81",
+            "agentId": "scout-04",
+            "hypothesis": "Users building cozy coffee shop menus prefer personal, human-made touches over polished uniformity, and will accept slightly imperfect handwritten elements as more authentic and intimate than printed typography",
+            "axisTargeted": "organic vs digital",
+            "label": "Handwritten menu labels",
+            "content": "Handwritten menu labels",
+            "format": "word",
+            "acceptImplies": "Menu should feature cursive script, irregular spacing, visible pen strokes, and human imperfections—perhaps menu items labeled by hand or menu boards with chalk or marker lettering",
+            "rejectImplies": "Users may prefer consistent, professionally typeset menus with uniform fonts and aligned layouts, suggesting the cozy aesthetic works better through material choices (wood, paper texture) than through handmade typography"
+          }
+        }
+      },
+      {
+        "ts_ms": 13379,
+        "type": "stage-changed",
+        "data": {
+          "type": "stage-changed",
+          "stage": "words",
+          "swipeCount": 1
+        }
+      }
+    ],
+    "error": null
+  },
+  "facade_visible": {
+    "attempted": true,
+    "status": 200,
+    "error": null,
+    "rtt_ms": 3
+  },
+  "swipe": {
+    "attempted": true,
+    "facadeId": "ba2b9e73-1ecf-4cae-9acf-7dbc356f9d50",
+    "facade_ready_at_ms": 4086,
+    "posted_at_ms": 4113,
+    "rtt_ms": 4,
+    "status": 200,
+    "body": {
+      "ok": true,
+      "swipeCount": 1,
+      "stage": "words"
+    },
+    "error": null
+  },
+  "metrics": {
+    "time_to_first_facade_ms": 4086,
+    "time_to_first_draft_ms": 1382,
+    "time_to_first_synthesis_ms": 5035,
+    "time_to_first_draft_after_swipe_ms": 5197,
+    "time_to_first_evidence_after_swipe_ms": 5,
+    "time_to_session_ready_ms": 1382,
+    "time_to_first_error_ms": null,
+    "time_from_session_to_first_facade_ms": 2704,
+    "time_from_session_to_first_draft_ms": 0,
+    "time_from_session_to_first_error_ms": null,
+    "facade_ready_count": 7,
+    "draft_updated_count": 2,
+    "draft_placeholder_count": 1,
+    "draft_refined_count": 1,
+    "draft_next_hint_present_count": 0,
+    "draft_accepted_patterns_present_count": 0,
+    "draft_rejected_patterns_present_count": 0,
+    "draft_title_present_count": 2,
+    "draft_summary_present_count": 2,
+    "draft_html_present_count": 2,
+    "draft_refined_html_length_p50": 3428,
+    "draft_refined_html_length_max": 3428,
+    "draft_refined_html_length_min": 3428,
+    "draft_refined_scaffold_count": 1,
+    "draft_refined_rebuild_count": 0,
+    "draft_refined_unknown_count": 0,
+    "draft_refined_scaffold_html_length_p50": 3428,
+    "draft_refined_scaffold_html_length_min": 3428,
+    "draft_refined_scaffold_html_length_max": 3428,
+    "draft_refined_rebuild_html_length_p50": null,
+    "draft_refined_rebuild_html_length_min": null,
+    "draft_refined_rebuild_html_length_max": null,
+    "synthesis_updated_count": 1,
+    "swipe_result_count": 1,
+    "evidence_updated_count": 1,
+    "facade_stale_count": 0,
+    "builder_hint_count": 0,
+    "reveal_reached": false,
+    "error_event_count": 0,
+    "error_code_counts": {},
+    "error_source_counts": {},
+    "error_agent_counts": {},
+    "distinct_error_agent_count": 0,
+    "error_source_scout_count": 0,
+    "error_source_oracle_count": 0,
+    "error_source_builder_count": 0,
+    "provider_auth_failure_count": 0,
+    "error_message_present_count": 0,
+    "auth_diagnostic_preserved_count": 0,
+    "agent_status_event_count": 21,
+    "agent_status_scout_count": 14,
+    "agent_status_oracle_count": 3,
+    "agent_status_builder_count": 4,
+    "agent_error_signal_count": 0,
+    "scout_started_count": 6,
+    "first_scout_started_ms": 1382,
+    "last_scout_started_ms": 1382,
+    "scout_start_spread_ms": 0,
+    "first_error_event_ms": null,
+    "last_error_event_ms": null,
+    "error_event_spread_ms": null,
+    "session_ready_count": 1,
+    "distinct_session_ready_intent_count": 1,
+    "session_ready_intent_present_count": 1,
+    "error_event_count_before_session_2": null,
+    "error_event_count_after_session_2": null,
+    "time_from_session_2_to_first_error_ms": null,
+    "stream_2_error_event_count": 0,
+    "stream_2_agent_status_count": 8,
+    "stream_2_stage_changed_count": 1,
+    "stream_2_diagnostic_preserved_count": 0,
+    "stream_2_error_provider_auth_count": 0,
+    "stream_2_agent_status_scout_count": 6,
+    "stream_2_agent_status_oracle_count": 1,
+    "stream_2_agent_status_builder_count": 1,
+    "stream_2_stage_valid_count": 1,
+    "stream_2_error_source_valid_count": 0,
+    "stream_2_error_code_valid_count": 0,
+    "stream_2_error_message_present_count": 0,
+    "stream_2_agent_status_valid_count": 8,
+    "stream_2_agent_status_role_valid_count": 8,
+    "stream_2_stage_changed_swipe_count_valid_count": 1,
+    "stream_2_draft_updated_count": 1,
+    "stream_2_draft_placeholder_count": 0,
+    "stream_2_draft_refined_count": 1,
+    "stream_2_draft_next_hint_present_count": 0,
+    "stream_2_draft_accepted_patterns_present_count": 0,
+    "stream_2_draft_rejected_patterns_present_count": 0,
+    "stream_2_draft_title_present_count": 1,
+    "stream_2_draft_summary_present_count": 1,
+    "stream_2_draft_html_present_count": 1,
+    "stream_2_facade_ready_count": 6,
+    "stream_2_synthesis_updated_count": 1,
+    "stream_2_evidence_updated_count": 1,
+    "stream_2_facade_format_valid_count": 6,
+    "stream_2_facade_id_present_count": 6,
+    "stream_2_facade_agent_id_present_count": 6,
+    "stream_2_facade_hypothesis_present_count": 6,
+    "stream_2_facade_label_present_count": 6,
+    "stream_2_facade_content_present_count": 6,
+    "stream_2_synthesis_axes_count": 6,
+    "stream_2_synthesis_axes_min": 6,
+    "stream_2_synthesis_scout_assignments_count": 6,
+    "stream_2_synthesis_scout_assignments_min": 6,
+    "stream_2_evidence_array_valid_count": 1,
+    "stream_2_anti_patterns_array_valid_count": 1,
+    "stream_2_evidence_length_min": 1,
+    "stream_2_evidence_length_max": 1,
+    "stream_2_evidence_items_valid_decision_count": 1,
+    "stream_2_evidence_items_valid_format_count": 1,
+    "stream_2_evidence_items_valid_latency_signal_count": 1,
+    "stream_2_synthesis_axes_valid_confidence_count": 6,
+    "stream_2_synthesis_scout_assignments_valid_scout_count": 6,
+    "stream_2_synthesis_palette_present_count": 0,
+    "stream_2_first_event_ms_after_open": 3,
+    "stream_2_replay_span_ms": 0,
+    "stage_changed_event_count": 1,
+    "time_to_first_stage_changed_ms": 870,
+    "stage_changed_before_session_ready": 1,
+    "stage_valid_count": 1,
+    "error_source_valid_count": 0,
+    "error_code_valid_count": 0,
+    "agent_status_valid_count": 21,
+    "agent_status_role_valid_count": 21,
+    "stage_changed_swipe_count_valid_count": 1,
+    "facade_format_valid_count": 7,
+    "facade_id_present_count": 7,
+    "facade_agent_id_present_count": 7,
+    "facade_hypothesis_present_count": 7,
+    "facade_label_present_count": 7,
+    "facade_content_present_count": 7,
+    "swipe_decision_valid_count": 1,
+    "swipe_latency_bucket_valid_count": 1,
+    "swipe_facade_id_present_count": 1,
+    "swipe_agent_id_present_count": 1,
+    "swipe_latency_ms_valid_count": 1,
+    "synthesis_axes_count": 6,
+    "synthesis_axes_min": 6,
+    "synthesis_axes_valid_confidence_count": 6,
+    "synthesis_scout_assignments_count": 6,
+    "synthesis_scout_assignments_min": 6,
+    "synthesis_scout_assignments_valid_scout_count": 6,
+    "synthesis_palette_present_count": 0,
+    "evidence_array_valid_count": 1,
+    "anti_patterns_array_valid_count": 1,
+    "evidence_length_min": 1,
+    "evidence_length_max": 1,
+    "evidence_items_valid_decision_count": 1,
+    "evidence_items_valid_format_count": 1,
+    "evidence_items_valid_latency_signal_count": 1,
+    "oracle_cold_start_latency_ms": 3653,
+    "oracle_synthesis_latency_ms": null,
+    "oracle_reveal_build_latency_ms": null,
+    "oracle_cold_start_count": 1,
+    "oracle_synthesis_count": 0,
+    "oracle_reveal_build_count": 0,
+    "scout_probe_latency_ms_p50": 2834,
+    "scout_probe_latency_ms_max": 3776,
+    "scout_probe_count": 7,
+    "builder_scaffold_latency_ms": 7928,
+    "builder_scaffold_count": 1,
+    "builder_rebuild_latency_ms": null,
+    "builder_rebuild_latency_ms_p50": null,
+    "builder_rebuild_latency_ms_max": null,
+    "builder_rebuild_count": 0
+  },
+  "error_event_samples": [],
+  "provider_error_samples": [],
+  "stderr_tail": "",
+  "artifact_path": "/Users/provi/Development/_projs/the-eye-loop-gnhf-worktrees/you-are-running-an-e-2c98fb/scripts/findings/validate-2026-04-24T04-54-07-063Z.json"
+}

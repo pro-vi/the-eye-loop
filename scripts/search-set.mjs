@@ -124,6 +124,17 @@ function extractMetrics(artifact) {
 		// than iter-95's single-channel nextHint signal.
 		draft_accepted_patterns_present_count: m.draft_accepted_patterns_present_count ?? 0,
 		draft_rejected_patterns_present_count: m.draft_rejected_patterns_present_count ?? 0,
+		// iter-100: forward-carry draft.title / .summary / .html presence-
+		// validity probe counts from validate.mjs so aggregate rollups below
+		// can establish the POSITIVE-IDENTITY invariant (each = draft_updated_
+		// count_sum = 10/_min=2) under iter-61 healthy-auth 5-intent 12s-window
+		// baseline. All 4 emission paths populate these 3 required-string
+		// fields; POSITIVE-IDENTITY family continuation from iter-97/98/99
+		// distinct from iter-95/96's SHOULD-BE-ZERO family on other draft
+		// fields. Saturates PrototypeDraft 6-way field-validity matrix.
+		draft_title_present_count: m.draft_title_present_count ?? 0,
+		draft_summary_present_count: m.draft_summary_present_count ?? 0,
+		draft_html_present_count: m.draft_html_present_count ?? 0,
 		draft_refined_html_length_p50: m.draft_refined_html_length_p50 ?? null,
 		draft_refined_html_length_max: m.draft_refined_html_length_max ?? null,
 		draft_refined_html_length_min: m.draft_refined_html_length_min ?? null,
@@ -207,6 +218,16 @@ function extractMetrics(artifact) {
 		stream_2_draft_rejected_patterns_present_count:
 			m.stream_2_draft_rejected_patterns_present_count ?? 0,
 		stream_2_draft_refined_count: m.stream_2_draft_refined_count ?? 0,
+		// iter-100: forward-carry stream_2 counterparts for draft.title /
+		// .summary / .html presence-validity probes. Cross-stream POSITIVE-
+		// IDENTITY with primary iter-100: each = stream_2_draft_updated_count
+		// = 5/_min=1 per 5-intent healthy-auth baseline (replay captures draft
+		// after scaffold populated all three fields). Regression classes:
+		// replay-block field-corruption, envelope-wrapping drift, timing-
+		// regime shift from single-draft to placeholder-only stream_2 window.
+		stream_2_draft_title_present_count: m.stream_2_draft_title_present_count ?? 0,
+		stream_2_draft_summary_present_count: m.stream_2_draft_summary_present_count ?? 0,
+		stream_2_draft_html_present_count: m.stream_2_draft_html_present_count ?? 0,
 		stream_2_facade_ready_count: m.stream_2_facade_ready_count ?? 0,
 		stream_2_synthesis_updated_count: m.stream_2_synthesis_updated_count ?? 0,
 		stream_2_evidence_updated_count: m.stream_2_evidence_updated_count ?? 0,
@@ -704,6 +725,122 @@ async function main() {
 				? Math.min(
 						...perIntent.map((p) => p.metrics.draft_rejected_patterns_present_count ?? 0)
 					)
+				: 0,
+			// iter-100: draft.title / .summary / .html presence-validity rollups
+			// on the primary bus. PrototypeDraft has 3 REQUIRED-string fields
+			// (types.ts:47-49) — title, summary, html — that are populated by
+			// ALL 4 emission paths (placeholder/scaffold/rebuild/reveal per the
+			// detailed rationale in validate.mjs primary-bus block). Under iter-61
+			// healthy-auth 5-intent 12s-window baseline each draft-updated emit
+			// carries non-empty strings on all three fields, so:
+			//   draft_title_present_count_sum = 10 (5 placeholder + 5 refined)
+			//   draft_title_present_count_min = 2 (per intent: 1 placeholder + 1
+			//     refined draft-updated emit)
+			//   draft_summary_present_count_sum = 10
+			//   draft_summary_present_count_min = 2
+			//   draft_html_present_count_sum = 10
+			//   draft_html_present_count_min = 2
+			// POSITIVE-IDENTITY invariants matching draft_updated_count_sum (10)
+			// and draft_updated_count_min (2) under the current regime. A per-
+			// field _sum below 10 or _min below 2 pinpoints a field-specific
+			// emission regression that iter-64/65's html-shape probe and iter-
+			// 95/96's SHOULD-BE-ZERO probes cannot surface.
+			//
+			// POSITIVE-IDENTITY family continuation from iter-97 (SwipeRecord
+			// 5-way matrix completion) and iter-98/99 (Facade 6-way matrix on
+			// both streams); third consecutive iteration in this family after
+			// iter-93/94/95/96 ran 4 consecutive SHOULD-BE-ZERO iterations
+			// (same-family admissibility maintained: each iteration adds
+			// independent per-field discriminative power on a distinct event).
+			// Saturates the PrototypeDraft 6-way field-validity matrix: 3
+			// POSITIVE-IDENTITY fields (iter-100) + 3 SHOULD-BE-ZERO fields
+			// (iter-95 nextHint, iter-96 acceptedPatterns, iter-96 rejectedPatterns)
+			// — the draft-updated counterpart to iter-98/99's Facade 6-way
+			// saturation on facade-ready.
+			//
+			// Forward-deploy identity chain: under rebuild-reachable or reveal-
+			// reachable regimes, these counts scale with draft_updated_count_sum
+			// (which itself scales with completed rebuilds/reveals). The _min
+			// probe catches single-intent regression that _sum would hide — if
+			// one intent's scaffold silently emits with title='', _sum drops
+			// from 10 to 9 AND _min drops from 2 to 1, providing two-sided
+			// discrimination between aggregate-level drift and single-intent
+			// failure.
+			//
+			// Regression classes these rollups catch that iter-64/65/75/76/95/96
+			// cannot: (a) placeholder path clearing one of the three fields
+			// while html-shape passes (e.g. title assignment refactored out);
+			// (b) scaffold LLM producing empty string on one field (zod parses
+			// empty strings, so schema doesn't reject); (c) rebuild merge
+			// typo (title = output.ttile yields undefined); (d) reveal path
+			// missing field. Paired with stream_2 counterpart rollups (below)
+			// for cross-stream identity: under healthy-auth each primary count
+			// = 10, each stream_2 count = 5 (one less completed scaffold per
+			// intent since stream_2 replay catches only the final draft state
+			// at ~12s).
+			draft_title_present_count_sum: sumMetric('draft_title_present_count'),
+			draft_title_present_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.draft_title_present_count ?? 0))
+				: 0,
+			draft_summary_present_count_sum: sumMetric('draft_summary_present_count'),
+			draft_summary_present_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.draft_summary_present_count ?? 0))
+				: 0,
+			draft_html_present_count_sum: sumMetric('draft_html_present_count'),
+			draft_html_present_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.draft_html_present_count ?? 0))
+				: 0,
+			// iter-100: stream_2 counterparts for primary-bus draft.title /
+			// .summary / .html presence-validity rollups. Under iter-61 healthy-
+			// auth baseline /api/stream replay snapshot captures context.draft
+			// AFTER scaffold populated all three fields (~12s replay window),
+			// so each stream_2 count = stream_2_draft_updated_count = 5/_min=1.
+			// Cross-stream POSITIVE-IDENTITY with primary iter-100.
+			//
+			// The 5-unit gap between primary (10) and stream_2 (5) is stable
+			// across intents and matches the (placeholder + refined) vs (refined-
+			// only snapshot) split — placeholder fires at session-ready and gets
+			// clobbered by scaffold ~10s later before stream_2 opens at ~12s,
+			// so the snapshot only replays the final refined draft. A future
+			// observation of stream_2 count above 5 or below 5 under healthy-auth
+			// baseline is a timing-regime shift signal distinct from per-intent-
+			// count drift.
+			//
+			// Regression classes these rollups catch uniquely at stream_2:
+			//   (a) replay-block field-corruption (e.g. a .map(d => ({...d,
+			//     title: undefined})) transform inserted into +server.ts:27-29):
+			//     primary stays at 10, stream_2 drops below 5 — pinpoints
+			//     replay-specific mutation.
+			//   (b) payload-shape divergence where stream_2 envelopes the
+			//     draft differently than primary (e.g. { draft: { title:
+			//     stringified JSON } }): primary holds at 10, stream_2 drops
+			//     to 0 since typeof fails.
+			//   (c) scaffold-never-completes regime where context.draft remains
+			//     at placeholder at stream_2 open time: primary stays at 10
+			//     (tracks placeholder emits), stream_2 holds at 5 (replay
+			//     captures placeholder's non-empty title/summary/html). Note:
+			//     this is NOT a regression — placeholder populates all three
+			//     fields, so the probe still passes POSITIVE-IDENTITY. A
+			//     scaffold-never-completes regime WOULD drop iter-64's refined_
+			//     count while iter-100 counts stay at 5 — distinguishing
+			//     field-level emission from content-quality regression.
+			stream_2_draft_title_present_count_sum: sumMetric('stream_2_draft_title_present_count'),
+			stream_2_draft_title_present_count_min: perIntent.length
+				? Math.min(
+						...perIntent.map((p) => p.metrics.stream_2_draft_title_present_count ?? 0)
+					)
+				: 0,
+			stream_2_draft_summary_present_count_sum: sumMetric(
+				'stream_2_draft_summary_present_count'
+			),
+			stream_2_draft_summary_present_count_min: perIntent.length
+				? Math.min(
+						...perIntent.map((p) => p.metrics.stream_2_draft_summary_present_count ?? 0)
+					)
+				: 0,
+			stream_2_draft_html_present_count_sum: sumMetric('stream_2_draft_html_present_count'),
+			stream_2_draft_html_present_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.stream_2_draft_html_present_count ?? 0))
 				: 0,
 			// iter-75 draft refined html length distribution rollups — iter-74
 			// reduced Haiku's scaffold output from ~5800-7300 chars (iter-71
