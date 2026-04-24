@@ -294,6 +294,8 @@ Swipe cadence target: as fast as the user can flick. Generation cadence varies b
 
 **Buffer target:** warm to at least 12 ready cards before entering swiping. Maintain 16-24 ready cards. Below 8 -> aggressive refill.
 
+**Self-healing:** if refill exits below the minimum after provider failures, duplicates, or no-output batches, schedule a delayed retry with backoff. A live, unrevealed session with an empty deck must not sit with every scout idle.
+
 **Freshness:** on synthesis update, bump `tasteVersion`. Keep cards within 1-2 versions of current taste when possible; demote or drop older cards unless the deck is near empty.
 
 **Stage blending:** No abrupt transitions. Late word-stage facades can carry small images. Early mockup-stage can be partial layouts. Transitions driven by Anima resolution density.

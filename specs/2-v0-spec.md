@@ -327,6 +327,7 @@ No axis seeding. No coded confidence scores. No YAML distributions. The evidence
 - warm start: block until at least `12` ready facades or warmup timeout
 - target queue size: top off toward `20`, cap at `24`, treat `< 8` as low water
 - `session.queueStats`: UI-visible ready/pending/min/target/max/stale reservoir counts
+- if a refill exits without enough ready cards, schedule a delayed retry; an empty deck must never require another swipe to restart scouts
 - staleness: facades older than the taste-version lag are pruned when synthesis updates
 - diversity: skip duplicate queued labels or targeted axes
 

@@ -32,6 +32,9 @@ const REVEAL_FORCE_PREP_AT = Math.max(1, AUTO_REVEAL_SWIPE_THRESHOLD - 6);
 const WARMUP_TIMEOUT_MS = 45_000;
 const MAX_CONCURRENT_SCOUTS = 6;
 const MAX_REFILL_BATCHES_WITHOUT_PROGRESS = 2;
+const REFILL_EMPTY_RETRY_BASE_MS = 1_500;
+const REFILL_LOW_RETRY_BASE_MS = 4_000;
+const REFILL_MAX_RETRY_MS = 30_000;
 const RENDERABLE_HTML_PATTERN =
 	/<(?:!doctype|html|head|body|style|main|section|article|div|nav|header|footer|button|ul|ol|li)\b/i;
 
@@ -263,6 +266,8 @@ interface BuilderQueue {
 
 const builderQueues = new WeakMap<EyeLoopSession, BuilderQueue>();
 const refillRuns = new WeakMap<EyeLoopSession, Promise<void>>();
+const refillRetryTimers = new WeakMap<EyeLoopSession, ReturnType<typeof setTimeout>>();
+const refillRetryCounts = new WeakMap<EyeLoopSession, number>();
 const synthesisRuns = new WeakMap<EyeLoopSession, Promise<void>>();
 const revealRuns = new WeakMap<EyeLoopSession, Promise<void>>();
 
@@ -414,6 +419,43 @@ function isRevealStage(session: EyeLoopSession): boolean {
 	return session.stage === 'reveal';
 }
 
+function queueNeedsRefill(session: EyeLoopSession, minReady: number): boolean {
+	return !isRevealStage(session) && session.facades.length + session.pendingFacadeJobs < minReady;
+}
+
+function clearDelayedRefill(session: EyeLoopSession) {
+	const timer = refillRetryTimers.get(session);
+	if (!timer) return;
+	clearTimeout(timer);
+	refillRetryTimers.delete(session);
+}
+
+function resetRefillBackoff(session: EyeLoopSession) {
+	refillRetryCounts.delete(session);
+}
+
+function scheduleDelayedRefill(
+	session: EyeLoopSession,
+	reason: string,
+	minReady: number,
+	targetReady = RESERVOIR_TARGET_READY
+) {
+	if (!queueNeedsRefill(session, minReady)) return;
+	if (session.lastError?.code === 'provider_auth_failure') return;
+	if (refillRuns.has(session) || refillRetryTimers.has(session)) return;
+
+	const retryCount = refillRetryCounts.get(session) ?? 0;
+	const baseDelay = session.facades.length === 0 ? REFILL_EMPTY_RETRY_BASE_MS : REFILL_LOW_RETRY_BASE_MS;
+	const delay = Math.min(REFILL_MAX_RETRY_MS, baseDelay * 2 ** retryCount);
+	refillRetryCounts.set(session, retryCount + 1);
+
+	const timer = setTimeout(() => {
+		refillRetryTimers.delete(session);
+		void runRefill(session, `${reason} retry`, minReady, targetReady);
+	}, delay);
+	refillRetryTimers.set(session, timer);
+}
+
 function pruneStaleFacades(session: EyeLoopSession) {
 	if (session.facades.length <= RESERVOIR_LOW_WATER) return;
 	for (const facade of [...session.facades]) {
@@ -508,6 +550,8 @@ async function runRefill(
 	targetReady = RESERVOIR_TARGET_READY
 ) {
 	if (refillRuns.has(session)) return refillRuns.get(session);
+	clearDelayedRefill(session);
+	let madeProgress = false;
 	const run = (async () => {
 		pruneStaleFacades(session);
 		let noProgressBatches = 0;
@@ -534,6 +578,7 @@ async function runRefill(
 				noProgressBatches++;
 				if (noProgressBatches >= MAX_REFILL_BATCHES_WITHOUT_PROGRESS) break;
 			} else {
+				madeProgress = true;
 				noProgressBatches = 0;
 			}
 			if (session.facades.length >= targetReady) break;
@@ -545,6 +590,8 @@ async function runRefill(
 		await run;
 	} finally {
 		refillRuns.delete(session);
+		if (madeProgress) resetRefillBackoff(session);
+		scheduleDelayedRefill(session, reason, minReady, targetReady);
 	}
 }
 
