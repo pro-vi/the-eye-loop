@@ -1,0 +1,1252 @@
+{
+  "started_at": "2026-04-24T04:34:55.733Z",
+  "finished_at": "2026-04-24T04:35:10.209Z",
+  "elapsed_ms": 14476,
+  "result": "PASS",
+  "reason": "facade_and_draft_observed",
+  "intent": "weather app for runners",
+  "dev_url": "http://localhost:36614",
+  "session": {
+    "rtt_ms": 11,
+    "status": 200,
+    "body": {
+      "intent": "weather app for runners",
+      "sessionId": "eeb083af-4e5a-418d-91fa-290bf1872729"
+    },
+    "error": null
+  },
+  "session_2": {
+    "attempted": false,
+    "intent": null,
+    "rtt_ms": null,
+    "status": null,
+    "body": null,
+    "error": null,
+    "posted_at_ms": null,
+    "waited_ms": null
+  },
+  "stream": {
+    "opened_at_ms": 854,
+    "error": null,
+    "event_counts": {
+      "agent-status": 21,
+      "stage-changed": 1,
+      "draft-updated": 2,
+      "session-ready": 1,
+      "facade-ready": 7,
+      "swipe-result": 1,
+      "evidence-updated": 1,
+      "synthesis-updated": 1
+    },
+    "first_event_ms": {
+      "agent-status": 859,
+      "stage-changed": 859,
+      "draft-updated": 1373,
+      "session-ready": 1373,
+      "facade-ready": 3981,
+      "swipe-result": 4111,
+      "evidence-updated": 4111,
+      "synthesis-updated": 5065
+    },
+    "events": [
+      {
+        "ts_ms": 859,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "oracle",
+            "name": "Oracle",
+            "role": "oracle",
+            "status": "idle",
+            "focus": "monitoring"
+          }
+        }
+      },
+      {
+        "ts_ms": 859,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "idle",
+            "focus": "waiting for session"
+          }
+        }
+      },
+      {
+        "ts_ms": 859,
+        "type": "stage-changed",
+        "data": {
+          "type": "stage-changed",
+          "stage": "words",
+          "swipeCount": 0
+        }
+      },
+      {
+        "ts_ms": 1373,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "thinking",
+            "focus": "generating initial scaffold"
+          }
+        }
+      },
+      {
+        "ts_ms": 1373,
+        "type": "draft-updated",
+        "data": {
+          "type": "draft-updated",
+          "draft": {
+            "title": "weather app for runners",
+            "summary": "Drafting your prototype from the swipes…",
+            "html": "<div style=\"padding:2rem;text-align:center;color:var(--muted,#8a7f78);opacity:0.75\"><h2 style=\"margin:0 0 1rem;font-weight:400\">weather app for runners</h2><p style=\"margin:0\">Building your first draft…</p></div>",
+            "acceptedPatterns": [],
+            "rejectedPatterns": []
+          }
+        }
+      },
+      {
+        "ts_ms": 1373,
+        "type": "session-ready",
+        "data": {
+          "type": "session-ready",
+          "intent": "weather app for runners"
+        }
+      },
+      {
+        "ts_ms": 1373,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "oracle",
+            "name": "Oracle",
+            "role": "oracle",
+            "status": "thinking",
+            "focus": "cold-start analysis"
+          }
+        }
+      },
+      {
+        "ts_ms": 1373,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-01",
+            "name": "Iris",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1373,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-02",
+            "name": "Prism",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1373,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-03",
+            "name": "Lumen",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1373,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-04",
+            "name": "Aura",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1373,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-05",
+            "name": "Facet",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1373,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-06",
+            "name": "Echo",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 3981,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "417f5f78-881c-401e-882a-dada689455f3",
+            "agentId": "scout-03",
+            "hypothesis": "A weather app for runners benefits from a friendly, encouraging voice—brief check-ins and motivational language—rather than neutral, data-focused language.",
+            "axisTargeted": "Friendly vs Professional",
+            "label": "Conversational tone",
+            "content": "Conversational tone",
+            "format": "word",
+            "acceptImplies": "Users want personality and warmth in their running companion; design should feel supportive and human-centered.",
+            "rejectImplies": "Users prefer clean, factual information without personality overlay; voice should stay neutral and get out of the way."
+          }
+        }
+      },
+      {
+        "ts_ms": 3981,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-03",
+            "name": "Lumen",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Conversational tone\"",
+            "lastFacadeId": "417f5f78-881c-401e-882a-dada689455f3"
+          }
+        }
+      },
+      {
+        "ts_ms": 3981,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "71167bbd-f91d-4da9-b886-52e13fd1ae3d",
+            "agentId": "scout-04",
+            "hypothesis": "High-contrast, digitally-bright interface with electric color accents creates energetic, performance-focused mood — appeals to runners who want intensity and visibility",
+            "axisTargeted": "organic vs digital",
+            "label": "Vibrant neon text",
+            "content": "Vibrant neon text",
+            "format": "word",
+            "acceptImplies": "User gravitates toward bold, tech-forward aesthetic; may prefer glanceable data displays, high saturation, modern typefaces",
+            "rejectImplies": "User prefers softer, more natural or muted palette; likely favors clarity through restraint rather than contrast; may want earthy or monochrome tones"
+          }
+        }
+      },
+      {
+        "ts_ms": 3981,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-04",
+            "name": "Aura",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Vibrant neon text\"",
+            "lastFacadeId": "71167bbd-f91d-4da9-b886-52e13fd1ae3d"
+          }
+        }
+      },
+      {
+        "ts_ms": 4111,
+        "type": "swipe-result",
+        "data": {
+          "type": "swipe-result",
+          "record": {
+            "facadeId": "417f5f78-881c-401e-882a-dada689455f3",
+            "agentId": "scout-03",
+            "decision": "accept",
+            "latencyMs": 600,
+            "latencyBucket": "slow"
+          }
+        }
+      },
+      {
+        "ts_ms": 4111,
+        "type": "evidence-updated",
+        "data": {
+          "type": "evidence-updated",
+          "evidence": [
+            {
+              "facadeId": "417f5f78-881c-401e-882a-dada689455f3",
+              "content": "Conversational tone",
+              "hypothesis": "A weather app for runners benefits from a friendly, encouraging voice—brief check-ins and motivational language—rather than neutral, data-focused language.",
+              "decision": "accept",
+              "latencySignal": "slow",
+              "format": "word",
+              "implication": "Users want personality and warmth in their running companion; design should feel supportive and human-centered."
+            }
+          ],
+          "antiPatterns": []
+        }
+      },
+      {
+        "ts_ms": 4111,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-03",
+            "name": "Lumen",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe",
+            "lastFacadeId": "417f5f78-881c-401e-882a-dada689455f3"
+          }
+        }
+      },
+      {
+        "ts_ms": 4137,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "ef99d8ca-4ecc-4703-805e-4ef622a6b300",
+            "agentId": "scout-01",
+            "hypothesis": "Runners respond energetically to vibrant, dynamic color transitions in sports apps—suggests active, motivational aesthetic over muted or neutral palettes",
+            "axisTargeted": "Color palette temperature and saturation",
+            "label": "Bold colorful gradient",
+            "content": "Bold colorful gradient",
+            "format": "word",
+            "acceptImplies": "Design leans toward bright, multi-hued, high-energy visuals; weather data displayed with saturated accent colors; possibly neon or sunset-inspired gradients",
+            "rejectImplies": "Design favors restraint in color; weather info in muted, desaturated, or monochromatic tones; cooler or more minimalist palette is preferred for runner focus"
+          }
+        }
+      },
+      {
+        "ts_ms": 4137,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-01",
+            "name": "Iris",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Bold colorful gradient\"",
+            "lastFacadeId": "ef99d8ca-4ecc-4703-805e-4ef622a6b300"
+          }
+        }
+      },
+      {
+        "ts_ms": 4483,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "0d4c5c83-496a-40b8-b128-3b9bf94b76ca",
+            "agentId": "scout-06",
+            "hypothesis": "For a runner app, immediate feedback on taps (no loading states or transition delay) feels more responsive and trustworthy than animated transitions between screens.",
+            "axisTargeted": "Instant vs animated transitions — whether UI responds with zero-latency clicks or fluid motion between states.",
+            "label": "Tap updates instantly",
+            "content": "Tap updates instantly",
+            "format": "word",
+            "acceptImplies": "User prefers snappy, direct feedback; likely values speed and certainty over visual smoothness; may want minimal animations overall.",
+            "rejectImplies": "User prefers motion and continuity; likely wants to see where content comes from and goes; may accept slight delay if it feels intentional and connected."
+          }
+        }
+      },
+      {
+        "ts_ms": 4483,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-06",
+            "name": "Echo",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Tap updates instantly\"",
+            "lastFacadeId": "0d4c5c83-496a-40b8-b128-3b9bf94b76ca"
+          }
+        }
+      },
+      {
+        "ts_ms": 5047,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "a044f282-43fe-4641-8696-2be46b7c5547",
+            "agentId": "scout-05",
+            "hypothesis": "Runners want granular pace/distance data displayed as real-time segments (mile markers, kilometer splits) rather than aggregate summary stats",
+            "axisTargeted": "DENSE DATA vs KEY METRICS — should the app show detailed breakdowns or just the essential headline numbers?",
+            "label": "Splits and intervals",
+            "content": "Splits and intervals",
+            "format": "word",
+            "acceptImplies": "The design favors data-rich, segment-based readouts; runners scan detailed splits mid-run; the interface prioritizes precision and breakdown over simplicity",
+            "rejectImplies": "The design favors headline metrics (total distance, average pace, time); runners want glanceable summaries; the interface prioritizes clarity and speed-of-understanding over granular detail"
+          }
+        }
+      },
+      {
+        "ts_ms": 5047,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-05",
+            "name": "Facet",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Splits and intervals\"",
+            "lastFacadeId": "a044f282-43fe-4641-8696-2be46b7c5547"
+          }
+        }
+      },
+      {
+        "ts_ms": 5065,
+        "type": "synthesis-updated",
+        "data": {
+          "type": "synthesis-updated",
+          "synthesis": {
+            "axes": [
+              {
+                "label": "Whether user prefers minimalist, clean aesthetics vs. data-rich visual displays for workout tracking",
+                "poleA": "Minimal or detailed",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user wants quick-glance widgets vs. deep-dive dashboard navigation for weather checks mid-run",
+                "poleA": "Quick peek or explore",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user responds to motivational, encouraging tone vs. neutral, factual weather reporting",
+                "poleA": "Cheerleader or reporter",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user wants energizing, action-oriented feel vs. calm, meditative interface atmosphere",
+                "poleA": "Pumped up or zen",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user prioritizes simple essentials (temp, rain) vs. detailed metrics (humidity, wind, UV index)",
+                "poleA": "Just the basics or all the stats",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user prefers smooth, flowing transitions vs. snappy, instant feedback and alerts",
+                "poleA": "Smooth or snappy",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              }
+            ],
+            "edge_case_flags": [],
+            "scout_assignments": [
+              {
+                "scout": "Iris",
+                "probe_axis": "Whether user prefers minimalist, clean aesthetics vs. data-rich visual displays for workout tracking",
+                "reason": "Cold start: first question for Iris"
+              },
+              {
+                "scout": "Prism",
+                "probe_axis": "Whether user wants quick-glance widgets vs. deep-dive dashboard navigation for weather checks mid-run",
+                "reason": "Cold start: first question for Prism"
+              },
+              {
+                "scout": "Lumen",
+                "probe_axis": "Whether user responds to motivational, encouraging tone vs. neutral, factual weather reporting",
+                "reason": "Cold start: first question for Lumen"
+              },
+              {
+                "scout": "Aura",
+                "probe_axis": "Whether user wants energizing, action-oriented feel vs. calm, meditative interface atmosphere",
+                "reason": "Cold start: first question for Aura"
+              },
+              {
+                "scout": "Facet",
+                "probe_axis": "Whether user prioritizes simple essentials (temp, rain) vs. detailed metrics (humidity, wind, UV index)",
+                "reason": "Cold start: first question for Facet"
+              },
+              {
+                "scout": "Echo",
+                "probe_axis": "Whether user prefers smooth, flowing transitions vs. snappy, instant feedback and alerts",
+                "reason": "Cold start: first question for Echo"
+              }
+            ],
+            "persona_anima_divergence": null
+          }
+        }
+      },
+      {
+        "ts_ms": 5065,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "oracle",
+            "name": "Oracle",
+            "role": "oracle",
+            "status": "idle",
+            "focus": "monitoring"
+          }
+        }
+      },
+      {
+        "ts_ms": 5238,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "20118614-a1f3-47b5-bf49-478f7e9a5c0b",
+            "agentId": "scout-02",
+            "hypothesis": "A persistent left sidebar navigation (with running metrics like pace, distance, heart rate) paired with vertical card stacks for weather details (current, hourly, alerts) creates faster glanceability than a full-screen tab layout.",
+            "axisTargeted": "Navigation structure: sidebar persistence vs. tab-based switching",
+            "label": "Sidebar with cards",
+            "content": "Sidebar with cards",
+            "format": "word",
+            "acceptImplies": "Users value always-visible metrics + modular weather cards. Explore sidebar depth (collapsed vs. expanded), card height (tall vs. shallow), and metric priority ordering.",
+            "rejectImplies": "Users prefer immersive full-screen views or tab-based compartmentalization. Probe single-screen density and swipeable card carousels instead."
+          }
+        }
+      },
+      {
+        "ts_ms": 5238,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-02",
+            "name": "Prism",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Sidebar with cards\"",
+            "lastFacadeId": "20118614-a1f3-47b5-bf49-478f7e9a5c0b"
+          }
+        }
+      },
+      {
+        "ts_ms": 6793,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "f88626bb-abfc-4f16-aab3-24d4a9a57bf2",
+            "agentId": "scout-03",
+            "hypothesis": "A weather app for runners benefits from colloquial, runner-specific language (e.g., 'conditions are gnarly,' 'perfect for a tempo run') rather than formal meteorological terminology, creating in-group belonging and real-world relevance.",
+            "axisTargeted": "Voice formality and domain specificity (neutral technical vs. community insider)",
+            "label": "Casual slang",
+            "content": "Casual slang",
+            "format": "word",
+            "acceptImplies": "Design voice as an experienced running buddy who speaks your language; use runner lexicon and casual phrasing throughout the app.",
+            "rejectImplies": "Stick closer to standard weather app language; avoid jargon that might confuse or alienate non-hardcore runners; prioritize clarity over community flavor."
+          }
+        }
+      },
+      {
+        "ts_ms": 6793,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-03",
+            "name": "Lumen",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Casual slang\"",
+            "lastFacadeId": "f88626bb-abfc-4f16-aab3-24d4a9a57bf2"
+          }
+        }
+      },
+      {
+        "ts_ms": 12520,
+        "type": "draft-updated",
+        "data": {
+          "type": "draft-updated",
+          "draft": {
+            "title": "RunWeather",
+            "summary": "A weather app designed for runners, showing real-time conditions, wind impact, and run-friendly forecasts at a glance.",
+            "html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>RunWeather</title>\n  <style>\n    :root {\n      --bg: #FFF8F0;\n      --card: #FFF;\n      --accent: #FF8C69;\n      --text: #4A3E38;\n      --muted: #A1887F;\n      --radius: 16px;\n      --space: 20px;\n    }\n    * {\n      margin: 0;\n      padding: 0;\n      box-sizing: border-box;\n    }\n    body {\n      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;\n      background: var(--bg);\n      color: var(--text);\n      font-size: 16px;\n      line-height: 1.5;\n    }\n    .container {\n      width: 100%;\n      max-width: 375px;\n      margin: 0 auto;\n      padding: var(--space);\n      min-height: 667px;\n      display: flex;\n      flex-direction: column;\n      gap: var(--space);\n    }\n    .header {\n      text-align: center;\n      padding-top: var(--space);\n    }\n    .header h1 {\n      font-size: 28px;\n      font-weight: 700;\n      margin-bottom: 4px;\n    }\n    .header p {\n      font-size: 14px;\n      color: var(--muted);\n    }\n    .current-conditions {\n      background: var(--card);\n      border-radius: var(--radius);\n      padding: var(--space);\n      box-shadow: 0 2px 8px rgba(0,0,0,0.08);\n    }\n    .temp-display {\n      display: flex;\n      align-items: flex-start;\n      gap: var(--space);\n      margin-bottom: var(--space);\n    }\n    .temp-large {\n      font-size: 48px;\n      font-weight: 700;\n      line-height: 1;\n    }\n    .condition-text {\n      flex: 1;\n    }\n    .condition-text p {\n      font-size: 18px;\n      font-weight: 600;\n      margin-bottom: 4px;\n    }\n    .condition-text span {\n      font-size: 14px;\n      color: var(--muted);\n    }\n    .metrics {\n      display: grid;\n      grid-template-columns: 1fr 1fr;\n      gap: 12px;\n    }\n    .metric {\n      background: var(--bg);\n      border-radius: 12px;\n      padding: 12px;\n      text-align: center;\n    }\n    .metric-label {\n      font-size: 12px;\n      color: var(--muted);\n      text-transform: uppercase;\n      letter-spacing: 0.5px;\n      margin-bottom: 4px;\n    }\n    .metric-value {\n      font-size: 20px;\n      font-weight: 700;\n      color: var(--accent);\n    }\n    .run-forecast {\n      background: var(--card);\n      border-radius: var(--radius);\n      padding: var(--space);\n      box-shadow: 0 2px 8px rgba(0,0,0,0.08);\n    }\n    .run-forecast h2 {\n      font-size: 18px;\n      font-weight: 700;\n      margin-bottom: 12px;\n    }\n    .forecast-item {\n      display: flex;\n      justify-content: space-between;\n      align-items: center;\n      padding: 12px 0;\n      border-bottom: 1px solid var(--bg);\n    }\n    .forecast-item:last-child {\n      border-bottom: none;\n    }\n    .forecast-time {\n      font-size: 14px;\n      font-weight: 600;\n    }\n    .forecast-details {\n      display: flex;\n      gap: 12px;\n      align-items: center;\n      font-size: 14px;\n    }\n    .forecast-temp {\n      color: var(--accent);\n      font-weight: 600;\n      min-width: 40px;\n      text-align: right;\n    }\n    .run-score {\n      background: linear-gradient(135deg, var(--accent), #FF6B4A);\n      border-radius: var(--radius);\n      padding: var(--space);\n      color: white;\n      text-align: center;\n      box-shadow: 0 4px 12px rgba(255, 140, 105, 0.3);\n    }\n    .run-score h3 {\n      font-size: 14px;\n      font-weight: 600;\n      opacity: 0.9;\n      margin-bottom: 8px;\n    }\n    .score-number {\n      font-size: 36px;\n      font-weight: 700;\n      line-height: 1;\n    }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <div class=\"header\">\n      <h1>RunWeather</h1>\n      <p>San Francisco, CA</p>\n    </div>\n\n    <div class=\"current-conditions\">\n      <div class=\"temp-display\">\n        <div class=\"temp-large\">62°</div>\n        <div class=\"condition-text\">\n          <p>Partly Cloudy</p>\n          <span>Feels like 59°</span>\n        </div>\n      </div>\n      <div class=\"metrics\">\n        <div class=\"metric\">\n          <div class=\"metric-label\">Wind</div>\n          <div class=\"metric-value\">8 mph</div>\n        </div>\n        <div class=\"metric\">\n          <div class=\"metric-label\">Humidity</div>\n          <div class=\"metric-value\">65%</div>\n        </div>\n        <div class=\"metric\">\n          <div class=\"metric-label\">UV Index</div>\n          <div class=\"metric-value\">4</div>\n        </div>\n        <div class=\"metric\">\n          <div class=\"metric-label\">Visibility</div>\n          <div class=\"metric-value\">10 mi</div>\n        </div>\n      </div>\n    </div>\n\n    <div class=\"run-forecast\">\n      <h2>Next 3 Hours</h2>\n      <div class=\"forecast-item\">\n        <div class=\"forecast-time\">Now</div>\n        <div class=\"forecast-details\">\n          <span>Partly Cloudy</span>\n          <div class=\"forecast-temp\">62°</div>\n        </div>\n      </div>\n      <div class=\"forecast-item\">\n        <div class=\"forecast-time\">2:00 PM</div>\n        <div class=\"forecast-details\">\n          <span>Sunny</span>\n          <div class=\"forecast-temp\">65°</div>\n        </div>\n      </div>\n      <div class=\"forecast-item\">\n        <div class=\"forecast-time\">3:00 PM</div>\n        <div class=\"forecast-details\">\n          <span>Sunny</span>\n          <div class=\"forecast-temp\">67°</div>\n        </div>\n      </div>\n    </div>\n\n    <div class=\"run-score\">\n      <h3>Run Score</h3>\n      <div class=\"score-number\">8.2</div>\n    </div>\n  </div>\n</body>\n</html>",
+            "acceptedPatterns": [],
+            "rejectedPatterns": []
+          }
+        }
+      },
+      {
+        "ts_ms": 12520,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "idle",
+            "focus": "watching for swipes"
+          }
+        }
+      },
+      {
+        "ts_ms": 12520,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "thinking",
+            "focus": "analyzing accept on \"Conversational tone\""
+          }
+        }
+      }
+    ]
+  },
+  "stream_2": {
+    "attempted": true,
+    "opened_at_ms": 13369,
+    "elapsed_ms": 804,
+    "event_counts": {
+      "synthesis-updated": 1,
+      "draft-updated": 1,
+      "evidence-updated": 1,
+      "agent-status": 8,
+      "facade-ready": 6,
+      "stage-changed": 1
+    },
+    "error_event_count": 0,
+    "agent_status_count": 8,
+    "stage_changed_count": 1,
+    "draft_updated_count": 1,
+    "draft_placeholder_count": 0,
+    "draft_refined_count": 1,
+    "facade_ready_count": 6,
+    "synthesis_updated_count": 1,
+    "evidence_updated_count": 1,
+    "diagnostic_preserved_count": 0,
+    "error_provider_auth_count": 0,
+    "agent_status_scout_count": 6,
+    "agent_status_oracle_count": 1,
+    "agent_status_builder_count": 1,
+    "stage_valid_count": 1,
+    "error_source_valid_count": 0,
+    "error_code_valid_count": 0,
+    "error_message_present_count": 0,
+    "agent_status_valid_count": 8,
+    "agent_status_role_valid_count": 8,
+    "stage_changed_swipe_count_valid_count": 1,
+    "facade_format_valid_count": 6,
+    "synthesis_axes_count": 6,
+    "synthesis_axes_min": 6,
+    "synthesis_scout_assignments_count": 6,
+    "synthesis_scout_assignments_min": 6,
+    "evidence_array_valid_count": 1,
+    "anti_patterns_array_valid_count": 1,
+    "evidence_length_min": 1,
+    "evidence_length_max": 1,
+    "evidence_items_valid_decision_count": 1,
+    "evidence_items_valid_format_count": 1,
+    "evidence_items_valid_latency_signal_count": 1,
+    "synthesis_axes_valid_confidence_count": 6,
+    "synthesis_scout_assignments_valid_scout_count": 6,
+    "synthesis_palette_present_count": 0,
+    "draft_next_hint_present_count": 0,
+    "draft_accepted_patterns_present_count": 0,
+    "draft_rejected_patterns_present_count": 0,
+    "first_event_ms_after_open": 2,
+    "last_event_ms_after_open": 2,
+    "replay_span_ms": 0,
+    "events": [
+      {
+        "ts_ms": 13371,
+        "type": "synthesis-updated",
+        "data": {
+          "type": "synthesis-updated",
+          "synthesis": {
+            "axes": [
+              {
+                "label": "Whether user prefers minimalist, clean aesthetics vs. data-rich visual displays for workout tracking",
+                "poleA": "Minimal or detailed",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user wants quick-glance widgets vs. deep-dive dashboard navigation for weather checks mid-run",
+                "poleA": "Quick peek or explore",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user responds to motivational, encouraging tone vs. neutral, factual weather reporting",
+                "poleA": "Cheerleader or reporter",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user wants energizing, action-oriented feel vs. calm, meditative interface atmosphere",
+                "poleA": "Pumped up or zen",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user prioritizes simple essentials (temp, rain) vs. detailed metrics (humidity, wind, UV index)",
+                "poleA": "Just the basics or all the stats",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user prefers smooth, flowing transitions vs. snappy, instant feedback and alerts",
+                "poleA": "Smooth or snappy",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              }
+            ],
+            "edge_case_flags": [],
+            "scout_assignments": [
+              {
+                "scout": "Iris",
+                "probe_axis": "Whether user prefers minimalist, clean aesthetics vs. data-rich visual displays for workout tracking",
+                "reason": "Cold start: first question for Iris"
+              },
+              {
+                "scout": "Prism",
+                "probe_axis": "Whether user wants quick-glance widgets vs. deep-dive dashboard navigation for weather checks mid-run",
+                "reason": "Cold start: first question for Prism"
+              },
+              {
+                "scout": "Lumen",
+                "probe_axis": "Whether user responds to motivational, encouraging tone vs. neutral, factual weather reporting",
+                "reason": "Cold start: first question for Lumen"
+              },
+              {
+                "scout": "Aura",
+                "probe_axis": "Whether user wants energizing, action-oriented feel vs. calm, meditative interface atmosphere",
+                "reason": "Cold start: first question for Aura"
+              },
+              {
+                "scout": "Facet",
+                "probe_axis": "Whether user prioritizes simple essentials (temp, rain) vs. detailed metrics (humidity, wind, UV index)",
+                "reason": "Cold start: first question for Facet"
+              },
+              {
+                "scout": "Echo",
+                "probe_axis": "Whether user prefers smooth, flowing transitions vs. snappy, instant feedback and alerts",
+                "reason": "Cold start: first question for Echo"
+              }
+            ],
+            "persona_anima_divergence": null
+          }
+        }
+      },
+      {
+        "ts_ms": 13371,
+        "type": "draft-updated",
+        "data": {
+          "type": "draft-updated",
+          "draft": {
+            "title": "RunWeather",
+            "summary": "A weather app designed for runners, showing real-time conditions, wind impact, and run-friendly forecasts at a glance.",
+            "html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>RunWeather</title>\n  <style>\n    :root {\n      --bg: #FFF8F0;\n      --card: #FFF;\n      --accent: #FF8C69;\n      --text: #4A3E38;\n      --muted: #A1887F;\n      --radius: 16px;\n      --space: 20px;\n    }\n    * {\n      margin: 0;\n      padding: 0;\n      box-sizing: border-box;\n    }\n    body {\n      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;\n      background: var(--bg);\n      color: var(--text);\n      font-size: 16px;\n      line-height: 1.5;\n    }\n    .container {\n      width: 100%;\n      max-width: 375px;\n      margin: 0 auto;\n      padding: var(--space);\n      min-height: 667px;\n      display: flex;\n      flex-direction: column;\n      gap: var(--space);\n    }\n    .header {\n      text-align: center;\n      padding-top: var(--space);\n    }\n    .header h1 {\n      font-size: 28px;\n      font-weight: 700;\n      margin-bottom: 4px;\n    }\n    .header p {\n      font-size: 14px;\n      color: var(--muted);\n    }\n    .current-conditions {\n      background: var(--card);\n      border-radius: var(--radius);\n      padding: var(--space);\n      box-shadow: 0 2px 8px rgba(0,0,0,0.08);\n    }\n    .temp-display {\n      display: flex;\n      align-items: flex-start;\n      gap: var(--space);\n      margin-bottom: var(--space);\n    }\n    .temp-large {\n      font-size: 48px;\n      font-weight: 700;\n      line-height: 1;\n    }\n    .condition-text {\n      flex: 1;\n    }\n    .condition-text p {\n      font-size: 18px;\n      font-weight: 600;\n      margin-bottom: 4px;\n    }\n    .condition-text span {\n      font-size: 14px;\n      color: var(--muted);\n    }\n    .metrics {\n      display: grid;\n      grid-template-columns: 1fr 1fr;\n      gap: 12px;\n    }\n    .metric {\n      background: var(--bg);\n      border-radius: 12px;\n      padding: 12px;\n      text-align: center;\n    }\n    .metric-label {\n      font-size: 12px;\n      color: var(--muted);\n      text-transform: uppercase;\n      letter-spacing: 0.5px;\n      margin-bottom: 4px;\n    }\n    .metric-value {\n      font-size: 20px;\n      font-weight: 700;\n      color: var(--accent);\n    }\n    .run-forecast {\n      background: var(--card);\n      border-radius: var(--radius);\n      padding: var(--space);\n      box-shadow: 0 2px 8px rgba(0,0,0,0.08);\n    }\n    .run-forecast h2 {\n      font-size: 18px;\n      font-weight: 700;\n      margin-bottom: 12px;\n    }\n    .forecast-item {\n      display: flex;\n      justify-content: space-between;\n      align-items: center;\n      padding: 12px 0;\n      border-bottom: 1px solid var(--bg);\n    }\n    .forecast-item:last-child {\n      border-bottom: none;\n    }\n    .forecast-time {\n      font-size: 14px;\n      font-weight: 600;\n    }\n    .forecast-details {\n      display: flex;\n      gap: 12px;\n      align-items: center;\n      font-size: 14px;\n    }\n    .forecast-temp {\n      color: var(--accent);\n      font-weight: 600;\n      min-width: 40px;\n      text-align: right;\n    }\n    .run-score {\n      background: linear-gradient(135deg, var(--accent), #FF6B4A);\n      border-radius: var(--radius);\n      padding: var(--space);\n      color: white;\n      text-align: center;\n      box-shadow: 0 4px 12px rgba(255, 140, 105, 0.3);\n    }\n    .run-score h3 {\n      font-size: 14px;\n      font-weight: 600;\n      opacity: 0.9;\n      margin-bottom: 8px;\n    }\n    .score-number {\n      font-size: 36px;\n      font-weight: 700;\n      line-height: 1;\n    }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <div class=\"header\">\n      <h1>RunWeather</h1>\n      <p>San Francisco, CA</p>\n    </div>\n\n    <div class=\"current-conditions\">\n      <div class=\"temp-display\">\n        <div class=\"temp-large\">62°</div>\n        <div class=\"condition-text\">\n          <p>Partly Cloudy</p>\n          <span>Feels like 59°</span>\n        </div>\n      </div>\n      <div class=\"metrics\">\n        <div class=\"metric\">\n          <div class=\"metric-label\">Wind</div>\n          <div class=\"metric-value\">8 mph</div>\n        </div>\n        <div class=\"metric\">\n          <div class=\"metric-label\">Humidity</div>\n          <div class=\"metric-value\">65%</div>\n        </div>\n        <div class=\"metric\">\n          <div class=\"metric-label\">UV Index</div>\n          <div class=\"metric-value\">4</div>\n        </div>\n        <div class=\"metric\">\n          <div class=\"metric-label\">Visibility</div>\n          <div class=\"metric-value\">10 mi</div>\n        </div>\n      </div>\n    </div>\n\n    <div class=\"run-forecast\">\n      <h2>Next 3 Hours</h2>\n      <div class=\"forecast-item\">\n        <div class=\"forecast-time\">Now</div>\n        <div class=\"forecast-details\">\n          <span>Partly Cloudy</span>\n          <div class=\"forecast-temp\">62°</div>\n        </div>\n      </div>\n      <div class=\"forecast-item\">\n        <div class=\"forecast-time\">2:00 PM</div>\n        <div class=\"forecast-details\">\n          <span>Sunny</span>\n          <div class=\"forecast-temp\">65°</div>\n        </div>\n      </div>\n      <div class=\"forecast-item\">\n        <div class=\"forecast-time\">3:00 PM</div>\n        <div class=\"forecast-details\">\n          <span>Sunny</span>\n          <div class=\"forecast-temp\">67°</div>\n        </div>\n      </div>\n    </div>\n\n    <div class=\"run-score\">\n      <h3>Run Score</h3>\n      <div class=\"score-number\">8.2</div>\n    </div>\n  </div>\n</body>\n</html>",
+            "acceptedPatterns": [],
+            "rejectedPatterns": []
+          }
+        }
+      },
+      {
+        "ts_ms": 13371,
+        "type": "evidence-updated",
+        "data": {
+          "type": "evidence-updated",
+          "evidence": [
+            {
+              "facadeId": "417f5f78-881c-401e-882a-dada689455f3",
+              "content": "Conversational tone",
+              "hypothesis": "A weather app for runners benefits from a friendly, encouraging voice—brief check-ins and motivational language—rather than neutral, data-focused language.",
+              "decision": "accept",
+              "latencySignal": "slow",
+              "format": "word",
+              "implication": "Users want personality and warmth in their running companion; design should feel supportive and human-centered."
+            }
+          ],
+          "antiPatterns": []
+        }
+      },
+      {
+        "ts_ms": 13371,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "thinking",
+            "focus": "analyzing accept on \"Conversational tone\""
+          }
+        }
+      },
+      {
+        "ts_ms": 13371,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "oracle",
+            "name": "Oracle",
+            "role": "oracle",
+            "status": "idle",
+            "focus": "monitoring"
+          }
+        }
+      },
+      {
+        "ts_ms": 13371,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-01",
+            "name": "Iris",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Bold colorful gradient\"",
+            "lastFacadeId": "ef99d8ca-4ecc-4703-805e-4ef622a6b300"
+          }
+        }
+      },
+      {
+        "ts_ms": 13371,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-02",
+            "name": "Prism",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Sidebar with cards\"",
+            "lastFacadeId": "20118614-a1f3-47b5-bf49-478f7e9a5c0b"
+          }
+        }
+      },
+      {
+        "ts_ms": 13371,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-03",
+            "name": "Lumen",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Casual slang\"",
+            "lastFacadeId": "f88626bb-abfc-4f16-aab3-24d4a9a57bf2"
+          }
+        }
+      },
+      {
+        "ts_ms": 13371,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-04",
+            "name": "Aura",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Vibrant neon text\"",
+            "lastFacadeId": "71167bbd-f91d-4da9-b886-52e13fd1ae3d"
+          }
+        }
+      },
+      {
+        "ts_ms": 13371,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-05",
+            "name": "Facet",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Splits and intervals\"",
+            "lastFacadeId": "a044f282-43fe-4641-8696-2be46b7c5547"
+          }
+        }
+      },
+      {
+        "ts_ms": 13371,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-06",
+            "name": "Echo",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Tap updates instantly\"",
+            "lastFacadeId": "0d4c5c83-496a-40b8-b128-3b9bf94b76ca"
+          }
+        }
+      },
+      {
+        "ts_ms": 13371,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "71167bbd-f91d-4da9-b886-52e13fd1ae3d",
+            "agentId": "scout-04",
+            "hypothesis": "High-contrast, digitally-bright interface with electric color accents creates energetic, performance-focused mood — appeals to runners who want intensity and visibility",
+            "axisTargeted": "organic vs digital",
+            "label": "Vibrant neon text",
+            "content": "Vibrant neon text",
+            "format": "word",
+            "acceptImplies": "User gravitates toward bold, tech-forward aesthetic; may prefer glanceable data displays, high saturation, modern typefaces",
+            "rejectImplies": "User prefers softer, more natural or muted palette; likely favors clarity through restraint rather than contrast; may want earthy or monochrome tones"
+          }
+        }
+      },
+      {
+        "ts_ms": 13371,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "ef99d8ca-4ecc-4703-805e-4ef622a6b300",
+            "agentId": "scout-01",
+            "hypothesis": "Runners respond energetically to vibrant, dynamic color transitions in sports apps—suggests active, motivational aesthetic over muted or neutral palettes",
+            "axisTargeted": "Color palette temperature and saturation",
+            "label": "Bold colorful gradient",
+            "content": "Bold colorful gradient",
+            "format": "word",
+            "acceptImplies": "Design leans toward bright, multi-hued, high-energy visuals; weather data displayed with saturated accent colors; possibly neon or sunset-inspired gradients",
+            "rejectImplies": "Design favors restraint in color; weather info in muted, desaturated, or monochromatic tones; cooler or more minimalist palette is preferred for runner focus"
+          }
+        }
+      },
+      {
+        "ts_ms": 13371,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "0d4c5c83-496a-40b8-b128-3b9bf94b76ca",
+            "agentId": "scout-06",
+            "hypothesis": "For a runner app, immediate feedback on taps (no loading states or transition delay) feels more responsive and trustworthy than animated transitions between screens.",
+            "axisTargeted": "Instant vs animated transitions — whether UI responds with zero-latency clicks or fluid motion between states.",
+            "label": "Tap updates instantly",
+            "content": "Tap updates instantly",
+            "format": "word",
+            "acceptImplies": "User prefers snappy, direct feedback; likely values speed and certainty over visual smoothness; may want minimal animations overall.",
+            "rejectImplies": "User prefers motion and continuity; likely wants to see where content comes from and goes; may accept slight delay if it feels intentional and connected."
+          }
+        }
+      },
+      {
+        "ts_ms": 13371,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "a044f282-43fe-4641-8696-2be46b7c5547",
+            "agentId": "scout-05",
+            "hypothesis": "Runners want granular pace/distance data displayed as real-time segments (mile markers, kilometer splits) rather than aggregate summary stats",
+            "axisTargeted": "DENSE DATA vs KEY METRICS — should the app show detailed breakdowns or just the essential headline numbers?",
+            "label": "Splits and intervals",
+            "content": "Splits and intervals",
+            "format": "word",
+            "acceptImplies": "The design favors data-rich, segment-based readouts; runners scan detailed splits mid-run; the interface prioritizes precision and breakdown over simplicity",
+            "rejectImplies": "The design favors headline metrics (total distance, average pace, time); runners want glanceable summaries; the interface prioritizes clarity and speed-of-understanding over granular detail"
+          }
+        }
+      },
+      {
+        "ts_ms": 13371,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "20118614-a1f3-47b5-bf49-478f7e9a5c0b",
+            "agentId": "scout-02",
+            "hypothesis": "A persistent left sidebar navigation (with running metrics like pace, distance, heart rate) paired with vertical card stacks for weather details (current, hourly, alerts) creates faster glanceability than a full-screen tab layout.",
+            "axisTargeted": "Navigation structure: sidebar persistence vs. tab-based switching",
+            "label": "Sidebar with cards",
+            "content": "Sidebar with cards",
+            "format": "word",
+            "acceptImplies": "Users value always-visible metrics + modular weather cards. Explore sidebar depth (collapsed vs. expanded), card height (tall vs. shallow), and metric priority ordering.",
+            "rejectImplies": "Users prefer immersive full-screen views or tab-based compartmentalization. Probe single-screen density and swipeable card carousels instead."
+          }
+        }
+      },
+      {
+        "ts_ms": 13371,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "f88626bb-abfc-4f16-aab3-24d4a9a57bf2",
+            "agentId": "scout-03",
+            "hypothesis": "A weather app for runners benefits from colloquial, runner-specific language (e.g., 'conditions are gnarly,' 'perfect for a tempo run') rather than formal meteorological terminology, creating in-group belonging and real-world relevance.",
+            "axisTargeted": "Voice formality and domain specificity (neutral technical vs. community insider)",
+            "label": "Casual slang",
+            "content": "Casual slang",
+            "format": "word",
+            "acceptImplies": "Design voice as an experienced running buddy who speaks your language; use runner lexicon and casual phrasing throughout the app.",
+            "rejectImplies": "Stick closer to standard weather app language; avoid jargon that might confuse or alienate non-hardcore runners; prioritize clarity over community flavor."
+          }
+        }
+      },
+      {
+        "ts_ms": 13371,
+        "type": "stage-changed",
+        "data": {
+          "type": "stage-changed",
+          "stage": "words",
+          "swipeCount": 1
+        }
+      }
+    ],
+    "error": null
+  },
+  "facade_visible": {
+    "attempted": true,
+    "status": 200,
+    "error": null,
+    "rtt_ms": 3
+  },
+  "swipe": {
+    "attempted": true,
+    "facadeId": "417f5f78-881c-401e-882a-dada689455f3",
+    "facade_ready_at_ms": 3981,
+    "posted_at_ms": 4106,
+    "rtt_ms": 4,
+    "status": 200,
+    "body": {
+      "ok": true,
+      "swipeCount": 1,
+      "stage": "words"
+    },
+    "error": null
+  },
+  "metrics": {
+    "time_to_first_facade_ms": 3981,
+    "time_to_first_draft_ms": 1373,
+    "time_to_first_synthesis_ms": 5065,
+    "time_to_first_draft_after_swipe_ms": 8414,
+    "time_to_first_evidence_after_swipe_ms": 5,
+    "time_to_session_ready_ms": 1373,
+    "time_to_first_error_ms": null,
+    "time_from_session_to_first_facade_ms": 2608,
+    "time_from_session_to_first_draft_ms": 0,
+    "time_from_session_to_first_error_ms": null,
+    "facade_ready_count": 7,
+    "draft_updated_count": 2,
+    "draft_placeholder_count": 1,
+    "draft_refined_count": 1,
+    "draft_next_hint_present_count": 0,
+    "draft_accepted_patterns_present_count": 0,
+    "draft_rejected_patterns_present_count": 0,
+    "draft_refined_html_length_p50": 5405,
+    "draft_refined_html_length_max": 5405,
+    "draft_refined_html_length_min": 5405,
+    "draft_refined_scaffold_count": 1,
+    "draft_refined_rebuild_count": 0,
+    "draft_refined_unknown_count": 0,
+    "draft_refined_scaffold_html_length_p50": 5405,
+    "draft_refined_scaffold_html_length_min": 5405,
+    "draft_refined_scaffold_html_length_max": 5405,
+    "draft_refined_rebuild_html_length_p50": null,
+    "draft_refined_rebuild_html_length_min": null,
+    "draft_refined_rebuild_html_length_max": null,
+    "synthesis_updated_count": 1,
+    "swipe_result_count": 1,
+    "evidence_updated_count": 1,
+    "facade_stale_count": 0,
+    "builder_hint_count": 0,
+    "reveal_reached": false,
+    "error_event_count": 0,
+    "error_code_counts": {},
+    "error_source_counts": {},
+    "error_agent_counts": {},
+    "distinct_error_agent_count": 0,
+    "error_source_scout_count": 0,
+    "error_source_oracle_count": 0,
+    "error_source_builder_count": 0,
+    "provider_auth_failure_count": 0,
+    "error_message_present_count": 0,
+    "auth_diagnostic_preserved_count": 0,
+    "agent_status_event_count": 21,
+    "agent_status_scout_count": 14,
+    "agent_status_oracle_count": 3,
+    "agent_status_builder_count": 4,
+    "agent_error_signal_count": 0,
+    "scout_started_count": 6,
+    "first_scout_started_ms": 1373,
+    "last_scout_started_ms": 1373,
+    "scout_start_spread_ms": 0,
+    "first_error_event_ms": null,
+    "last_error_event_ms": null,
+    "error_event_spread_ms": null,
+    "session_ready_count": 1,
+    "distinct_session_ready_intent_count": 1,
+    "session_ready_intent_present_count": 1,
+    "error_event_count_before_session_2": null,
+    "error_event_count_after_session_2": null,
+    "time_from_session_2_to_first_error_ms": null,
+    "stream_2_error_event_count": 0,
+    "stream_2_agent_status_count": 8,
+    "stream_2_stage_changed_count": 1,
+    "stream_2_diagnostic_preserved_count": 0,
+    "stream_2_error_provider_auth_count": 0,
+    "stream_2_agent_status_scout_count": 6,
+    "stream_2_agent_status_oracle_count": 1,
+    "stream_2_agent_status_builder_count": 1,
+    "stream_2_stage_valid_count": 1,
+    "stream_2_error_source_valid_count": 0,
+    "stream_2_error_code_valid_count": 0,
+    "stream_2_error_message_present_count": 0,
+    "stream_2_agent_status_valid_count": 8,
+    "stream_2_agent_status_role_valid_count": 8,
+    "stream_2_stage_changed_swipe_count_valid_count": 1,
+    "stream_2_draft_updated_count": 1,
+    "stream_2_draft_placeholder_count": 0,
+    "stream_2_draft_refined_count": 1,
+    "stream_2_draft_next_hint_present_count": 0,
+    "stream_2_draft_accepted_patterns_present_count": 0,
+    "stream_2_draft_rejected_patterns_present_count": 0,
+    "stream_2_facade_ready_count": 6,
+    "stream_2_synthesis_updated_count": 1,
+    "stream_2_evidence_updated_count": 1,
+    "stream_2_facade_format_valid_count": 6,
+    "stream_2_synthesis_axes_count": 6,
+    "stream_2_synthesis_axes_min": 6,
+    "stream_2_synthesis_scout_assignments_count": 6,
+    "stream_2_synthesis_scout_assignments_min": 6,
+    "stream_2_evidence_array_valid_count": 1,
+    "stream_2_anti_patterns_array_valid_count": 1,
+    "stream_2_evidence_length_min": 1,
+    "stream_2_evidence_length_max": 1,
+    "stream_2_evidence_items_valid_decision_count": 1,
+    "stream_2_evidence_items_valid_format_count": 1,
+    "stream_2_evidence_items_valid_latency_signal_count": 1,
+    "stream_2_synthesis_axes_valid_confidence_count": 6,
+    "stream_2_synthesis_scout_assignments_valid_scout_count": 6,
+    "stream_2_synthesis_palette_present_count": 0,
+    "stream_2_first_event_ms_after_open": 2,
+    "stream_2_replay_span_ms": 0,
+    "stage_changed_event_count": 1,
+    "time_to_first_stage_changed_ms": 859,
+    "stage_changed_before_session_ready": 1,
+    "stage_valid_count": 1,
+    "error_source_valid_count": 0,
+    "error_code_valid_count": 0,
+    "agent_status_valid_count": 21,
+    "agent_status_role_valid_count": 21,
+    "stage_changed_swipe_count_valid_count": 1,
+    "facade_format_valid_count": 7,
+    "facade_id_present_count": 7,
+    "facade_agent_id_present_count": 7,
+    "facade_hypothesis_present_count": 7,
+    "facade_label_present_count": 7,
+    "facade_content_present_count": 7,
+    "swipe_decision_valid_count": 1,
+    "swipe_latency_bucket_valid_count": 1,
+    "swipe_facade_id_present_count": 1,
+    "swipe_agent_id_present_count": 1,
+    "swipe_latency_ms_valid_count": 1,
+    "synthesis_axes_count": 6,
+    "synthesis_axes_min": 6,
+    "synthesis_axes_valid_confidence_count": 6,
+    "synthesis_scout_assignments_count": 6,
+    "synthesis_scout_assignments_min": 6,
+    "synthesis_scout_assignments_valid_scout_count": 6,
+    "synthesis_palette_present_count": 0,
+    "evidence_array_valid_count": 1,
+    "anti_patterns_array_valid_count": 1,
+    "evidence_length_min": 1,
+    "evidence_length_max": 1,
+    "evidence_items_valid_decision_count": 1,
+    "evidence_items_valid_format_count": 1,
+    "evidence_items_valid_latency_signal_count": 1,
+    "oracle_cold_start_latency_ms": 3692,
+    "oracle_synthesis_latency_ms": null,
+    "oracle_reveal_build_latency_ms": null,
+    "oracle_cold_start_count": 1,
+    "oracle_synthesis_count": 0,
+    "oracle_reveal_build_count": 0,
+    "scout_probe_latency_ms_p50": 2764,
+    "scout_probe_latency_ms_max": 3865,
+    "scout_probe_count": 7,
+    "builder_scaffold_latency_ms": 11147,
+    "builder_scaffold_count": 1,
+    "builder_rebuild_latency_ms": null,
+    "builder_rebuild_latency_ms_p50": null,
+    "builder_rebuild_latency_ms_max": null,
+    "builder_rebuild_count": 0
+  },
+  "error_event_samples": [],
+  "provider_error_samples": [],
+  "stderr_tail": "",
+  "artifact_path": "/Users/provi/Development/_projs/the-eye-loop-gnhf-worktrees/you-are-running-an-e-2c98fb/scripts/findings/validate-2026-04-24T04-35-10-209Z.json"
+}

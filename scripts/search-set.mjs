@@ -212,6 +212,19 @@ function extractMetrics(artifact) {
 		stream_2_evidence_updated_count: m.stream_2_evidence_updated_count ?? 0,
 		facade_format_valid_count: m.facade_format_valid_count ?? 0,
 		stream_2_facade_format_valid_count: m.stream_2_facade_format_valid_count ?? 0,
+		// iter-98: Facade remaining-field presence-validity probes (primary).
+		// Forward-carries the 5 required-string-field presence counts (id,
+		// agentId, hypothesis, label, content) so aggregate rollups below can
+		// establish identity with facade_ready_count_sum=35/_min=7 under the
+		// healthy-auth 5-intent baseline. Saturates the Facade 6-way field-
+		// validity matrix alongside iter-67's facade_format_valid probe. Stream_2
+		// counterparts deferred to a follow-on iteration (same pattern as
+		// iter-72→88 synthesis, iter-82→90 evidence items).
+		facade_id_present_count: m.facade_id_present_count ?? 0,
+		facade_agent_id_present_count: m.facade_agent_id_present_count ?? 0,
+		facade_hypothesis_present_count: m.facade_hypothesis_present_count ?? 0,
+		facade_label_present_count: m.facade_label_present_count ?? 0,
+		facade_content_present_count: m.facade_content_present_count ?? 0,
 		// iter-88: stream_2 counterparts for iter-72 primary synthesis content
 		// probes (axes + scout_assignments count/min), forward-carried so that
 		// the aggregate rollups below can establish the cross-stream identity
@@ -1460,6 +1473,70 @@ async function main() {
 			stream_2_facade_format_valid_count_sum: sumMetric('stream_2_facade_format_valid_count'),
 			stream_2_facade_format_valid_count_min: perIntent.length
 				? Math.min(...perIntent.map((p) => p.metrics.stream_2_facade_format_valid_count ?? 0))
+				: 0,
+			// iter-98: Facade remaining-field presence-validity rollups — saturates
+			// the Facade 6-way field-validity matrix by adding the 5 required
+			// string fields (id, agentId, hypothesis, label, content) not covered
+			// by iter-67's format typed-union probe. Matches iter-97's 5-way
+			// SwipeRecord saturation pattern on a different event type — facade-
+			// ready instead of swipe-result — completing the presence-validity
+			// coverage for the most-emitted event type per intent (7/intent under
+			// healthy auth).
+			//
+			// Family: POSITIVE-IDENTITY (continues iter-97's shift from the iter-
+			// 93/94/95/96 SHOULD-BE-ZERO cluster). Under iter-61 healthy-auth
+			// 5-intent baseline each _sum = facade_ready_count_sum = 35, each
+			// _min = 7 (all 7 facades per intent carry all 5 fields). Six-way
+			// identity: facade_id_present = facade_agent_id_present = facade_
+			// hypothesis_present = facade_label_present = facade_content_present
+			// = facade_format_valid (iter-67) = facade_ready_count = 35/_min=7.
+			//
+			// Regression classes these aggregate rollups catch that iter-67 +
+			// facade_ready_count_sum cannot:
+			//   - scout.ts emits facade.id='' (generator bug): _sum drops below
+			//     35 / _min drops to <7 while facade_format_valid holds at 35.
+			//   - scout bootstrap skips agentId assignment: facade_agent_id_
+			//     present_count_sum drops to 0 / _min to 0, distinguishing
+			//     scout-attribution corruption from field-shape corruption.
+			//   - LLM output drops hypothesis in one facade: _sum drops by the
+			//     number of affected facades, _min drops per-affected-intent.
+			//   - silent field-rename refactor (e.g. 'content' → 'body'): _sum
+			//     and _min collapse to 0 on the renamed field while format_valid
+			//     holds — pinpoints rename drift.
+			//   - SSE serializer strips the entire facade field: ALL 6 Facade
+			//     field probes (iter-67 + iter-98) collapse to 0 simultaneously
+			//     while facade_ready_count_sum holds at 35 — distinguishes
+			//     serialization-level from field-specific corruption.
+			//
+			// Forward-deploy: when future multi-stage validators advance stage to
+			// 'mockups' and scouts emit mockup-format facades, all 5 present-
+			// validity probes continue to hold identity because mockup facades
+			// still populate all 5 required fields — probe is baseline-regime-
+			// invariant just like iter-67's facade_format_valid_count.
+			//
+			// Stream_2 counterparts deferred to a follow-on iteration (iter-67
+			// paired primary+stream_2 from day one for a single field; bundling 5
+			// fields × 2 streams in one iteration would exceed the scope pattern
+			// established by iter-82/90 primary-then-stream_2 pairing).
+			facade_id_present_count_sum: sumMetric('facade_id_present_count'),
+			facade_id_present_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.facade_id_present_count ?? 0))
+				: 0,
+			facade_agent_id_present_count_sum: sumMetric('facade_agent_id_present_count'),
+			facade_agent_id_present_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.facade_agent_id_present_count ?? 0))
+				: 0,
+			facade_hypothesis_present_count_sum: sumMetric('facade_hypothesis_present_count'),
+			facade_hypothesis_present_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.facade_hypothesis_present_count ?? 0))
+				: 0,
+			facade_label_present_count_sum: sumMetric('facade_label_present_count'),
+			facade_label_present_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.facade_label_present_count ?? 0))
+				: 0,
+			facade_content_present_count_sum: sumMetric('facade_content_present_count'),
+			facade_content_present_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.facade_content_present_count ?? 0))
 				: 0,
 			// iter-80: swipe-result content-validation rollups — first content-probe
 			// aggregates on the swipe-result event type after 79 iterations of

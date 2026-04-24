@@ -2147,6 +2147,106 @@ async function main() {
 			e.data.record.latencyMs >= 0
 	).length;
 
+	// iter-98: Facade remaining-field presence-validity probes — saturates the
+	// 6-way Facade field-validity matrix by adding the 5 remaining required
+	// string fields (id, agentId, hypothesis, label, content) not covered by
+	// iter-67's format typed-union probe. Facade (types.ts:17-27) has 6
+	// required fields:
+	//   id: string         — facade identity, routed to client for swipe
+	//   agentId: string    — scout attribution (e.g. 'scout-Iris-0')
+	//   hypothesis: string — scout's reasoning for this probe
+	//   label: string      — short user-visible caption
+	//   content: string    — main user-visible text or HTML
+	//   format: 'word'|'mockup'   — PROBED iter-67 as typed-union
+	// Plus 3 optional fields (axisTargeted, acceptImplies, rejectImplies) that
+	// do not get presence-validity probes because their absence is in-regime.
+	//
+	// This iteration closes 5 primary-bus presence-validity probes in one pass,
+	// matching iter-82's pattern (3 fields on evidence items) and iter-97's
+	// pattern (3 fields on swipe-result). All 5 share the same filter
+	// (events.filter(e => e.type === 'facade-ready')) so their scaffolding is
+	// shared — adding them together in one iteration follows iter-90/91's
+	// shared-filter bundling pattern while still providing 5 independent
+	// discriminative axes (one per field). This is the Facade counterpart to
+	// iter-97's SwipeRecord 5-way matrix completion: iter-97 saturated the
+	// SwipeRecord field-validity matrix on swipe-result; iter-98 saturates the
+	// Facade field-validity matrix on facade-ready.
+	//
+	// Family: POSITIVE-IDENTITY (continuing iter-97's intervention-diversity
+	// shift from iter-93/94/95/96 SHOULD-BE-ZERO to POSITIVE-IDENTITY). Under
+	// iter-61 healthy-auth 12s-window baseline, each probe equals facade_ready_
+	// count = 7 per intent, so identity holds at probe = facade_ready_count for
+	// every field.
+	//
+	// Regression classes these probes catch that facade_ready_count +
+	// facade_format_valid_count (iter-67) cannot:
+	//   - scout.ts emit site passes facade.id=undefined or '' (generator bug
+	//     producing empty ids): facade_ready_count holds at 7, facade_format_
+	//     valid stays at 7 (format unaffected), facade_id_present drops below 7
+	//     — pinpoints id-generation corruption invisible to count/format probes.
+	//   - scout.ts emit site passes facade.agentId=undefined (scout bootstrap
+	//     bug not assigning agentId before emit): facade_ready_count holds,
+	//     facade_agent_id_present drops to 0 — distinguishes agent-attribution
+	//     corruption from payload-shape corruption that iter-67 catches.
+	//   - LLM output drops hypothesis field (generateText returns '' for one
+	//     facade in an N-facade batch): facade_ready_count at 7, format_valid
+	//     at 7, facade_hypothesis_present drops to 6.
+	//   - label empty from a trimmed-only-whitespace regression: count + format
+	//     hold, facade_label_present drops below 7 (length>0 after trim check).
+	//   - content field renamed to 'body' by a silent refactor that misses the
+	//     emit site: count holds, format_valid holds (format still present),
+	//     facade_content_present drops to 0 — catches field-rename drift.
+	//   - SSE serializer (bus.ts emit chain) strips the entire `facade` field
+	//     (JSON.stringify circular-ref bug or Symbol key): ALL 6 Facade field
+	//     probes (iter-67 + iter-98) collapse to 0 simultaneously while
+	//     facade_ready_count holds at 7 — distinguishes serialization-level
+	//     corruption from field-specific corruption.
+	//
+	// Identity invariants under iter-61 healthy-auth baseline:
+	//   single-intent: facade_id_present_count = facade_agent_id_present_count
+	//     = facade_hypothesis_present_count = facade_label_present_count =
+	//     facade_content_present_count = facade_ready_count = 7
+	//   5-intent aggregate: each _sum=35/_min=7, matching iter-67's
+	//     facade_format_valid_count_sum=35/_min=7 and facade_ready_count_sum=35.
+	// Under broken-auth: all 5 = 0 / _min=0 (no facade-ready fires).
+	//
+	// Stream_2 counterpart: facade-ready IS replayed on /api/stream (+server.ts:
+	// 36-38), so stream_2 counterparts are a natural follow-on iteration (same
+	// pattern as iter-83/85 primary first, iter-91 stream_2 follow-on). Deferred
+	// to keep this iteration scoped to primary-bus saturation, matching iter-82
+	// (evidence items primary first, iter-90 stream_2 follow-on) and iter-72
+	// (synthesis primary first, iter-88 stream_2 follow-on).
+	const facadeIdPresentCount = events.filter(
+		(e) =>
+			e.type === 'facade-ready' &&
+			typeof e.data?.facade?.id === 'string' &&
+			e.data.facade.id.length > 0
+	).length;
+	const facadeAgentIdPresentCount = events.filter(
+		(e) =>
+			e.type === 'facade-ready' &&
+			typeof e.data?.facade?.agentId === 'string' &&
+			e.data.facade.agentId.length > 0
+	).length;
+	const facadeHypothesisPresentCount = events.filter(
+		(e) =>
+			e.type === 'facade-ready' &&
+			typeof e.data?.facade?.hypothesis === 'string' &&
+			e.data.facade.hypothesis.length > 0
+	).length;
+	const facadeLabelPresentCount = events.filter(
+		(e) =>
+			e.type === 'facade-ready' &&
+			typeof e.data?.facade?.label === 'string' &&
+			e.data.facade.label.length > 0
+	).length;
+	const facadeContentPresentCount = events.filter(
+		(e) =>
+			e.type === 'facade-ready' &&
+			typeof e.data?.facade?.content === 'string' &&
+			e.data.facade.content.length > 0
+	).length;
+
 	// iter-72: synthesis content-validation probes — first content probes on
 	// the synthesis-updated event after 71 iterations of count-only coverage
 	// (iter-66 promoted stream_2_synthesis_updated_count, iter-68 promoted
@@ -2671,6 +2771,11 @@ async function main() {
 			agent_status_role_valid_count: agentStatusRoleValidCount,
 			stage_changed_swipe_count_valid_count: stageChangedSwipeCountValidCount,
 			facade_format_valid_count: facadeFormatValidCount,
+			facade_id_present_count: facadeIdPresentCount,
+			facade_agent_id_present_count: facadeAgentIdPresentCount,
+			facade_hypothesis_present_count: facadeHypothesisPresentCount,
+			facade_label_present_count: facadeLabelPresentCount,
+			facade_content_present_count: facadeContentPresentCount,
 			swipe_decision_valid_count: swipeDecisionValidCount,
 			swipe_latency_bucket_valid_count: swipeLatencyBucketValidCount,
 			swipe_facade_id_present_count: swipeFacadeIdPresentCount,
@@ -2739,7 +2844,7 @@ async function main() {
 		`stage_changed=${stageChangedEventCount} stage_before_ready=${stageChangedBeforeSessionReady} ` +
 		`stage_valid=${stageValidCount} err_src_valid=${errorSourceValidCount} err_code_valid=${errorCodeValidCount} ` +
 		`agent_status_valid=${agentStatusValidCount} agent_status_role_valid=${agentStatusRoleValidCount} stage_swipe_valid=${stageChangedSwipeCountValidCount} ` +
-		`facade_fmt_valid=${facadeFormatValidCount} ` +
+		`facade_fmt_valid=${facadeFormatValidCount} facade_id=${facadeIdPresentCount} facade_aid=${facadeAgentIdPresentCount} facade_hyp=${facadeHypothesisPresentCount} facade_label=${facadeLabelPresentCount} facade_content=${facadeContentPresentCount} ` +
 		`swipe_dec_valid=${swipeDecisionValidCount} swipe_bkt_valid=${swipeLatencyBucketValidCount} swipe_fid=${swipeFacadeIdPresentCount} swipe_aid=${swipeAgentIdPresentCount} swipe_lat_ms_valid=${swipeLatencyMsValidCount} ` +
 		`synth_axes=${synthesisAxesCount}/min=${synthesisAxesMin} synth_axes_conf_valid=${synthesisAxesValidConfidenceCount} synth_assigns=${synthesisScoutAssignmentsCount}/min=${synthesisScoutAssignmentsMin} synth_assigns_scout_valid=${synthesisScoutAssignmentsValidScoutCount} synth_palette=${synthesisPalettePresentCount} ` +
 		`evid_arr_valid=${evidenceArrayValidCount} anti_arr_valid=${antiPatternsArrayValidCount} evid_len_min/max=${evidenceLengthMin}/${evidenceLengthMax} ` +
