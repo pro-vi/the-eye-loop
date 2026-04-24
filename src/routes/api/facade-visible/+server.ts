@@ -1,16 +1,19 @@
 import { json } from '@sveltejs/kit';
-import { emitFacadeVisible } from '$lib/server/bus';
+import { findSession } from '$lib/server/session/runtime';
 
 export async function POST({ request }: { request: Request }) {
 	const body: unknown = await request.json();
-	const facadeId = typeof body === 'object' && body !== null && 'facadeId' in body
-		? (body as { facadeId: string }).facadeId
-		: null;
+	const isBody = typeof body === 'object' && body !== null;
+	const facadeId = isBody && 'facadeId' in body ? body.facadeId : null;
+	const sessionId = isBody && 'sessionId' in body ? body.sessionId : null;
 
-	if (typeof facadeId !== 'string') {
-		return json({ error: 'Missing facadeId' }, { status: 400 });
+	if (typeof sessionId !== 'string' || typeof facadeId !== 'string') {
+		return json({ error: 'Missing sessionId or facadeId' }, { status: 400 });
 	}
 
-	emitFacadeVisible(facadeId);
+	const session = findSession(sessionId);
+	if (!session || !session.findFacade(facadeId)) {
+		return json({ error: 'Facade not found' }, { status: 404 });
+	}
 	return json({ ok: true });
 }

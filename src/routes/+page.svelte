@@ -5,8 +5,21 @@
 		TasteSynthesis,
 		AgentState,
 		PrototypeDraft,
-		Stage
+		Stage,
+		QueueStats
 	} from '$lib/context/types';
+	import {
+		isAgentState,
+		isFacade,
+		isPrototypeDraft,
+		isQueueStats,
+		isRecord,
+		isSessionBootstrapResponse,
+		isStage,
+		isStringArray,
+		isSwipeEvidence,
+		isTasteSynthesis
+	} from '$lib/context/guards';
 	import SwipeFeed from '$lib/components/SwipeFeed.svelte';
 	import AnimaPanel from '$lib/components/AnimaPanel.svelte';
 	import AgentStatus from '$lib/components/AgentStatus.svelte';
@@ -21,6 +34,8 @@
 	let loading = $state(false);
 	let error = $state('');
 	let sessionId = $state<string | null>(null);
+	let queueStats = $state<QueueStats | null>(null);
+	let revealPrepared = $state(false);
 	let sessionError = $state<{
 		code: 'provider_auth_failure' | 'provider_error' | 'generation_error';
 		source: 'scout' | 'oracle' | 'builder';
@@ -73,6 +88,15 @@
 			: `${Math.max(0, Math.min(evidence.length - stageWindow.start, stageWindow.span))}/${stageWindow.span}`
 	);
 
+	function parseSseData(e: MessageEvent): Record<string, unknown> | null {
+		try {
+			const parsed: unknown = JSON.parse(e.data);
+			return isRecord(parsed) ? parsed : null;
+		} catch {
+			return null;
+		}
+	}
+
 	// ── Session creation ─────────────────────────────────────────────
 	async function startSession() {
 		if (!intentText.trim() || loading) return;
@@ -84,6 +108,8 @@
 		synthesis = null;
 		antiPatterns = [];
 		agents = [];
+		queueStats = null;
+		revealPrepared = false;
 		draft = {
 			title: '',
 			summary: '',
@@ -105,8 +131,20 @@
 				throw new Error(body.error || `Session failed (${res.status})`);
 			}
 
-			const data = await res.json();
+			const data: unknown = await res.json();
+			if (!isSessionBootstrapResponse(data)) {
+				throw new Error('Session returned an invalid bootstrap payload');
+			}
 			sessionId = data.sessionId;
+			facades = data.facades;
+			evidence = data.evidence;
+			antiPatterns = data.antiPatterns;
+			agents = data.agents;
+			draft = data.draft;
+			synthesis = data.synthesis;
+			stage = data.stage;
+			queueStats = data.queueStats;
+			revealPrepared = data.revealPrepared;
 			mode = 'swiping';
 		} catch (err) {
 			error = err instanceof Error ? err.message : 'Failed to start session';
@@ -119,53 +157,85 @@
 	$effect(() => {
 		if (!sessionId) return;
 
-		const es = new EventSource('/api/stream');
+		const es = new EventSource(`/api/stream?sessionId=${encodeURIComponent(sessionId)}`);
 
 		// Swiping-only events: gate by mode
 		es.addEventListener('facade-ready', (e) => {
 			if (mode !== 'swiping') return;
-			const { facade } = JSON.parse(e.data);
-			facades = [...facades, facade];
+			if (!(e instanceof MessageEvent)) return;
+			const data = parseSseData(e);
+			const facade = data?.facade;
+			if (!isFacade(facade)) return;
+			facades = facades.some((f) => f.id === facade.id) ? facades : [...facades, facade];
 		});
 
 		es.addEventListener('facade-stale', (e) => {
 			if (mode !== 'swiping') return;
-			const { facadeId } = JSON.parse(e.data);
+			if (!(e instanceof MessageEvent)) return;
+			const data = parseSseData(e);
+			const facadeId = data?.facadeId;
+			if (typeof facadeId !== 'string') return;
 			facades = facades.filter((f) => f.id !== facadeId);
 		});
 
 		// Always-on events: update state regardless of mode
 		es.addEventListener('evidence-updated', (e) => {
-			const data = JSON.parse(e.data);
-			evidence = data.evidence;
-			antiPatterns = data.antiPatterns;
+			if (!(e instanceof MessageEvent)) return;
+			const data = parseSseData(e);
+			if (!data) return;
+			if (Array.isArray(data.evidence) && data.evidence.every(isSwipeEvidence)) {
+				evidence = data.evidence;
+			}
+			if (isStringArray(data.antiPatterns)) antiPatterns = data.antiPatterns;
 		});
 
 		es.addEventListener('synthesis-updated', (e) => {
-			const { synthesis: s } = JSON.parse(e.data);
-			synthesis = s;
+			if (!(e instanceof MessageEvent)) return;
+			const data = parseSseData(e);
+			if (isTasteSynthesis(data?.synthesis)) synthesis = data.synthesis;
 		});
 
 		es.addEventListener('agent-status', (e) => {
-			const { agent } = JSON.parse(e.data);
+			if (!(e instanceof MessageEvent)) return;
+			const data = parseSseData(e);
+			const agent = data?.agent;
+			if (!isAgentState(agent)) return;
 			agents = agents.some((a) => a.id === agent.id)
 				? agents.map((a) => (a.id === agent.id ? agent : a))
 				: [...agents, agent];
 		});
 
 		es.addEventListener('draft-updated', (e) => {
-			const { draft: d } = JSON.parse(e.data);
-			draft = d;
+			if (!(e instanceof MessageEvent)) return;
+			const data = parseSseData(e);
+			if (isPrototypeDraft(data?.draft)) draft = data.draft;
 		});
 
 		es.addEventListener('builder-hint', (e) => {
 			if (mode !== 'swiping') return;
-			const { hint } = JSON.parse(e.data);
+			if (!(e instanceof MessageEvent)) return;
+			const data = parseSseData(e);
+			const hint = data?.hint;
+			if (typeof hint !== 'string') return;
 			draft = { ...draft, nextHint: hint };
 		});
 
+		es.addEventListener('queue-updated', (e) => {
+			if (!(e instanceof MessageEvent)) return;
+			const data = parseSseData(e);
+			if (isQueueStats(data?.queueStats)) queueStats = data.queueStats;
+		});
+
+		es.addEventListener('reveal-prepared', (e) => {
+			if (!(e instanceof MessageEvent)) return;
+			const data = parseSseData(e);
+			revealPrepared = data?.ready === true;
+		});
+
 		es.addEventListener('stage-changed', (e) => {
-			const data = JSON.parse(e.data);
+			if (!(e instanceof MessageEvent)) return;
+			const data = parseSseData(e);
+			if (!isStage(data?.stage)) return;
 			stage = data.stage;
 			if (data.stage === 'reveal') mode = 'reveal';
 		});
@@ -175,17 +245,20 @@
 		// MessageEvent (SSE frames carry .data; native connection errors do not).
 		es.addEventListener('error', (e) => {
 			if (!(e instanceof MessageEvent) || typeof e.data !== 'string' || !e.data) return;
-			try {
-				const payload = JSON.parse(e.data);
-				if (typeof payload?.code === 'string' && typeof payload?.source === 'string') {
-					sessionError = {
-						code: payload.code,
-						source: payload.source,
-						message: typeof payload?.message === 'string' ? payload.message : ''
-					};
-				}
-			} catch {
-				// fall through — unparseable error frame
+			const payload = parseSseData(e);
+			if (!payload) return;
+			const { code, source, message } = payload;
+			if (
+				(code === 'provider_auth_failure' ||
+					code === 'provider_error' ||
+					code === 'generation_error') &&
+				(source === 'scout' || source === 'oracle' || source === 'builder')
+			) {
+				sessionError = {
+					code,
+					source,
+					message: typeof message === 'string' ? message : ''
+				};
 			}
 		});
 
@@ -210,6 +283,8 @@
 			synthesis = null;
 			antiPatterns = [];
 			agents = [];
+			queueStats = null;
+			revealPrepared = false;
 			draft = {
 				title: '',
 				summary: '',
@@ -239,19 +314,21 @@
 
 	// ── Visibility signal (starts swipe timeout on server) ──────────
 	function handleVisible(facadeId: string) {
+		if (!sessionId) return;
 		fetch('/api/facade-visible', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ facadeId })
+			body: JSON.stringify({ sessionId, facadeId })
 		}).catch(() => {});
 	}
 
 	// ── Swipe handlers ───────────────────────────────────────────────
 	function handleSwipe(event: { facadeId: string; decision: 'accept' | 'reject'; latencyMs: number }) {
+		if (!sessionId) return;
 		fetch('/api/swipe', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(event)
+			body: JSON.stringify({ ...event, sessionId })
 		}).catch((err) => console.error('[swipe] POST failed:', err));
 	}
 
@@ -408,6 +485,14 @@
 					>
 						{evidence.length} swipes
 					</span>
+					<span class="text-[10px] uppercase tracking-wider" style="color: var(--color-outline-variant);">
+						deck {queueStats?.ready ?? facades.length}
+					</span>
+					{#if revealPrepared}
+						<span class="text-[10px] uppercase tracking-wider" style="color: var(--color-accept);">
+							reveal ready
+						</span>
+					{/if}
 					<span class="text-[10px] uppercase tracking-wider" style="color: var(--color-outline);">
 						{stageWindowText}
 					</span>

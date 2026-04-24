@@ -1,6 +1,5 @@
 import { json } from '@sveltejs/kit';
-import { seedSession } from '$lib/server/agents/oracle';
-import { startAllScouts, stopAllScouts } from '$lib/server/agents/scout';
+import { bootstrapSession } from '$lib/server/session/runtime';
 
 export const config = { runtime: 'nodejs22.x', maxDuration: 300 };
 
@@ -18,9 +17,6 @@ export async function POST({ request }: { request: Request }) {
 
 	const trimmedIntent = intent.trim();
 
-	stopAllScouts();
-	const { sessionId } = await seedSession(trimmedIntent);
-	startAllScouts();
-
-	return json({ intent: trimmedIntent, sessionId });
+	const bootstrap = await bootstrapSession(trimmedIntent);
+	return json(bootstrap);
 }

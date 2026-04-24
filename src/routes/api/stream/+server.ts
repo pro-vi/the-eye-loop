@@ -1,10 +1,15 @@
-import { onAny, getLastError } from '$lib/server/bus';
-import { context } from '$lib/server/context';
+import { json } from '@sveltejs/kit';
+import { findSession } from '$lib/server/session/runtime';
 import type { SSEEventType, SSEEventMap } from '$lib/context/types';
 
 export const config = { runtime: 'nodejs22.x', maxDuration: 300 };
 
-export function GET() {
+export function GET({ url }: { url: URL }) {
+	const session = findSession(url.searchParams.get('sessionId'));
+	if (!session) {
+		return json({ error: 'session not found' }, { status: 404 });
+	}
+
 	let teardown: (() => void) | undefined;
 
 	const stream = new ReadableStream({
@@ -21,42 +26,31 @@ export function GET() {
 			}
 
 			// Replay current state so late-connecting clients catch up
-			if (context.synthesis) {
-				send('synthesis-updated', { synthesis: context.synthesis });
+			if (session.synthesis) {
+				send('synthesis-updated', { synthesis: session.synthesis });
 			}
-			if (context.draft.html) {
-				send('draft-updated', { draft: context.draft });
+			if (session.draft.html) {
+				send('draft-updated', { draft: session.draft });
 			}
-			if (context.evidence.length) {
-				send('evidence-updated', { evidence: [...context.evidence], antiPatterns: context.antiPatterns });
+			if (session.evidence.length) {
+				send('evidence-updated', {
+					evidence: [...session.evidence],
+					antiPatterns: session.antiPatterns
+				});
 			}
-			for (const agent of context.agents.values()) {
+			for (const agent of session.agents.values()) {
 				send('agent-status', { agent });
 			}
-			for (const facade of context.facades) {
+			for (const facade of session.facades) {
 				send('facade-ready', { facade });
 			}
-			// Replay the last structured error so a reconnecting client (e.g.
-			// EventSource auto-reconnect after Vercel maxDuration=300s cutoff,
-			// tab suspend/resume, or transient network blip) re-surfaces the
-			// iter-8 banner. Agent-status focus "provider auth failed" already
-			// replays via the agents loop above; this closes the parallel gap
-			// for the structured error code/source/message the client uses to
-			// pick the right CLAUDE_CODE_OAUTH_TOKEN copy.
-			const replayErr = getLastError();
-			if (replayErr) send('error', replayErr);
+			if (session.lastError) send('error', session.lastError);
 
-			// Replay current stage so a reconnecting client can transition mode
-			// correctly. The client's stage-changed handler sets stage + flips
-			// mode to 'reveal' when stage==='reveal' — without replay, a late
-			// connect during 'mockups' or 'reveal' would leave the UI stuck in
-			// the default 'words' mode despite the server advancing the stage.
-			// Emit unconditionally: context.stage is always defined, stage ===
-			// 'words' on replay is a client-side no-op set, non-default stages
-			// are load-bearing for the reveal UX.
-			send('stage-changed', { stage: context.stage, swipeCount: context.swipeCount });
+			send('queue-updated', { queueStats: session.queueStats });
+			send('reveal-prepared', { ready: session.reveal.prepared });
+			send('stage-changed', { stage: session.stage, swipeCount: session.swipeCount });
 
-			const cleanupBus = onAny(<K extends SSEEventType>(event: K, payload: SSEEventMap[K]) => {
+			const cleanupBus = session.onAny(<K extends SSEEventType>(event: K, payload: SSEEventMap[K]) => {
 				send(event, payload);
 			});
 

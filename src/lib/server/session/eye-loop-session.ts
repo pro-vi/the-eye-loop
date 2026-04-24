@@ -95,6 +95,7 @@ export class EyeLoopSession {
 	palette = '';
 	reveal: RevealState = defaultRevealState();
 	lastError: SSEEventMap['error'] | null = null;
+	pendingFacadeJobs = 0;
 
 	constructor(intent: string) {
 		this.intent = intent;
@@ -120,7 +121,7 @@ export class EyeLoopSession {
 			min: RESERVOIR_MIN_READY,
 			max: RESERVOIR_MAX_READY,
 			lowWater: RESERVOIR_LOW_WATER,
-			pending: 0,
+			pending: this.pendingFacadeJobs,
 			stale
 		};
 	}
@@ -184,6 +185,22 @@ export class EyeLoopSession {
 		this.emit('facade-ready', { facade: queued });
 		this.emit('queue-updated', { queueStats: this.queueStats });
 		return queued;
+	}
+
+	removeFacade(facadeId: string) {
+		const idx = this.facades.findIndex((f) => f.id === facadeId);
+		if (idx === -1) return;
+		this.facades.splice(idx, 1);
+		this.emit('facade-stale', { facadeId });
+		this.emit('queue-updated', { queueStats: this.queueStats });
+	}
+
+	clearReadyFacades() {
+		for (const facade of [...this.facades]) {
+			this.emit('facade-stale', { facadeId: facade.id });
+		}
+		this.facades = [];
+		this.emit('queue-updated', { queueStats: this.queueStats });
 	}
 
 	consumeFacade(facadeId: string): QueuedFacade | null {
