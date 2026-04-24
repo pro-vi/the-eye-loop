@@ -49,7 +49,13 @@ const synthesisSchema = z.object({
 	palette: paletteSchema,  // derived from accepted evidence — consistent across all agent output
 	scout_assignments: z.array(
 		z.object({
-			scout: z.string(),
+			// Closed roster matches coldStartSchema below and SCOUTS in scout.ts:33-38.
+			// Prompt at line 90 already states the 6 names; enum makes the prompt
+			// contract structurally enforced at the Output.object layer rather than
+			// relying on the LLM to comply. scout.ts:191 does `a.scout === scoutName`
+			// against SCOUTS[].name — an off-roster scout would silently fall back
+			// to self-assignment, invisible to the cheap-channel validator.
+			scout: z.enum(['Iris', 'Prism', 'Lumen', 'Aura', 'Facet', 'Echo']),
 			probe_axis: z.string(),
 			reason: z.string()
 		})
