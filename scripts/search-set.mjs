@@ -195,8 +195,25 @@ function extractMetrics(artifact) {
 		error_code_valid_count: m.error_code_valid_count ?? 0,
 		agent_status_valid_count: m.agent_status_valid_count ?? 0,
 		agent_status_role_valid_count: m.agent_status_role_valid_count ?? 0,
+		// iter-101: forward-carry AgentState remaining-field presence-validity
+		// probe counts (id, name, focus) from validate.mjs so aggregate rollups
+		// below can establish POSITIVE-IDENTITY with agent_status_event_count_
+		// sum=105/_min=21 under iter-61 healthy-auth 5-intent 12s-window baseline.
+		// Saturates AgentState 5-way field-validity matrix alongside iter-58
+		// (status) and iter-86 (role) typed-union probes.
+		agent_status_id_present_count: m.agent_status_id_present_count ?? 0,
+		agent_status_name_present_count: m.agent_status_name_present_count ?? 0,
+		agent_status_focus_present_count: m.agent_status_focus_present_count ?? 0,
 		stream_2_agent_status_valid_count: m.stream_2_agent_status_valid_count ?? 0,
 		stream_2_agent_status_role_valid_count: m.stream_2_agent_status_role_valid_count ?? 0,
+		// iter-101: forward-carry stream_2 counterparts for AgentState presence-
+		// validity probes. Cross-stream POSITIVE-IDENTITY with primary iter-101
+		// under healthy-auth baseline: each = stream_2_agent_status_count ≈
+		// 40-42/_min=8 per 5-intent baseline (oscillates [40,42] per iter-89
+		// note re scaffold-latency timing).
+		stream_2_agent_status_id_present_count: m.stream_2_agent_status_id_present_count ?? 0,
+		stream_2_agent_status_name_present_count: m.stream_2_agent_status_name_present_count ?? 0,
+		stream_2_agent_status_focus_present_count: m.stream_2_agent_status_focus_present_count ?? 0,
 		stage_changed_swipe_count_valid_count: m.stage_changed_swipe_count_valid_count ?? 0,
 		stream_2_stage_changed_swipe_count_valid_count: m.stream_2_stage_changed_swipe_count_valid_count ?? 0,
 		stream_2_draft_updated_count: m.stream_2_draft_updated_count ?? 0,
@@ -1364,6 +1381,149 @@ async function main() {
 			stream_2_agent_status_role_valid_count_sum: sumMetric('stream_2_agent_status_role_valid_count'),
 			stream_2_agent_status_role_valid_count_min: perIntent.length
 				? Math.min(...perIntent.map((p) => p.metrics.stream_2_agent_status_role_valid_count ?? 0))
+				: 0,
+			// iter-101: AgentState remaining-field presence-validity rollups
+			// (id, name, focus) on both primary and stream_2. Saturates the
+			// AgentState 5-way field-validity matrix alongside iter-58 status
+			// (typed-union) and iter-86 role (typed-union) probes — the
+			// AgentState counterpart to iter-97's SwipeRecord 5-way matrix,
+			// iter-98/99's Facade 6-way matrix, and iter-100's PrototypeDraft
+			// 6-way matrix saturations.
+			//
+			// AgentState (types.ts:37-44) has 5 required fields:
+			//   id: string         — agent identity (e.g. 'scout-01', 'oracle')
+			//   name: string       — display name (e.g. 'Iris', 'Meridian')
+			//   role: typed-union  — PROBED iter-86
+			//   status: typed-union — PROBED iter-58
+			//   focus: string      — current-activity descriptor
+			// Plus 1 optional field (lastFacadeId?) not probed — absence is in-regime.
+			//
+			// Under iter-61 healthy-auth 5-intent 12s-window baseline:
+			//   agent_status_id_present_count_sum = 105 _min = 21 (primary —
+			//     matches iter-31 agent_status_event_count_sum=105 and iter-58
+			//     agent_status_valid_count_sum=105 and iter-86 agent_status_role_
+			//     valid_count_sum=105 identity — every primary agent-status emit
+			//     carries a valid id string)
+			//   agent_status_name_present_count_sum = 105 _min = 21 (primary —
+			//     same identity as id)
+			//   agent_status_focus_present_count_sum = 105 _min = 21 (primary —
+			//     same identity; focus is always non-empty under current
+			//     12s-window healthy-auth regime because clean-exit setStatus(
+			//     agent, 'idle', '') at scout.ts:507 is unreachable within 12s —
+			//     verified via debug-latest probe showing 21 emits all with
+			//     non-empty focus values like 'generating probe', '"label"',
+			//     'monitoring', 'analyzing accept on ...'.)
+			//   stream_2_agent_status_id_present_count_sum = 40-42 _min = 8
+			//     (stream_2 — matches iter-66 stream_2_agent_status_count_sum
+			//     baseline with [40,42] range per iter-89 note re scaffold-
+			//     latency edge timing; identity holds with iter-58's stream_2_
+			//     agent_status_valid_count and iter-86's stream_2_agent_status_
+			//     role_valid_count)
+			//   stream_2_agent_status_name_present_count_sum = 40-42 _min = 8
+			//   stream_2_agent_status_focus_present_count_sum = 40-42 _min = 8
+			//
+			// Under broken-auth baseline (pre-iter-61): agent_status_event_count=
+			//   90 per 5-intent (18/intent — 2 replay + 8 scout thinking + 8
+			//   scout idle-with-auth-failed-focus); all 3 new probes track
+			//   agent_status_event_count_sum=90/_min=18 because initial replay
+			//   emits with focus='' do not fire from scout.ts construction
+			//   (scouts are only constructed, first emit is setStatus with
+			//   non-empty focus).
+			//
+			// Five-way AgentState identity chain under healthy-auth 5-intent:
+			//   agent_status_event_count_sum (iter-31) =
+			//   agent_status_valid_count_sum (iter-58) =
+			//   agent_status_role_valid_count_sum (iter-86) =
+			//   agent_status_id_present_count_sum (iter-101) =
+			//   agent_status_name_present_count_sum (iter-101) =
+			//   agent_status_focus_present_count_sum (iter-101) = 105
+			// With the matching stream_2 identity at 40-42 matching stream_2_
+			// agent_status_count_sum (iter-66) + iter-58/86/101 stream_2 siblings.
+			// An observation where any field's _sum drops below agent_status_
+			// event_count_sum under healthy-auth regime uniquely pinpoints that
+			// field's emission regression while leaving iter-31/58/86 probes at
+			// identity.
+			//
+			// Regression classes these rollups catch that iter-31/52/58/86 cannot:
+			//   (a) scout construction at scout.ts:229-236 passes id=undefined
+			//     from an upstream agentId generator bug: event_count holds at
+			//     105, status/role_valid hold, id_present drops below 105 —
+			//     pinpoints id-generation corruption invisible to typed-union
+			//     probes (status/role still valid literals).
+			//   (b) setStatus call site refactor flips focus to null/undefined
+			//     via a typo (focus = focus ?? undefined instead of ''):
+			//     event_count + status + role all hold at 105, focus_present
+			//     drops — catches per-field payload corruption distinct from
+			//     iter-29 diagnostic_preserved (SPECIFIC-VALUE probe for 'provider
+			//     auth failed', not presence).
+			//   (c) name stripped by a refactor that renames field in SCOUT_
+			//     ROSTER but misses one emit path: event_count holds, role_valid
+			//     holds, name_present drops — catches partial-rename drift.
+			//   (d) SSE serializer (bus.ts emit chain) strips entire 'agent'
+			//     field (JSON.stringify circular-ref bug or Symbol key): ALL 5
+			//     AgentState field probes (iter-58/86/101) collapse to 0
+			//     simultaneously while agent_status_event_count holds at 105 —
+			//     distinguishes serialization-level from field-specific corruption.
+			//
+			// Stream_2 cross-stream identity catches regressions invisible to
+			// primary-only probes: a replay-block bug in +server.ts:33-35 that
+			// preserves stream_2_agent_status_count (the loop still fires per
+			// context.agent) but corrupts individual fields (a .map transform,
+			// a clone-then-truncate bug, field rename that misses the replay
+			// emit) would leave primary iter-101 at identity while dropping
+			// these stream_2 probes below stream_2_agent_status_count.
+			//
+			// POSITIVE-IDENTITY family continuation: iter-97 SwipeRecord, iter-
+			// 98/99 Facade, iter-100 PrototypeDraft, iter-101 AgentState — 5
+			// consecutive iterations saturating event-type field-validity
+			// matrices, each on a distinct event type. After iter-101, the 4
+			// largest SSEEvent payloads (Facade, SwipeRecord, PrototypeDraft,
+			// AgentState) all have saturated field-validity matrices across both
+			// primary and stream_2 where replayed. Remaining harness-completeness
+			// audit surfaces: (a) TasteSynthesis array-element remaining fields
+			// (EmergentAxis label/poleA/poleB/evidence_basis — iter-83 covered
+			// confidence; scout_assignments probe_axis/reason — iter-85 covered
+			// scout); (b) SwipeEvidence remaining-field presence (facadeId/
+			// content/hypothesis/implication on evidence[] items — iter-82
+			// covered decision/format/latencySignal); (c) error event fields
+			// beyond iter-14/54/56 (agentId presence — covered by distinct_
+			// error_agent_count implicitly). Each is a natural follow-on
+			// candidate if harness-completeness continues as the chosen axis.
+			agent_status_id_present_count_sum: sumMetric('agent_status_id_present_count'),
+			agent_status_id_present_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.agent_status_id_present_count ?? 0))
+				: 0,
+			agent_status_name_present_count_sum: sumMetric('agent_status_name_present_count'),
+			agent_status_name_present_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.agent_status_name_present_count ?? 0))
+				: 0,
+			agent_status_focus_present_count_sum: sumMetric('agent_status_focus_present_count'),
+			agent_status_focus_present_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.agent_status_focus_present_count ?? 0))
+				: 0,
+			stream_2_agent_status_id_present_count_sum: sumMetric(
+				'stream_2_agent_status_id_present_count'
+			),
+			stream_2_agent_status_id_present_count_min: perIntent.length
+				? Math.min(
+						...perIntent.map((p) => p.metrics.stream_2_agent_status_id_present_count ?? 0)
+					)
+				: 0,
+			stream_2_agent_status_name_present_count_sum: sumMetric(
+				'stream_2_agent_status_name_present_count'
+			),
+			stream_2_agent_status_name_present_count_min: perIntent.length
+				? Math.min(
+						...perIntent.map((p) => p.metrics.stream_2_agent_status_name_present_count ?? 0)
+					)
+				: 0,
+			stream_2_agent_status_focus_present_count_sum: sumMetric(
+				'stream_2_agent_status_focus_present_count'
+			),
+			stream_2_agent_status_focus_present_count_min: perIntent.length
+				? Math.min(
+						...perIntent.map((p) => p.metrics.stream_2_agent_status_focus_present_count ?? 0)
+					)
 				: 0,
 			// iter-60 session-ready.intent content-presence rollup. Closes the
 			// last unprobed content field across all SSE event types — iter-20

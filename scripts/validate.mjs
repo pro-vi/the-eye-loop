@@ -433,6 +433,32 @@ async function main() {
 		error_message_present_count: 0,
 		agent_status_valid_count: 0,
 		agent_status_role_valid_count: 0,
+		// iter-101: stream_2 counterparts for primary-bus AgentState presence-
+		// validity probes (id, name, focus). Mirrors the primary-bus iter-101
+		// probes onto the /api/stream replay loop (+server.ts:33-35) which emits
+		// one agent-status per agent in context.agents.values() — under iter-61
+		// healthy-auth 5-intent 12s-window baseline that's 8 agents per intent
+		// (6 scouts + 1 oracle + 1 builder), all carrying non-empty id/name/focus
+		// strings. Saturates the AgentState 5-way field-validity matrix on stream_2
+		// alongside iter-58's stream_2_agent_status_valid_count (status) and
+		// iter-86's stream_2_agent_status_role_valid_count (role). Bundled in the
+		// same iteration as the primary-bus probes following iter-100's 3-field
+		// × 2-stream pattern (6 probes) — each field shares the same filter
+		// scaffold so the added scope is minimal.
+		// Regression classes uniquely catchable at stream_2:
+		//   (a) replay-block field-corruption (e.g. a .map(a => ({...a, id:
+		//     undefined})) transform inserted into +server.ts:33-35): primary
+		//     stays at identity, stream_2 drops below stream_2_agent_status_count.
+		//   (b) payload-shape divergence where stream_2 envelopes agent
+		//     differently than primary (e.g. { agent: { id: stringified JSON } }):
+		//     primary stays at identity, stream_2 drops to 0 since typeof fails.
+		//   (c) context.agents mutation between emission and replay (e.g. an
+		//     async cleanup pass clears agent.focus just before a new client
+		//     connects): primary stays at identity (live emissions were
+		//     complete), stream_2 drops below stream_2_agent_status_count.
+		agent_status_id_present_count: 0,
+		agent_status_name_present_count: 0,
+		agent_status_focus_present_count: 0,
 		stage_changed_swipe_count_valid_count: 0,
 		// iter-67: facade.format union-membership probe — first content probe
 		// on facade-ready (iter-66 added the count; no content probe existed
@@ -854,6 +880,42 @@ async function main() {
 		const VALID_AGENT_ROLES = ['scout', 'builder', 'oracle'];
 		stream2.agent_status_role_valid_count = stream2.events.filter(
 			(e) => e.type === 'agent-status' && VALID_AGENT_ROLES.includes(e.data?.agent?.role)
+		).length;
+		// iter-101: stream_2 AgentState remaining-field presence-validity probes —
+		// mirrors the primary-bus iter-101 probes onto the /api/stream replay
+		// snapshot. Under iter-61 healthy-auth 5-intent 12s-window baseline the
+		// replay loop at +server.ts:33-35 emits 8 agent-status events per intent
+		// (6 scouts + 1 oracle + 1 builder) from context.agents.values() — each
+		// carrying non-empty id/name/focus strings. Per-intent identity:
+		//   stream_2_agent_status_id_present_count = stream_2_agent_status_count = 8
+		//   stream_2_agent_status_name_present_count = 8
+		//   stream_2_agent_status_focus_present_count = 8
+		// Aggregate (5 intents): each _sum=40-42/_min=8 matching iter-58's
+		// stream_2_agent_status_valid_count_sum and iter-86's stream_2_agent_
+		// status_role_valid_count_sum (same oscillation as iter-86 learnings
+		// noted: [40, 42] depending on late-completing builder scaffold adding
+		// extra agent-status events within stream_2 window).
+		// Saturates the AgentState 5-way field-validity matrix on stream_2:
+		//   iter-58 status (typed-union) + iter-86 role (typed-union) + iter-101
+		//   id/name/focus (presence-validity) = 5 fields probed for 5 required
+		//   AgentState fields (excludes optional lastFacadeId? per types.ts:43).
+		stream2.agent_status_id_present_count = stream2.events.filter(
+			(e) =>
+				e.type === 'agent-status' &&
+				typeof e.data?.agent?.id === 'string' &&
+				e.data.agent.id.length > 0
+		).length;
+		stream2.agent_status_name_present_count = stream2.events.filter(
+			(e) =>
+				e.type === 'agent-status' &&
+				typeof e.data?.agent?.name === 'string' &&
+				e.data.agent.name.length > 0
+		).length;
+		stream2.agent_status_focus_present_count = stream2.events.filter(
+			(e) =>
+				e.type === 'agent-status' &&
+				typeof e.data?.agent?.focus === 'string' &&
+				e.data.agent.focus.length > 0
 		).length;
 		// iter-61: stage-changed.swipeCount integer-validity probe (stream_2)
 		// — sibling to the primary-stream stageChangedSwipeCountValidCount
@@ -2181,6 +2243,92 @@ async function main() {
 	const agentStatusRoleValidCount = events.filter(
 		(e) => e.type === 'agent-status' && VALID_AGENT_ROLES.has(e.data?.agent?.role)
 	).length;
+	// iter-101: AgentState remaining-field presence-validity probes — closes the
+	// 3 of 5 AgentState required fields not covered by iter-58's status typed-
+	// union probe and iter-86's role typed-union probe, saturating the 5-way
+	// AgentState field-validity matrix alongside those two typed-union siblings.
+	// AgentState (types.ts:37-44) has 5 required fields:
+	//   id: string         — agent identity (e.g. 'scout-01', 'oracle', 'builder-01')
+	//   name: string       — human-friendly display name (e.g. 'Iris', 'Oracle', 'Meridian')
+	//   role: typed-union  — PROBED iter-86
+	//   status: typed-union — PROBED iter-58
+	//   focus: string      — current-activity descriptor (e.g. '"Warm tones"', 'monitoring')
+	// Plus 1 optional field (lastFacadeId?) that does not get a presence-validity
+	// probe because its absence is in-regime under healthy-auth (set only after
+	// scouts complete their first probe).
+	//
+	// This iteration closes 3 primary-bus presence-validity probes AND 3 stream_2
+	// counterparts in one pass (3 fields × 2 streams = 6 probes total, same
+	// scope as iter-100's 3-field draft saturation). All 3 share the same filter
+	// scaffold (events.filter(e => e.type === 'agent-status')) so bundling them
+	// follows the iter-90/91/100 shared-filter pattern. This is the AgentState
+	// counterpart to iter-97/98/99/100's matrix-saturation cluster:
+	//   iter-97: SwipeRecord 5-way matrix completion (3 presence-validity + 2 typed-union iter-80)
+	//   iter-98/99: Facade 6-way matrix completion (5 presence-validity + 1 typed-union iter-67)
+	//   iter-100: PrototypeDraft 6-way matrix completion (3 POSITIVE-IDENTITY + 3 SHOULD-BE-ZERO)
+	//   iter-101: AgentState 5-way matrix completion (3 presence-validity + 2 typed-union iter-58/86)
+	//
+	// Family: POSITIVE-IDENTITY (continuing iter-97/98/99/100's intervention-
+	// diversity shift from iter-93/94/95/96 SHOULD-BE-ZERO to POSITIVE-IDENTITY).
+	// Under iter-61 healthy-auth single-intent 12s-window baseline each probe
+	// equals agent_status_event_count = 21 (6 scouts × ~3 emits + 1 oracle + 1
+	// builder × a few setStatus transitions). Aggregate (5-intent): _sum=105/_min=21
+	// matching iter-58/86.
+	//
+	// Regression classes these probes catch that iter-31 (count), iter-52 (per-
+	// role count), iter-58 (status probe), iter-86 (role probe) cannot:
+	//   - scout.ts:229-236 agent construction passes id=undefined from upstream
+	//     agentId generator bug: agent_status_event_count holds at 21, status/
+	//     role probes hold at 21 (status='idle'/'thinking' and role='scout' still
+	//     valid), agent_status_id_present drops below 21 — pinpoints id-generation
+	//     corruption.
+	//   - name stripped by a refactor that renames field in SCOUT_ROSTER but
+	//     misses one emit path: event_count holds, role_valid holds, name_present
+	//     drops — catches partial-rename drift.
+	//   - focus field lost in SSE serialization (e.g. JSON.stringify with a
+	//     replacer that strips certain keys): event_count + status + role all
+	//     hold at 21, focus_present drops to 0 — catches serializer-level drift
+	//     invisible to every iter-29 diagnostic_preserved probe (which filters
+	//     on focus === 'provider auth failed', a SPECIFIC-VALUE check not a
+	//     presence check).
+	//   - setStatus call site passes focus=null/undefined from a typo: every
+	//     iter-29/31/52/58/86 probe holds, focus_present drops below event_count.
+	//
+	// Identity invariants under iter-61 healthy-auth baseline:
+	//   single-intent: agent_status_id_present_count = agent_status_name_present
+	//     _count = agent_status_focus_present_count = agent_status_event_count = 21
+	//   5-intent aggregate: each _sum=105/_min=21 matching iter-58's agent_status_
+	//     valid_count_sum=105 and iter-86's agent_status_role_valid_count_sum=105.
+	// Under broken-auth baseline: each = 18/intent (2 replay idle-focus-'' plus
+	// 8 scout thinking 'generating probe' plus 8 scout idle 'provider auth failed')
+	// — note the 2 initial setStatus(agent, 'idle', '') emits DO carry focus=''
+	// under some startup paths; typeof === 'string' && length > 0 predicate would
+	// drop those 2 from the count. Under the CURRENT 12s healthy-auth validator
+	// the initial idle emits do not fire (construction doesn't emit; first emit
+	// is setStatus to 'thinking'/'monitoring'/'watching' with non-empty focus),
+	// so identity holds at 21. A future regime where clean-exit setStatus(agent,
+	// 'idle', '') becomes reachable (session rotation, long-running session) would
+	// drop focus_present_count below event_count — a signal worth observing, not
+	// a regression. For strict typed-contract enforcement we use typeof === 'string'
+	// && length > 0 (same predicate as iter-100 title/summary/html).
+	const agentStatusIdPresentCount = events.filter(
+		(e) =>
+			e.type === 'agent-status' &&
+			typeof e.data?.agent?.id === 'string' &&
+			e.data.agent.id.length > 0
+	).length;
+	const agentStatusNamePresentCount = events.filter(
+		(e) =>
+			e.type === 'agent-status' &&
+			typeof e.data?.agent?.name === 'string' &&
+			e.data.agent.name.length > 0
+	).length;
+	const agentStatusFocusPresentCount = events.filter(
+		(e) =>
+			e.type === 'agent-status' &&
+			typeof e.data?.agent?.focus === 'string' &&
+			e.data.agent.focus.length > 0
+	).length;
 	// iter-61: stage-changed.swipeCount integer-validity probe (primary stream) —
 	// closes the last unprobed field on the iter-3 'stage-changed' SSEEvent after
 	// iter-41/55 (stage union-membership) filled the stage field on both streams.
@@ -2934,6 +3082,15 @@ async function main() {
 			stream_2_error_message_present_count: stream2.error_message_present_count,
 			stream_2_agent_status_valid_count: stream2.agent_status_valid_count,
 			stream_2_agent_status_role_valid_count: stream2.agent_status_role_valid_count,
+			// iter-101: stream_2 counterparts for primary-bus AgentState presence-
+			// validity probes. Cross-stream POSITIVE-IDENTITY: each = stream_2_
+			// agent_status_count ≈ 40-42/_min=8 per 5-intent healthy-auth
+			// baseline (oscillates between 40 and 42 per iter-89 note re
+			// scaffold-latency edge timing). Saturates the AgentState 5-way
+			// field-validity matrix on stream_2.
+			stream_2_agent_status_id_present_count: stream2.agent_status_id_present_count,
+			stream_2_agent_status_name_present_count: stream2.agent_status_name_present_count,
+			stream_2_agent_status_focus_present_count: stream2.agent_status_focus_present_count,
 			stream_2_stage_changed_swipe_count_valid_count: stream2.stage_changed_swipe_count_valid_count,
 			stream_2_draft_updated_count: stream2.draft_updated_count,
 			stream_2_draft_placeholder_count: stream2.draft_placeholder_count,
@@ -3010,6 +3167,17 @@ async function main() {
 			error_code_valid_count: errorCodeValidCount,
 			agent_status_valid_count: agentStatusValidCount,
 			agent_status_role_valid_count: agentStatusRoleValidCount,
+			// iter-101: AgentState remaining-field presence-validity probes
+			// (id, name, focus) on the primary bus. Saturates the AgentState
+			// 5-way field-validity matrix alongside iter-58 status and iter-86
+			// role typed-union probes. POSITIVE-IDENTITY invariants: each =
+			// agent_status_event_count = 105/_min=21 per 5-intent healthy-auth
+			// baseline. The AgentState counterpart to iter-97 SwipeRecord 5-way,
+			// iter-98/99 Facade 6-way, iter-100 PrototypeDraft 6-way matrix
+			// saturations.
+			agent_status_id_present_count: agentStatusIdPresentCount,
+			agent_status_name_present_count: agentStatusNamePresentCount,
+			agent_status_focus_present_count: agentStatusFocusPresentCount,
 			stage_changed_swipe_count_valid_count: stageChangedSwipeCountValidCount,
 			facade_format_valid_count: facadeFormatValidCount,
 			facade_id_present_count: facadeIdPresentCount,
@@ -3084,7 +3252,7 @@ async function main() {
 		`agent_status_roles=s${agentStatusScoutCount}/o${agentStatusOracleCount}/b${agentStatusBuilderCount} ` +
 		`stage_changed=${stageChangedEventCount} stage_before_ready=${stageChangedBeforeSessionReady} ` +
 		`stage_valid=${stageValidCount} err_src_valid=${errorSourceValidCount} err_code_valid=${errorCodeValidCount} ` +
-		`agent_status_valid=${agentStatusValidCount} agent_status_role_valid=${agentStatusRoleValidCount} stage_swipe_valid=${stageChangedSwipeCountValidCount} ` +
+		`agent_status_valid=${agentStatusValidCount} agent_status_role_valid=${agentStatusRoleValidCount} agent_id=${agentStatusIdPresentCount} agent_name=${agentStatusNamePresentCount} agent_focus=${agentStatusFocusPresentCount} stage_swipe_valid=${stageChangedSwipeCountValidCount} ` +
 		`facade_fmt_valid=${facadeFormatValidCount} facade_id=${facadeIdPresentCount} facade_aid=${facadeAgentIdPresentCount} facade_hyp=${facadeHypothesisPresentCount} facade_label=${facadeLabelPresentCount} facade_content=${facadeContentPresentCount} ` +
 		`swipe_dec_valid=${swipeDecisionValidCount} swipe_bkt_valid=${swipeLatencyBucketValidCount} swipe_fid=${swipeFacadeIdPresentCount} swipe_aid=${swipeAgentIdPresentCount} swipe_lat_ms_valid=${swipeLatencyMsValidCount} ` +
 		`synth_axes=${synthesisAxesCount}/min=${synthesisAxesMin} synth_axes_conf_valid=${synthesisAxesValidConfidenceCount} synth_assigns=${synthesisScoutAssignmentsCount}/min=${synthesisScoutAssignmentsMin} synth_assigns_scout_valid=${synthesisScoutAssignmentsValidScoutCount} synth_palette=${synthesisPalettePresentCount} ` +
@@ -3093,7 +3261,7 @@ async function main() {
 		`s2_err=${stream2.error_event_count} s2_agents=${stream2.agent_status_count} s2_stage=${stream2.stage_changed_count} s2_diag=${stream2.diagnostic_preserved_count} s2_err_auth=${stream2.error_provider_auth_count} ` +
 		`s2_roles=s${stream2.agent_status_scout_count}/o${stream2.agent_status_oracle_count}/b${stream2.agent_status_builder_count} ` +
 		`s2_stage_valid=${stream2.stage_valid_count} s2_err_src_valid=${stream2.error_source_valid_count} s2_err_code_valid=${stream2.error_code_valid_count} s2_err_msg=${stream2.error_message_present_count} ` +
-		`s2_agent_status_valid=${stream2.agent_status_valid_count} s2_agent_status_role_valid=${stream2.agent_status_role_valid_count} s2_stage_swipe_valid=${stream2.stage_changed_swipe_count_valid_count} ` +
+		`s2_agent_status_valid=${stream2.agent_status_valid_count} s2_agent_status_role_valid=${stream2.agent_status_role_valid_count} s2_agent_id=${stream2.agent_status_id_present_count} s2_agent_name=${stream2.agent_status_name_present_count} s2_agent_focus=${stream2.agent_status_focus_present_count} s2_stage_swipe_valid=${stream2.stage_changed_swipe_count_valid_count} ` +
 		`s2_drafts=${stream2.draft_updated_count} s2_drafts_p/r=${stream2.draft_placeholder_count}/${stream2.draft_refined_count} s2_draft_next_hint=${stream2.draft_next_hint_present_count} s2_draft_accepted_pat=${stream2.draft_accepted_patterns_present_count} s2_draft_rejected_pat=${stream2.draft_rejected_patterns_present_count} s2_draft_title=${stream2.draft_title_present_count} s2_draft_summary=${stream2.draft_summary_present_count} s2_draft_html=${stream2.draft_html_present_count} ` +
 		`s2_facades=${stream2.facade_ready_count} s2_synth=${stream2.synthesis_updated_count} s2_evidence=${stream2.evidence_updated_count} ` +
 		`s2_facade_fmt_valid=${stream2.facade_format_valid_count} s2_facade_id=${stream2.facade_id_present_count} s2_facade_aid=${stream2.facade_agent_id_present_count} s2_facade_hyp=${stream2.facade_hypothesis_present_count} s2_facade_label=${stream2.facade_label_present_count} s2_facade_content=${stream2.facade_content_present_count} ` +

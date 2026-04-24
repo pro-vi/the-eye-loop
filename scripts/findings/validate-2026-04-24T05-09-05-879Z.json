@@ -1,0 +1,1280 @@
+{
+  "started_at": "2026-04-24T05:08:51.396Z",
+  "finished_at": "2026-04-24T05:09:05.879Z",
+  "elapsed_ms": 14483,
+  "result": "PASS",
+  "reason": "facade_and_draft_observed",
+  "intent": "a personal dashboard for tracking long-term health experiments",
+  "dev_url": "http://localhost:30082",
+  "session": {
+    "rtt_ms": 9,
+    "status": 200,
+    "body": {
+      "intent": "a personal dashboard for tracking long-term health experiments",
+      "sessionId": "15a50d7e-5204-4b41-898e-e1c95c89011b"
+    },
+    "error": null
+  },
+  "session_2": {
+    "attempted": false,
+    "intent": null,
+    "rtt_ms": null,
+    "status": null,
+    "body": null,
+    "error": null,
+    "posted_at_ms": null,
+    "waited_ms": null
+  },
+  "stream": {
+    "opened_at_ms": 863,
+    "error": null,
+    "event_counts": {
+      "agent-status": 21,
+      "stage-changed": 1,
+      "draft-updated": 2,
+      "session-ready": 1,
+      "facade-ready": 7,
+      "swipe-result": 1,
+      "evidence-updated": 1,
+      "synthesis-updated": 1
+    },
+    "first_event_ms": {
+      "agent-status": 868,
+      "stage-changed": 868,
+      "draft-updated": 1380,
+      "session-ready": 1380,
+      "facade-ready": 3646,
+      "swipe-result": 3659,
+      "evidence-updated": 3659,
+      "synthesis-updated": 4665
+    },
+    "events": [
+      {
+        "ts_ms": 868,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "oracle",
+            "name": "Oracle",
+            "role": "oracle",
+            "status": "idle",
+            "focus": "monitoring"
+          }
+        }
+      },
+      {
+        "ts_ms": 868,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "idle",
+            "focus": "waiting for session"
+          }
+        }
+      },
+      {
+        "ts_ms": 868,
+        "type": "stage-changed",
+        "data": {
+          "type": "stage-changed",
+          "stage": "words",
+          "swipeCount": 0
+        }
+      },
+      {
+        "ts_ms": 1380,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "thinking",
+            "focus": "generating initial scaffold"
+          }
+        }
+      },
+      {
+        "ts_ms": 1380,
+        "type": "draft-updated",
+        "data": {
+          "type": "draft-updated",
+          "draft": {
+            "title": "a personal dashboard for tracking long-term health experiments",
+            "summary": "Drafting your prototype from the swipes…",
+            "html": "<div style=\"padding:2rem;text-align:center;color:var(--muted,#8a7f78);opacity:0.75\"><h2 style=\"margin:0 0 1rem;font-weight:400\">a personal dashboard for tracking long-term health experiments</h2><p style=\"margin:0\">Building your first draft…</p></div>",
+            "acceptedPatterns": [],
+            "rejectedPatterns": []
+          }
+        }
+      },
+      {
+        "ts_ms": 1380,
+        "type": "session-ready",
+        "data": {
+          "type": "session-ready",
+          "intent": "a personal dashboard for tracking long-term health experiments"
+        }
+      },
+      {
+        "ts_ms": 1380,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "oracle",
+            "name": "Oracle",
+            "role": "oracle",
+            "status": "thinking",
+            "focus": "cold-start analysis"
+          }
+        }
+      },
+      {
+        "ts_ms": 1380,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-01",
+            "name": "Iris",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1380,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-02",
+            "name": "Prism",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1380,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-03",
+            "name": "Lumen",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1380,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-04",
+            "name": "Aura",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1380,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-05",
+            "name": "Facet",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1380,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-06",
+            "name": "Echo",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 3646,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "675ae17d-848a-4ca1-85de-6e672d12c63d",
+            "agentId": "scout-06",
+            "hypothesis": "Users need visible, continuous feedback on their health experiment timeline rather than discrete checkpoints",
+            "axisTargeted": "Fluid animated transitions vs snappy instant updates",
+            "label": "Smooth progress bar",
+            "content": "Smooth progress bar",
+            "format": "word",
+            "acceptImplies": "Build animated progress indicators, smooth state changes, and flowing micro-interactions throughout the dashboard",
+            "rejectImplies": "Favor instant, static displays with minimal animation—numbers and grids update without motion or easing"
+          }
+        }
+      },
+      {
+        "ts_ms": 3646,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-06",
+            "name": "Echo",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Smooth progress bar\"",
+            "lastFacadeId": "675ae17d-848a-4ca1-85de-6e672d12c63d"
+          }
+        }
+      },
+      {
+        "ts_ms": 3659,
+        "type": "swipe-result",
+        "data": {
+          "type": "swipe-result",
+          "record": {
+            "facadeId": "675ae17d-848a-4ca1-85de-6e672d12c63d",
+            "agentId": "scout-06",
+            "decision": "accept",
+            "latencyMs": 600,
+            "latencyBucket": "slow"
+          }
+        }
+      },
+      {
+        "ts_ms": 3659,
+        "type": "evidence-updated",
+        "data": {
+          "type": "evidence-updated",
+          "evidence": [
+            {
+              "facadeId": "675ae17d-848a-4ca1-85de-6e672d12c63d",
+              "content": "Smooth progress bar",
+              "hypothesis": "Users need visible, continuous feedback on their health experiment timeline rather than discrete checkpoints",
+              "decision": "accept",
+              "latencySignal": "slow",
+              "format": "word",
+              "implication": "Build animated progress indicators, smooth state changes, and flowing micro-interactions throughout the dashboard"
+            }
+          ],
+          "antiPatterns": []
+        }
+      },
+      {
+        "ts_ms": 3659,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-06",
+            "name": "Echo",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe",
+            "lastFacadeId": "675ae17d-848a-4ca1-85de-6e672d12c63d"
+          }
+        }
+      },
+      {
+        "ts_ms": 3883,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "4fe4b09d-0b99-4a74-a6b0-e79a944d6835",
+            "agentId": "scout-03",
+            "hypothesis": "Users prefer conversational language ('How's your energy today?') over clinical language ('Record vital parameters') when logging health data",
+            "axisTargeted": "friendly vs professional",
+            "label": "Casual check-in tone",
+            "content": "Casual check-in tone",
+            "format": "word",
+            "acceptImplies": "Lean into warm, conversational microcopy; use 'you' language; celebrate small wins with emoji or gentle humor",
+            "rejectImplies": "Adopt clinical terminology; prioritize data density over personality; use neutral, instructional tone throughout the interface"
+          }
+        }
+      },
+      {
+        "ts_ms": 3883,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-03",
+            "name": "Lumen",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Casual check-in tone\"",
+            "lastFacadeId": "4fe4b09d-0b99-4a74-a6b0-e79a944d6835"
+          }
+        }
+      },
+      {
+        "ts_ms": 3883,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "4db9b353-3f0e-466c-9d95-d9f5ce9c3372",
+            "agentId": "scout-04",
+            "hypothesis": "A health dashboard benefits from calm, desaturated tones that feel medical-adjacent but not sterile—reducing cognitive load during frequent check-ins",
+            "axisTargeted": "warm vs cool, calm vs energetic",
+            "label": "Soft, muted colors",
+            "content": "Soft, muted colors",
+            "format": "word",
+            "acceptImplies": "User values serenity and visual restraint; dashboard should feel like a refuge, not a data command center",
+            "rejectImplies": "User wants vibrant feedback and energetic visual cues; needs color to feel alive and motivated, not meditative"
+          }
+        }
+      },
+      {
+        "ts_ms": 3883,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-04",
+            "name": "Aura",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Soft, muted colors\"",
+            "lastFacadeId": "4db9b353-3f0e-466c-9d95-d9f5ce9c3372"
+          }
+        }
+      },
+      {
+        "ts_ms": 3960,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "7e1ea781-0f64-478e-a67d-e1fe12e51989",
+            "agentId": "scout-02",
+            "hypothesis": "Users prefer persistent navigation on the left with single-column vertical scrolling over tabbed layouts for scanning long experiment timelines",
+            "axisTargeted": "navigation structure and scroll behavior",
+            "label": "Sidebar + scrolling",
+            "content": "Sidebar + scrolling",
+            "format": "word",
+            "acceptImplies": "Future probes should test depth of sidebar (wide vs narrow) and infinite scroll vs pagination",
+            "rejectImplies": "Explore tab-based navigation and horizontal scanning patterns as viable alternatives"
+          }
+        }
+      },
+      {
+        "ts_ms": 3961,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-02",
+            "name": "Prism",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Sidebar + scrolling\"",
+            "lastFacadeId": "7e1ea781-0f64-478e-a67d-e1fe12e51989"
+          }
+        }
+      },
+      {
+        "ts_ms": 3973,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "4b178981-5ae9-4774-a286-28e9e402728c",
+            "agentId": "scout-05",
+            "hypothesis": "Users tracking health experiments prefer metric-first displays (large, scannable KPIs) over narrative-led contexts (what the number means)",
+            "axisTargeted": "Data hierarchy: prominent metrics vs. narrative framing",
+            "label": "Big number, small story",
+            "content": "Big number, small story",
+            "format": "word",
+            "acceptImplies": "Dashboard should lead with large, bold numbers; context/story comes second or on-demand",
+            "rejectImplies": "Dashboard should nest metrics within narrative explanations; numbers serve the story, not vice versa"
+          }
+        }
+      },
+      {
+        "ts_ms": 3973,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-05",
+            "name": "Facet",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Big number, small story\"",
+            "lastFacadeId": "4b178981-5ae9-4774-a286-28e9e402728c"
+          }
+        }
+      },
+      {
+        "ts_ms": 3988,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "089e2fe3-e064-453e-97d6-781c6d04f3a0",
+            "agentId": "scout-01",
+            "hypothesis": "Users tracking health experiments prefer gentle, approachable visual warmth over clinical sterility, which reduces cognitive load when reviewing personal data.",
+            "axisTargeted": "Color temperature and emotional tone (warm/inviting vs. cool/clinical)",
+            "label": "Warm, soft colors",
+            "content": "Warm, soft colors",
+            "format": "word",
+            "acceptImplies": "Pursue warm palettes, soft gradients, and ambient lighting in cards and data visualizations to create a sense of care and comfort.",
+            "rejectImplies": "Explore cooler, more neutral or high-contrast palettes that feel objective and data-focused rather than emotionally warm."
+          }
+        }
+      },
+      {
+        "ts_ms": 3988,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-01",
+            "name": "Iris",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Warm, soft colors\"",
+            "lastFacadeId": "089e2fe3-e064-453e-97d6-781c6d04f3a0"
+          }
+        }
+      },
+      {
+        "ts_ms": 4665,
+        "type": "synthesis-updated",
+        "data": {
+          "type": "synthesis-updated",
+          "synthesis": {
+            "axes": [
+              {
+                "label": "Whether user prefers minimal clinical aesthetics vs. warm, human-centered visual design for health data",
+                "poleA": "Clinical or cozy?",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user wants data-dense dashboard layout vs. progressive disclosure with one metric at a time",
+                "poleA": "All at once or step by step?",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user responds to motivational/encouraging tone vs. neutral, factual reporting voice",
+                "poleA": "Cheerleader or scientist?",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user wants celebratory, gamified feedback vs. calm, meditative tracking environment",
+                "poleA": "Celebrate wins or stay focused?",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user prefers raw numbers and charts vs. narrative summaries and insights",
+                "poleA": "Numbers or stories?",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user wants instant feedback on actions vs. slow, contemplative animations and transitions",
+                "poleA": "Snappy or smooth?",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              }
+            ],
+            "edge_case_flags": [],
+            "scout_assignments": [
+              {
+                "scout": "Iris",
+                "probe_axis": "Whether user prefers minimal clinical aesthetics vs. warm, human-centered visual design for health data",
+                "reason": "Cold start: first question for Iris"
+              },
+              {
+                "scout": "Prism",
+                "probe_axis": "Whether user wants data-dense dashboard layout vs. progressive disclosure with one metric at a time",
+                "reason": "Cold start: first question for Prism"
+              },
+              {
+                "scout": "Lumen",
+                "probe_axis": "Whether user responds to motivational/encouraging tone vs. neutral, factual reporting voice",
+                "reason": "Cold start: first question for Lumen"
+              },
+              {
+                "scout": "Aura",
+                "probe_axis": "Whether user wants celebratory, gamified feedback vs. calm, meditative tracking environment",
+                "reason": "Cold start: first question for Aura"
+              },
+              {
+                "scout": "Facet",
+                "probe_axis": "Whether user prefers raw numbers and charts vs. narrative summaries and insights",
+                "reason": "Cold start: first question for Facet"
+              },
+              {
+                "scout": "Echo",
+                "probe_axis": "Whether user wants instant feedback on actions vs. slow, contemplative animations and transitions",
+                "reason": "Cold start: first question for Echo"
+              }
+            ],
+            "persona_anima_divergence": null
+          }
+        }
+      },
+      {
+        "ts_ms": 4665,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "oracle",
+            "name": "Oracle",
+            "role": "oracle",
+            "status": "idle",
+            "focus": "monitoring"
+          }
+        }
+      },
+      {
+        "ts_ms": 6619,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "44b487f1-d124-4aa3-9f6d-1ba203aa4697",
+            "agentId": "scout-06",
+            "hypothesis": "Users find abrupt screen changes jarring when tracking health data over weeks; gentle, spring-like animations reduce cognitive friction and make long-term tracking feel less clinical",
+            "axisTargeted": "Fluidity of state changes—snappy instant vs. easing curves with momentum",
+            "label": "Bouncy transitions",
+            "content": "Bouncy transitions",
+            "format": "word",
+            "acceptImplies": "Invest in spring animations, ease-out timing, and momentum-based scrolling for all dashboard transitions; prioritize feel over speed",
+            "rejectImplies": "Keep interactions instant and direct; users value speed and clarity over aesthetic flourish; focus on fast feedback loops instead"
+          }
+        }
+      },
+      {
+        "ts_ms": 6619,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-06",
+            "name": "Echo",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Bouncy transitions\"",
+            "lastFacadeId": "44b487f1-d124-4aa3-9f6d-1ba203aa4697"
+          }
+        }
+      },
+      {
+        "ts_ms": 11487,
+        "type": "draft-updated",
+        "data": {
+          "type": "draft-updated",
+          "draft": {
+            "title": "Experiment Tracker Dashboard",
+            "summary": "A personal health dashboard for monitoring long-term experiments with visual progress tracking, experiment cards, and key metrics at a glance.",
+            "html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>Health Experiment Tracker</title>\n  <style>\n    * {\n      margin: 0;\n      padding: 0;\n      box-sizing: border-box;\n    }\n\n    :root {\n      --bg: #FFF8F0;\n      --card: #FFF;\n      --accent: #FF8C69;\n      --text: #4A3E38;\n      --muted: #A1887F;\n      --radius: 16px;\n      --space: 20px;\n      --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;\n    }\n\n    body {\n      background: var(--bg);\n      color: var(--text);\n      font-family: var(--font);\n      font-size: 16px;\n      line-height: 1.5;\n      width: 100%;\n      max-width: 375px;\n      margin: 0 auto;\n      padding: 0;\n    }\n\n    .header {\n      padding: var(--space) var(--space) calc(var(--space) * 0.5);\n      border-bottom: 1px solid #F0E8E3;\n    }\n\n    .header h1 {\n      font-size: 28px;\n      font-weight: 600;\n      margin-bottom: 4px;\n    }\n\n    .header p {\n      font-size: 14px;\n      color: var(--muted);\n    }\n\n    .metrics {\n      display: grid;\n      grid-template-columns: 1fr 1fr;\n      gap: var(--space);\n      padding: var(--space);\n    }\n\n    .metric-card {\n      background: var(--card);\n      border-radius: var(--radius);\n      padding: var(--space);\n      border: 1px solid #F0E8E3;\n      text-align: center;\n    }\n\n    .metric-value {\n      font-size: 28px;\n      font-weight: 700;\n      color: var(--accent);\n      margin-bottom: 4px;\n    }\n\n    .metric-label {\n      font-size: 12px;\n      color: var(--muted);\n      text-transform: uppercase;\n      letter-spacing: 0.5px;\n    }\n\n    .experiments {\n      padding: var(--space);\n    }\n\n    .section-title {\n      font-size: 14px;\n      font-weight: 600;\n      color: var(--muted);\n      text-transform: uppercase;\n      letter-spacing: 0.5px;\n      margin-bottom: var(--space);\n    }\n\n    .experiment-item {\n      background: var(--card);\n      border-radius: var(--radius);\n      padding: var(--space);\n      margin-bottom: var(--space);\n      border: 1px solid #F0E8E3;\n    }\n\n    .experiment-header {\n      display: flex;\n      justify-content: space-between;\n      align-items: flex-start;\n      margin-bottom: 12px;\n    }\n\n    .experiment-title {\n      font-size: 16px;\n      font-weight: 600;\n      flex: 1;\n    }\n\n    .experiment-status {\n      font-size: 12px;\n      font-weight: 600;\n      color: var(--accent);\n      text-transform: uppercase;\n    }\n\n    .progress-bar {\n      width: 100%;\n      height: 6px;\n      background: #F0E8E3;\n      border-radius: 3px;\n      overflow: hidden;\n      margin-bottom: 8px;\n    }\n\n    .progress-fill {\n      height: 100%;\n      background: var(--accent);\n      border-radius: 3px;\n    }\n\n    .experiment-meta {\n      font-size: 13px;\n      color: var(--muted);\n      display: flex;\n      justify-content: space-between;\n    }\n  </style>\n</head>\n<body>\n  <div class=\"header\">\n    <h1>Health Lab</h1>\n    <p>Track your experiments</p>\n  </div>\n\n  <div class=\"metrics\">\n    <div class=\"metric-card\">\n      <div class=\"metric-value\">3</div>\n      <div class=\"metric-label\">Active</div>\n    </div>\n    <div class=\"metric-card\">\n      <div class=\"metric-value\">12</div>\n      <div class=\"metric-label\">Days Avg</div>\n    </div>\n  </div>\n\n  <div class=\"experiments\">\n    <div class=\"section-title\">Current Experiments</div>\n\n    <div class=\"experiment-item\">\n      <div class=\"experiment-header\">\n        <div class=\"experiment-title\">Sleep Optimization</div>\n        <div class=\"experiment-status\">Active</div>\n      </div>\n      <div class=\"progress-bar\">\n        <div class=\"progress-fill\" style=\"width: 65%\"></div>\n      </div>\n      <div class=\"experiment-meta\">\n        <span>Day 26 of 40</span>\n        <span>Avg: 7.2h</span>\n      </div>\n    </div>\n\n    <div class=\"experiment-item\">\n      <div class=\"experiment-header\">\n        <div class=\"experiment-title\">Cold Water Exposure</div>\n        <div class=\"experiment-status\">Active</div>\n      </div>\n      <div class=\"progress-bar\">\n        <div class=\"progress-fill\" style=\"width: 42%\"></div>\n      </div>\n      <div class=\"experiment-meta\">\n        <span>Day 17 of 40</span>\n        <span>Streak: 12d</span>\n      </div>\n    </div>\n\n    <div class=\"experiment-item\">\n      <div class=\"experiment-header\">\n        <div class=\"experiment-title\">Intermittent Fasting</div>\n        <div class=\"experiment-status\">Active</div>\n      </div>\n      <div class=\"progress-bar\">\n        <div class=\"progress-fill\" style=\"width: 80%\"></div>\n      </div>\n      <div class=\"experiment-meta\">\n        <span>Day 32 of 40</span>\n        <span>Compliance: 94%</span>\n      </div>\n    </div>\n  </div>\n</body>\n</html>",
+            "acceptedPatterns": [],
+            "rejectedPatterns": []
+          }
+        }
+      },
+      {
+        "ts_ms": 11487,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "idle",
+            "focus": "watching for swipes"
+          }
+        }
+      },
+      {
+        "ts_ms": 11487,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "thinking",
+            "focus": "analyzing accept on \"Smooth progress bar\""
+          }
+        }
+      }
+    ]
+  },
+  "stream_2": {
+    "attempted": true,
+    "opened_at_ms": 13376,
+    "elapsed_ms": 805,
+    "event_counts": {
+      "synthesis-updated": 1,
+      "draft-updated": 1,
+      "evidence-updated": 1,
+      "agent-status": 8,
+      "facade-ready": 6,
+      "stage-changed": 1
+    },
+    "error_event_count": 0,
+    "agent_status_count": 8,
+    "stage_changed_count": 1,
+    "draft_updated_count": 1,
+    "draft_placeholder_count": 0,
+    "draft_refined_count": 1,
+    "facade_ready_count": 6,
+    "synthesis_updated_count": 1,
+    "evidence_updated_count": 1,
+    "diagnostic_preserved_count": 0,
+    "error_provider_auth_count": 0,
+    "agent_status_scout_count": 6,
+    "agent_status_oracle_count": 1,
+    "agent_status_builder_count": 1,
+    "stage_valid_count": 1,
+    "error_source_valid_count": 0,
+    "error_code_valid_count": 0,
+    "error_message_present_count": 0,
+    "agent_status_valid_count": 8,
+    "agent_status_role_valid_count": 8,
+    "agent_status_id_present_count": 8,
+    "agent_status_name_present_count": 8,
+    "agent_status_focus_present_count": 8,
+    "stage_changed_swipe_count_valid_count": 1,
+    "facade_format_valid_count": 6,
+    "facade_id_present_count": 6,
+    "facade_agent_id_present_count": 6,
+    "facade_hypothesis_present_count": 6,
+    "facade_label_present_count": 6,
+    "facade_content_present_count": 6,
+    "synthesis_axes_count": 6,
+    "synthesis_axes_min": 6,
+    "synthesis_scout_assignments_count": 6,
+    "synthesis_scout_assignments_min": 6,
+    "evidence_array_valid_count": 1,
+    "anti_patterns_array_valid_count": 1,
+    "evidence_length_min": 1,
+    "evidence_length_max": 1,
+    "evidence_items_valid_decision_count": 1,
+    "evidence_items_valid_format_count": 1,
+    "evidence_items_valid_latency_signal_count": 1,
+    "synthesis_axes_valid_confidence_count": 6,
+    "synthesis_scout_assignments_valid_scout_count": 6,
+    "synthesis_palette_present_count": 0,
+    "draft_next_hint_present_count": 0,
+    "draft_accepted_patterns_present_count": 0,
+    "draft_rejected_patterns_present_count": 0,
+    "draft_title_present_count": 1,
+    "draft_summary_present_count": 1,
+    "draft_html_present_count": 1,
+    "first_event_ms_after_open": 3,
+    "last_event_ms_after_open": 3,
+    "replay_span_ms": 0,
+    "events": [
+      {
+        "ts_ms": 13379,
+        "type": "synthesis-updated",
+        "data": {
+          "type": "synthesis-updated",
+          "synthesis": {
+            "axes": [
+              {
+                "label": "Whether user prefers minimal clinical aesthetics vs. warm, human-centered visual design for health data",
+                "poleA": "Clinical or cozy?",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user wants data-dense dashboard layout vs. progressive disclosure with one metric at a time",
+                "poleA": "All at once or step by step?",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user responds to motivational/encouraging tone vs. neutral, factual reporting voice",
+                "poleA": "Cheerleader or scientist?",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user wants celebratory, gamified feedback vs. calm, meditative tracking environment",
+                "poleA": "Celebrate wins or stay focused?",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user prefers raw numbers and charts vs. narrative summaries and insights",
+                "poleA": "Numbers or stories?",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user wants instant feedback on actions vs. slow, contemplative animations and transitions",
+                "poleA": "Snappy or smooth?",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              }
+            ],
+            "edge_case_flags": [],
+            "scout_assignments": [
+              {
+                "scout": "Iris",
+                "probe_axis": "Whether user prefers minimal clinical aesthetics vs. warm, human-centered visual design for health data",
+                "reason": "Cold start: first question for Iris"
+              },
+              {
+                "scout": "Prism",
+                "probe_axis": "Whether user wants data-dense dashboard layout vs. progressive disclosure with one metric at a time",
+                "reason": "Cold start: first question for Prism"
+              },
+              {
+                "scout": "Lumen",
+                "probe_axis": "Whether user responds to motivational/encouraging tone vs. neutral, factual reporting voice",
+                "reason": "Cold start: first question for Lumen"
+              },
+              {
+                "scout": "Aura",
+                "probe_axis": "Whether user wants celebratory, gamified feedback vs. calm, meditative tracking environment",
+                "reason": "Cold start: first question for Aura"
+              },
+              {
+                "scout": "Facet",
+                "probe_axis": "Whether user prefers raw numbers and charts vs. narrative summaries and insights",
+                "reason": "Cold start: first question for Facet"
+              },
+              {
+                "scout": "Echo",
+                "probe_axis": "Whether user wants instant feedback on actions vs. slow, contemplative animations and transitions",
+                "reason": "Cold start: first question for Echo"
+              }
+            ],
+            "persona_anima_divergence": null
+          }
+        }
+      },
+      {
+        "ts_ms": 13379,
+        "type": "draft-updated",
+        "data": {
+          "type": "draft-updated",
+          "draft": {
+            "title": "Experiment Tracker Dashboard",
+            "summary": "A personal health dashboard for monitoring long-term experiments with visual progress tracking, experiment cards, and key metrics at a glance.",
+            "html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>Health Experiment Tracker</title>\n  <style>\n    * {\n      margin: 0;\n      padding: 0;\n      box-sizing: border-box;\n    }\n\n    :root {\n      --bg: #FFF8F0;\n      --card: #FFF;\n      --accent: #FF8C69;\n      --text: #4A3E38;\n      --muted: #A1887F;\n      --radius: 16px;\n      --space: 20px;\n      --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;\n    }\n\n    body {\n      background: var(--bg);\n      color: var(--text);\n      font-family: var(--font);\n      font-size: 16px;\n      line-height: 1.5;\n      width: 100%;\n      max-width: 375px;\n      margin: 0 auto;\n      padding: 0;\n    }\n\n    .header {\n      padding: var(--space) var(--space) calc(var(--space) * 0.5);\n      border-bottom: 1px solid #F0E8E3;\n    }\n\n    .header h1 {\n      font-size: 28px;\n      font-weight: 600;\n      margin-bottom: 4px;\n    }\n\n    .header p {\n      font-size: 14px;\n      color: var(--muted);\n    }\n\n    .metrics {\n      display: grid;\n      grid-template-columns: 1fr 1fr;\n      gap: var(--space);\n      padding: var(--space);\n    }\n\n    .metric-card {\n      background: var(--card);\n      border-radius: var(--radius);\n      padding: var(--space);\n      border: 1px solid #F0E8E3;\n      text-align: center;\n    }\n\n    .metric-value {\n      font-size: 28px;\n      font-weight: 700;\n      color: var(--accent);\n      margin-bottom: 4px;\n    }\n\n    .metric-label {\n      font-size: 12px;\n      color: var(--muted);\n      text-transform: uppercase;\n      letter-spacing: 0.5px;\n    }\n\n    .experiments {\n      padding: var(--space);\n    }\n\n    .section-title {\n      font-size: 14px;\n      font-weight: 600;\n      color: var(--muted);\n      text-transform: uppercase;\n      letter-spacing: 0.5px;\n      margin-bottom: var(--space);\n    }\n\n    .experiment-item {\n      background: var(--card);\n      border-radius: var(--radius);\n      padding: var(--space);\n      margin-bottom: var(--space);\n      border: 1px solid #F0E8E3;\n    }\n\n    .experiment-header {\n      display: flex;\n      justify-content: space-between;\n      align-items: flex-start;\n      margin-bottom: 12px;\n    }\n\n    .experiment-title {\n      font-size: 16px;\n      font-weight: 600;\n      flex: 1;\n    }\n\n    .experiment-status {\n      font-size: 12px;\n      font-weight: 600;\n      color: var(--accent);\n      text-transform: uppercase;\n    }\n\n    .progress-bar {\n      width: 100%;\n      height: 6px;\n      background: #F0E8E3;\n      border-radius: 3px;\n      overflow: hidden;\n      margin-bottom: 8px;\n    }\n\n    .progress-fill {\n      height: 100%;\n      background: var(--accent);\n      border-radius: 3px;\n    }\n\n    .experiment-meta {\n      font-size: 13px;\n      color: var(--muted);\n      display: flex;\n      justify-content: space-between;\n    }\n  </style>\n</head>\n<body>\n  <div class=\"header\">\n    <h1>Health Lab</h1>\n    <p>Track your experiments</p>\n  </div>\n\n  <div class=\"metrics\">\n    <div class=\"metric-card\">\n      <div class=\"metric-value\">3</div>\n      <div class=\"metric-label\">Active</div>\n    </div>\n    <div class=\"metric-card\">\n      <div class=\"metric-value\">12</div>\n      <div class=\"metric-label\">Days Avg</div>\n    </div>\n  </div>\n\n  <div class=\"experiments\">\n    <div class=\"section-title\">Current Experiments</div>\n\n    <div class=\"experiment-item\">\n      <div class=\"experiment-header\">\n        <div class=\"experiment-title\">Sleep Optimization</div>\n        <div class=\"experiment-status\">Active</div>\n      </div>\n      <div class=\"progress-bar\">\n        <div class=\"progress-fill\" style=\"width: 65%\"></div>\n      </div>\n      <div class=\"experiment-meta\">\n        <span>Day 26 of 40</span>\n        <span>Avg: 7.2h</span>\n      </div>\n    </div>\n\n    <div class=\"experiment-item\">\n      <div class=\"experiment-header\">\n        <div class=\"experiment-title\">Cold Water Exposure</div>\n        <div class=\"experiment-status\">Active</div>\n      </div>\n      <div class=\"progress-bar\">\n        <div class=\"progress-fill\" style=\"width: 42%\"></div>\n      </div>\n      <div class=\"experiment-meta\">\n        <span>Day 17 of 40</span>\n        <span>Streak: 12d</span>\n      </div>\n    </div>\n\n    <div class=\"experiment-item\">\n      <div class=\"experiment-header\">\n        <div class=\"experiment-title\">Intermittent Fasting</div>\n        <div class=\"experiment-status\">Active</div>\n      </div>\n      <div class=\"progress-bar\">\n        <div class=\"progress-fill\" style=\"width: 80%\"></div>\n      </div>\n      <div class=\"experiment-meta\">\n        <span>Day 32 of 40</span>\n        <span>Compliance: 94%</span>\n      </div>\n    </div>\n  </div>\n</body>\n</html>",
+            "acceptedPatterns": [],
+            "rejectedPatterns": []
+          }
+        }
+      },
+      {
+        "ts_ms": 13379,
+        "type": "evidence-updated",
+        "data": {
+          "type": "evidence-updated",
+          "evidence": [
+            {
+              "facadeId": "675ae17d-848a-4ca1-85de-6e672d12c63d",
+              "content": "Smooth progress bar",
+              "hypothesis": "Users need visible, continuous feedback on their health experiment timeline rather than discrete checkpoints",
+              "decision": "accept",
+              "latencySignal": "slow",
+              "format": "word",
+              "implication": "Build animated progress indicators, smooth state changes, and flowing micro-interactions throughout the dashboard"
+            }
+          ],
+          "antiPatterns": []
+        }
+      },
+      {
+        "ts_ms": 13379,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "thinking",
+            "focus": "analyzing accept on \"Smooth progress bar\""
+          }
+        }
+      },
+      {
+        "ts_ms": 13379,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "oracle",
+            "name": "Oracle",
+            "role": "oracle",
+            "status": "idle",
+            "focus": "monitoring"
+          }
+        }
+      },
+      {
+        "ts_ms": 13379,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-01",
+            "name": "Iris",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Warm, soft colors\"",
+            "lastFacadeId": "089e2fe3-e064-453e-97d6-781c6d04f3a0"
+          }
+        }
+      },
+      {
+        "ts_ms": 13379,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-02",
+            "name": "Prism",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Sidebar + scrolling\"",
+            "lastFacadeId": "7e1ea781-0f64-478e-a67d-e1fe12e51989"
+          }
+        }
+      },
+      {
+        "ts_ms": 13379,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-03",
+            "name": "Lumen",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Casual check-in tone\"",
+            "lastFacadeId": "4fe4b09d-0b99-4a74-a6b0-e79a944d6835"
+          }
+        }
+      },
+      {
+        "ts_ms": 13379,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-04",
+            "name": "Aura",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Soft, muted colors\"",
+            "lastFacadeId": "4db9b353-3f0e-466c-9d95-d9f5ce9c3372"
+          }
+        }
+      },
+      {
+        "ts_ms": 13379,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-05",
+            "name": "Facet",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Big number, small story\"",
+            "lastFacadeId": "4b178981-5ae9-4774-a286-28e9e402728c"
+          }
+        }
+      },
+      {
+        "ts_ms": 13379,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-06",
+            "name": "Echo",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Bouncy transitions\"",
+            "lastFacadeId": "44b487f1-d124-4aa3-9f6d-1ba203aa4697"
+          }
+        }
+      },
+      {
+        "ts_ms": 13379,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "4fe4b09d-0b99-4a74-a6b0-e79a944d6835",
+            "agentId": "scout-03",
+            "hypothesis": "Users prefer conversational language ('How's your energy today?') over clinical language ('Record vital parameters') when logging health data",
+            "axisTargeted": "friendly vs professional",
+            "label": "Casual check-in tone",
+            "content": "Casual check-in tone",
+            "format": "word",
+            "acceptImplies": "Lean into warm, conversational microcopy; use 'you' language; celebrate small wins with emoji or gentle humor",
+            "rejectImplies": "Adopt clinical terminology; prioritize data density over personality; use neutral, instructional tone throughout the interface"
+          }
+        }
+      },
+      {
+        "ts_ms": 13379,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "4db9b353-3f0e-466c-9d95-d9f5ce9c3372",
+            "agentId": "scout-04",
+            "hypothesis": "A health dashboard benefits from calm, desaturated tones that feel medical-adjacent but not sterile—reducing cognitive load during frequent check-ins",
+            "axisTargeted": "warm vs cool, calm vs energetic",
+            "label": "Soft, muted colors",
+            "content": "Soft, muted colors",
+            "format": "word",
+            "acceptImplies": "User values serenity and visual restraint; dashboard should feel like a refuge, not a data command center",
+            "rejectImplies": "User wants vibrant feedback and energetic visual cues; needs color to feel alive and motivated, not meditative"
+          }
+        }
+      },
+      {
+        "ts_ms": 13379,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "7e1ea781-0f64-478e-a67d-e1fe12e51989",
+            "agentId": "scout-02",
+            "hypothesis": "Users prefer persistent navigation on the left with single-column vertical scrolling over tabbed layouts for scanning long experiment timelines",
+            "axisTargeted": "navigation structure and scroll behavior",
+            "label": "Sidebar + scrolling",
+            "content": "Sidebar + scrolling",
+            "format": "word",
+            "acceptImplies": "Future probes should test depth of sidebar (wide vs narrow) and infinite scroll vs pagination",
+            "rejectImplies": "Explore tab-based navigation and horizontal scanning patterns as viable alternatives"
+          }
+        }
+      },
+      {
+        "ts_ms": 13379,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "4b178981-5ae9-4774-a286-28e9e402728c",
+            "agentId": "scout-05",
+            "hypothesis": "Users tracking health experiments prefer metric-first displays (large, scannable KPIs) over narrative-led contexts (what the number means)",
+            "axisTargeted": "Data hierarchy: prominent metrics vs. narrative framing",
+            "label": "Big number, small story",
+            "content": "Big number, small story",
+            "format": "word",
+            "acceptImplies": "Dashboard should lead with large, bold numbers; context/story comes second or on-demand",
+            "rejectImplies": "Dashboard should nest metrics within narrative explanations; numbers serve the story, not vice versa"
+          }
+        }
+      },
+      {
+        "ts_ms": 13379,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "089e2fe3-e064-453e-97d6-781c6d04f3a0",
+            "agentId": "scout-01",
+            "hypothesis": "Users tracking health experiments prefer gentle, approachable visual warmth over clinical sterility, which reduces cognitive load when reviewing personal data.",
+            "axisTargeted": "Color temperature and emotional tone (warm/inviting vs. cool/clinical)",
+            "label": "Warm, soft colors",
+            "content": "Warm, soft colors",
+            "format": "word",
+            "acceptImplies": "Pursue warm palettes, soft gradients, and ambient lighting in cards and data visualizations to create a sense of care and comfort.",
+            "rejectImplies": "Explore cooler, more neutral or high-contrast palettes that feel objective and data-focused rather than emotionally warm."
+          }
+        }
+      },
+      {
+        "ts_ms": 13379,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "44b487f1-d124-4aa3-9f6d-1ba203aa4697",
+            "agentId": "scout-06",
+            "hypothesis": "Users find abrupt screen changes jarring when tracking health data over weeks; gentle, spring-like animations reduce cognitive friction and make long-term tracking feel less clinical",
+            "axisTargeted": "Fluidity of state changes—snappy instant vs. easing curves with momentum",
+            "label": "Bouncy transitions",
+            "content": "Bouncy transitions",
+            "format": "word",
+            "acceptImplies": "Invest in spring animations, ease-out timing, and momentum-based scrolling for all dashboard transitions; prioritize feel over speed",
+            "rejectImplies": "Keep interactions instant and direct; users value speed and clarity over aesthetic flourish; focus on fast feedback loops instead"
+          }
+        }
+      },
+      {
+        "ts_ms": 13379,
+        "type": "stage-changed",
+        "data": {
+          "type": "stage-changed",
+          "stage": "words",
+          "swipeCount": 1
+        }
+      }
+    ],
+    "error": null
+  },
+  "facade_visible": {
+    "attempted": true,
+    "status": 200,
+    "error": null,
+    "rtt_ms": 3
+  },
+  "swipe": {
+    "attempted": true,
+    "facadeId": "675ae17d-848a-4ca1-85de-6e672d12c63d",
+    "facade_ready_at_ms": 3646,
+    "posted_at_ms": 3654,
+    "rtt_ms": 4,
+    "status": 200,
+    "body": {
+      "ok": true,
+      "swipeCount": 1,
+      "stage": "words"
+    },
+    "error": null
+  },
+  "metrics": {
+    "time_to_first_facade_ms": 3646,
+    "time_to_first_draft_ms": 1380,
+    "time_to_first_synthesis_ms": 4665,
+    "time_to_first_draft_after_swipe_ms": 7833,
+    "time_to_first_evidence_after_swipe_ms": 5,
+    "time_to_session_ready_ms": 1380,
+    "time_to_first_error_ms": null,
+    "time_from_session_to_first_facade_ms": 2266,
+    "time_from_session_to_first_draft_ms": 0,
+    "time_from_session_to_first_error_ms": null,
+    "facade_ready_count": 7,
+    "draft_updated_count": 2,
+    "draft_placeholder_count": 1,
+    "draft_refined_count": 1,
+    "draft_next_hint_present_count": 0,
+    "draft_accepted_patterns_present_count": 0,
+    "draft_rejected_patterns_present_count": 0,
+    "draft_title_present_count": 2,
+    "draft_summary_present_count": 2,
+    "draft_html_present_count": 2,
+    "draft_refined_html_length_p50": 4703,
+    "draft_refined_html_length_max": 4703,
+    "draft_refined_html_length_min": 4703,
+    "draft_refined_scaffold_count": 1,
+    "draft_refined_rebuild_count": 0,
+    "draft_refined_unknown_count": 0,
+    "draft_refined_scaffold_html_length_p50": 4703,
+    "draft_refined_scaffold_html_length_min": 4703,
+    "draft_refined_scaffold_html_length_max": 4703,
+    "draft_refined_rebuild_html_length_p50": null,
+    "draft_refined_rebuild_html_length_min": null,
+    "draft_refined_rebuild_html_length_max": null,
+    "synthesis_updated_count": 1,
+    "swipe_result_count": 1,
+    "evidence_updated_count": 1,
+    "facade_stale_count": 0,
+    "builder_hint_count": 0,
+    "reveal_reached": false,
+    "error_event_count": 0,
+    "error_code_counts": {},
+    "error_source_counts": {},
+    "error_agent_counts": {},
+    "distinct_error_agent_count": 0,
+    "error_source_scout_count": 0,
+    "error_source_oracle_count": 0,
+    "error_source_builder_count": 0,
+    "provider_auth_failure_count": 0,
+    "error_message_present_count": 0,
+    "auth_diagnostic_preserved_count": 0,
+    "agent_status_event_count": 21,
+    "agent_status_scout_count": 14,
+    "agent_status_oracle_count": 3,
+    "agent_status_builder_count": 4,
+    "agent_error_signal_count": 0,
+    "scout_started_count": 6,
+    "first_scout_started_ms": 1380,
+    "last_scout_started_ms": 1380,
+    "scout_start_spread_ms": 0,
+    "first_error_event_ms": null,
+    "last_error_event_ms": null,
+    "error_event_spread_ms": null,
+    "session_ready_count": 1,
+    "distinct_session_ready_intent_count": 1,
+    "session_ready_intent_present_count": 1,
+    "error_event_count_before_session_2": null,
+    "error_event_count_after_session_2": null,
+    "time_from_session_2_to_first_error_ms": null,
+    "stream_2_error_event_count": 0,
+    "stream_2_agent_status_count": 8,
+    "stream_2_stage_changed_count": 1,
+    "stream_2_diagnostic_preserved_count": 0,
+    "stream_2_error_provider_auth_count": 0,
+    "stream_2_agent_status_scout_count": 6,
+    "stream_2_agent_status_oracle_count": 1,
+    "stream_2_agent_status_builder_count": 1,
+    "stream_2_stage_valid_count": 1,
+    "stream_2_error_source_valid_count": 0,
+    "stream_2_error_code_valid_count": 0,
+    "stream_2_error_message_present_count": 0,
+    "stream_2_agent_status_valid_count": 8,
+    "stream_2_agent_status_role_valid_count": 8,
+    "stream_2_agent_status_id_present_count": 8,
+    "stream_2_agent_status_name_present_count": 8,
+    "stream_2_agent_status_focus_present_count": 8,
+    "stream_2_stage_changed_swipe_count_valid_count": 1,
+    "stream_2_draft_updated_count": 1,
+    "stream_2_draft_placeholder_count": 0,
+    "stream_2_draft_refined_count": 1,
+    "stream_2_draft_next_hint_present_count": 0,
+    "stream_2_draft_accepted_patterns_present_count": 0,
+    "stream_2_draft_rejected_patterns_present_count": 0,
+    "stream_2_draft_title_present_count": 1,
+    "stream_2_draft_summary_present_count": 1,
+    "stream_2_draft_html_present_count": 1,
+    "stream_2_facade_ready_count": 6,
+    "stream_2_synthesis_updated_count": 1,
+    "stream_2_evidence_updated_count": 1,
+    "stream_2_facade_format_valid_count": 6,
+    "stream_2_facade_id_present_count": 6,
+    "stream_2_facade_agent_id_present_count": 6,
+    "stream_2_facade_hypothesis_present_count": 6,
+    "stream_2_facade_label_present_count": 6,
+    "stream_2_facade_content_present_count": 6,
+    "stream_2_synthesis_axes_count": 6,
+    "stream_2_synthesis_axes_min": 6,
+    "stream_2_synthesis_scout_assignments_count": 6,
+    "stream_2_synthesis_scout_assignments_min": 6,
+    "stream_2_evidence_array_valid_count": 1,
+    "stream_2_anti_patterns_array_valid_count": 1,
+    "stream_2_evidence_length_min": 1,
+    "stream_2_evidence_length_max": 1,
+    "stream_2_evidence_items_valid_decision_count": 1,
+    "stream_2_evidence_items_valid_format_count": 1,
+    "stream_2_evidence_items_valid_latency_signal_count": 1,
+    "stream_2_synthesis_axes_valid_confidence_count": 6,
+    "stream_2_synthesis_scout_assignments_valid_scout_count": 6,
+    "stream_2_synthesis_palette_present_count": 0,
+    "stream_2_first_event_ms_after_open": 3,
+    "stream_2_replay_span_ms": 0,
+    "stage_changed_event_count": 1,
+    "time_to_first_stage_changed_ms": 868,
+    "stage_changed_before_session_ready": 1,
+    "stage_valid_count": 1,
+    "error_source_valid_count": 0,
+    "error_code_valid_count": 0,
+    "agent_status_valid_count": 21,
+    "agent_status_role_valid_count": 21,
+    "agent_status_id_present_count": 21,
+    "agent_status_name_present_count": 21,
+    "agent_status_focus_present_count": 21,
+    "stage_changed_swipe_count_valid_count": 1,
+    "facade_format_valid_count": 7,
+    "facade_id_present_count": 7,
+    "facade_agent_id_present_count": 7,
+    "facade_hypothesis_present_count": 7,
+    "facade_label_present_count": 7,
+    "facade_content_present_count": 7,
+    "swipe_decision_valid_count": 1,
+    "swipe_latency_bucket_valid_count": 1,
+    "swipe_facade_id_present_count": 1,
+    "swipe_agent_id_present_count": 1,
+    "swipe_latency_ms_valid_count": 1,
+    "synthesis_axes_count": 6,
+    "synthesis_axes_min": 6,
+    "synthesis_axes_valid_confidence_count": 6,
+    "synthesis_scout_assignments_count": 6,
+    "synthesis_scout_assignments_min": 6,
+    "synthesis_scout_assignments_valid_scout_count": 6,
+    "synthesis_palette_present_count": 0,
+    "evidence_array_valid_count": 1,
+    "anti_patterns_array_valid_count": 1,
+    "evidence_length_min": 1,
+    "evidence_length_max": 1,
+    "evidence_items_valid_decision_count": 1,
+    "evidence_items_valid_format_count": 1,
+    "evidence_items_valid_latency_signal_count": 1,
+    "oracle_cold_start_latency_ms": 3285,
+    "oracle_synthesis_latency_ms": null,
+    "oracle_reveal_build_latency_ms": null,
+    "oracle_cold_start_count": 1,
+    "oracle_synthesis_count": 0,
+    "oracle_reveal_build_count": 0,
+    "scout_probe_latency_ms_p50": 2581,
+    "scout_probe_latency_ms_max": 2960,
+    "scout_probe_count": 7,
+    "builder_scaffold_latency_ms": 10107,
+    "builder_scaffold_count": 1,
+    "builder_rebuild_latency_ms": null,
+    "builder_rebuild_latency_ms_p50": null,
+    "builder_rebuild_latency_ms_max": null,
+    "builder_rebuild_count": 0
+  },
+  "error_event_samples": [],
+  "provider_error_samples": [],
+  "stderr_tail": "",
+  "artifact_path": "/Users/provi/Development/_projs/the-eye-loop-gnhf-worktrees/you-are-running-an-e-2c98fb/scripts/findings/validate-2026-04-24T05-09-05-879Z.json"
+}
