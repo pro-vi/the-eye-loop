@@ -607,6 +607,43 @@ async function main() {
 		//   stream_2_synthesis_scout_assignments_valid_scout_count = 6/intent (sum=30/_min=6)
 		synthesis_axes_valid_confidence_count: 0,
 		synthesis_scout_assignments_valid_scout_count: 0,
+		// iter-104: stream_2 counterparts for iter-104's primary-bus scout_
+		// assignments[] remaining-field presence-validity probes (probe_axis,
+		// reason). Saturates the scout_assignments 3-way field-validity matrix
+		// on the /api/stream replay path alongside iter-91's scout roster probe
+		// — the scout_assignments counterpart to iter-103's stream_2 EmergentAxis
+		// 4-field closure and iter-102's stream_2 SwipeEvidence 4-field closure.
+		// Under iter-61 healthy-auth 5-intent 12s-window baseline: +server.ts:
+		// 24-26 replays synthesis-updated via JSON.stringify on context.synthesis;
+		// cold-start synthesis fires at ~3-5s and persists on context, so the
+		// replay at ~12s carries the same 6 scout_assignments with fully-populated
+		// probe_axis/reason strings (per oracle.ts:350-354 construction) —
+		// identity-matched with primary at 6 per intent, sum=30/_min=6 aggregate.
+		//
+		// 3-way cross-stream POSITIVE-IDENTITY chain under healthy-auth baseline:
+		//   stream_2_synthesis_scout_assignments_count_sum (iter-88, 30)
+		//     = stream_2_synthesis_scout_assignments_valid_scout_count_sum (iter-91, 30)
+		//     = stream_2_synthesis_scout_assignments_probe_axis_present_count_sum (iter-104, 30)
+		//     = stream_2_synthesis_scout_assignments_reason_present_count_sum (iter-104, 30)
+		//     = 6 × stream_2_synthesis_updated_count_sum (iter-66, 5)
+		//
+		// Regression classes catchable only by stream_2 counterparts: a +server.ts:
+		// 24-26 replay-block transform that preserves scout_assignments array-shape
+		// and scout roster-membership but corrupts a string field (e.g. a .map(a =>
+		// ({...a, reason: null})) transform accidentally added, a JSON-serialize
+		// pipeline that strips probe_axis chars, a payload-shape change where replay
+		// emits assignments with only the scout field populated) — stream_2_
+		// synthesis_scout_assignments_valid_scout_count stays at 30 while stream_2
+		// probe_axis_present or reason_present drops below 30, distinguishing
+		// roster-membership corruption from string-field corruption on the replay
+		// path without needing primary to also drop. Cross-stream divergence
+		// (stream_2 counts != primary counts under healthy-auth) pinpoints replay-
+		// block-only string-field bugs that iter-91's stream_2 typed-union probe
+		// and this iteration's primary string-field probes cannot individually
+		// discriminate — exactly the cross-stream discrimination pattern iter-
+		// 88/90/91/102/103 established.
+		synthesis_scout_assignments_probe_axis_present_count: 0,
+		synthesis_scout_assignments_reason_present_count: 0,
 		// iter-94: synthesis-updated.palette presence-validity probe on stream_2
 		// replay. Extends iter-88's stream_2 synthesis content-probe matrix to
 		// the TasteSynthesis.palette? optional field (types.ts:85 iter-73; oracle
@@ -1176,6 +1213,20 @@ async function main() {
 					for (const assignment of assignments) {
 						if (assignment && VALID_SCOUT_ROSTER.has(assignment.scout)) {
 							stream2.synthesis_scout_assignments_valid_scout_count++;
+						}
+						if (
+							assignment &&
+							typeof assignment.probe_axis === 'string' &&
+							assignment.probe_axis.length > 0
+						) {
+							stream2.synthesis_scout_assignments_probe_axis_present_count++;
+						}
+						if (
+							assignment &&
+							typeof assignment.reason === 'string' &&
+							assignment.reason.length > 0
+						) {
+							stream2.synthesis_scout_assignments_reason_present_count++;
 						}
 					}
 				}
@@ -2821,6 +2872,76 @@ async function main() {
 	// one source. Same hoist pattern as iter-90's VALID_EVIDENCE_*.
 	let synthesisAxesValidConfidenceCount = 0;
 	let synthesisScoutAssignmentsValidScoutCount = 0;
+	// iter-104: scout_assignments[] remaining-field presence-validity probes on
+	// the primary-bus synthesis-updated event (probe_axis, reason), saturating
+	// the scout_assignments 3-way field-validity matrix alongside iter-85's
+	// scout[] roster-membership typed-union probe. Closes iter-103's explicitly-
+	// named follow-on candidate (a): 'scout_assignments probe_axis/reason —
+	// iter-85 covered only scout'. The scout_assignments counterpart to iter-103's
+	// EmergentAxis 5-way saturation (label/poleA/poleB/evidence_basis), continuing
+	// the POSITIVE-IDENTITY family from iter-97/98/99/100/101/102/103.
+	//
+	// TasteSynthesis.scout_assignments[] (types.ts:85-89) has exactly 3 fields per
+	// element: 1 typed-union (scout ∈ 6-name roster, closed by iter-85) + 2
+	// required-string (probe_axis, reason, closed by iter-104). Under iter-61
+	// healthy-auth 5-intent 12s-window baseline, cold-start synthesis (oracle.ts:
+	// 350-354) constructs each assignment from coldStartSchema output:
+	//   scout = h.scout (6-roster z.enum at oracle.ts:103, non-empty by schema)
+	//   probe_axis = h.hypothesis (non-empty, from coldStartSchema z.string())
+	//   reason = h.word_probe (non-empty, from coldStartSchema z.string())
+	// All 6 assignments per intent carry non-empty strings for probe_axis and
+	// reason, so each probe equals synthesis_scout_assignments_count per intent = 6
+	// (sum=30/_min=6 across 5-intent search set).
+	//
+	// 3-way item-level POSITIVE-IDENTITY chain under healthy-auth baseline:
+	//   synthesis_scout_assignments_count_sum (iter-72, 30)
+	//     = synthesis_scout_assignments_valid_scout_count_sum (iter-85, 30)
+	//     = synthesis_scout_assignments_probe_axis_present_count_sum (iter-104, 30)
+	//     = synthesis_scout_assignments_reason_present_count_sum (iter-104, 30)
+	//     = 6 × synthesis_updated_count_sum (iter-66, 5)
+	//
+	// Regression classes these probes catch that iter-72/85 cannot:
+	//   - runColdStart at oracle.ts:350-354 mutating one string field without the
+	//     other (e.g. a refactor that assigns reason='' when h.word_probe is
+	//     falsy, or a null-coalesce chain producing '' instead of a fallback):
+	//     synthesis_scout_assignments_valid_scout_count stays at 30 while
+	//     probe_axis_present or reason_present drops to 0 — distinguishing
+	//     field-level mutation from typed-union corruption on the same
+	//     array-element.
+	//   - coldStartSchema (oracle.ts:103) relaxing z.string() to z.string().
+	//     optional() on hypothesis or word_probe: LLM could emit empty strings
+	//     for one field; probe_axis_present drops independently while
+	//     valid_scout_count stays at 30 — orthogonal discriminative signal that
+	//     iter-85's scout-roster probe cannot provide.
+	//   - runSynthesis path (oracle.ts:176, unreachable in 12s window) returning
+	//     a scout_assignment with reason null/undefined: under forward-deploy,
+	//     reason_present drops below synthesis_scout_assignments_count while
+	//     valid_scout_count stays at identity — forward-deploy-specific
+	//     regression invisible to iter-85's typed-union probe.
+	//   - a TasteSynthesis refactor that drops probe_axis from the scout_
+	//     assignment object literal in cold-start construction (types.ts widens
+	//     to `probe_axis?: string` or cold-start spreads a partial object):
+	//     TypeScript may still type-check but runtime carries undefined/''
+	//     depending on regime; probe_axis_present drops to 0 across all intents.
+	//
+	// Forward-deploy regimes: under runSynthesis path (4+ swipes, currently
+	// unreachable), probe_axis and reason are populated by the LLM from
+	// synthesisSchema's z.string() (oracle.ts:58-62), so the probe stays at
+	// identity. Under reveal-reachable regime, assignments may carry
+	// runSynthesis-fresh values for probe_axis ('typography weight') and
+	// reason ('accepted 2 sharp samples'); both non-empty so probe at identity.
+	// The 2 string probes are cold-start-vs-runSynthesis path-invariant,
+	// synthesis-regime-invariant, and intent-invariant — just like iter-85's
+	// scout roster probe.
+	//
+	// Parallel to iter-103's EmergentAxis 4-string-field closure (label/poleA/
+	// poleB/evidence_basis): iter-103 saturated the 5-way EmergentAxis field-
+	// validity matrix; iter-104 saturates the 3-way scout_assignments matrix.
+	// Together they close the WITHIN-ITEM PRESENCE-VALIDITY gap on both array-
+	// typed synthesis-updated fields (axes[] + scout_assignments[]), the last
+	// remaining matrix-saturation backlog item from iter-103's learning note.
+	let synthesisScoutAssignmentsProbeAxisPresentCount = 0;
+	let synthesisScoutAssignmentsReasonPresentCount = 0;
 	// iter-103: EmergentAxis remaining-field presence-validity probes on the
 	// primary-bus synthesis-updated event (label, poleA, poleB, evidence_basis),
 	// saturating the EmergentAxis 5-way field-validity matrix alongside iter-83's
@@ -2953,6 +3074,20 @@ async function main() {
 			for (const assignment of assignments) {
 				if (assignment && VALID_SCOUT_ROSTER.has(assignment.scout)) {
 					synthesisScoutAssignmentsValidScoutCount++;
+				}
+				if (
+					assignment &&
+					typeof assignment.probe_axis === 'string' &&
+					assignment.probe_axis.length > 0
+				) {
+					synthesisScoutAssignmentsProbeAxisPresentCount++;
+				}
+				if (
+					assignment &&
+					typeof assignment.reason === 'string' &&
+					assignment.reason.length > 0
+				) {
+					synthesisScoutAssignmentsReasonPresentCount++;
 				}
 			}
 		}
@@ -3420,6 +3555,15 @@ async function main() {
 			// iter-85's synth_assigns_scout_valid primary values.
 			stream_2_synthesis_axes_valid_confidence_count: stream2.synthesis_axes_valid_confidence_count,
 			stream_2_synthesis_scout_assignments_valid_scout_count: stream2.synthesis_scout_assignments_valid_scout_count,
+			// iter-104: stream_2 counterparts for iter-104 primary-bus scout_
+			// assignments[] remaining-field presence-validity probes (probe_axis,
+			// reason). Cross-stream POSITIVE-IDENTITY with iter-91 stream_2 scout
+			// roster probe and primary iter-104 string probes under healthy-auth
+			// 5-intent 12s-window baseline: each = 30/_min=6, matching primary.
+			stream_2_synthesis_scout_assignments_probe_axis_present_count:
+				stream2.synthesis_scout_assignments_probe_axis_present_count,
+			stream_2_synthesis_scout_assignments_reason_present_count:
+				stream2.synthesis_scout_assignments_reason_present_count,
 			stream_2_synthesis_palette_present_count: stream2.synthesis_palette_present_count,
 			// iter-103: stream_2 counterparts for iter-103 primary-bus EmergentAxis
 			// remaining-field presence-validity probes (label, poleA, poleB,
@@ -3470,6 +3614,13 @@ async function main() {
 			synthesis_scout_assignments_count: synthesisScoutAssignmentsCount,
 			synthesis_scout_assignments_min: synthesisScoutAssignmentsMin,
 			synthesis_scout_assignments_valid_scout_count: synthesisScoutAssignmentsValidScoutCount,
+			// iter-104: scout_assignments[] remaining-field presence-validity
+			// probes (probe_axis, reason). Saturates the scout_assignments 3-way
+			// matrix alongside iter-85 scout typed-union and iter-72 length probes.
+			// Under healthy-auth 5-intent baseline: each = synthesis_scout_
+			// assignments_count = 30/_min=6.
+			synthesis_scout_assignments_probe_axis_present_count: synthesisScoutAssignmentsProbeAxisPresentCount,
+			synthesis_scout_assignments_reason_present_count: synthesisScoutAssignmentsReasonPresentCount,
 			synthesis_palette_present_count: synthesisPalettePresentCount,
 			// iter-103: EmergentAxis remaining-field presence-validity probes (label,
 			// poleA, poleB, evidence_basis). Saturates the EmergentAxis 5-way matrix
@@ -3541,7 +3692,7 @@ async function main() {
 		`agent_status_valid=${agentStatusValidCount} agent_status_role_valid=${agentStatusRoleValidCount} agent_id=${agentStatusIdPresentCount} agent_name=${agentStatusNamePresentCount} agent_focus=${agentStatusFocusPresentCount} stage_swipe_valid=${stageChangedSwipeCountValidCount} ` +
 		`facade_fmt_valid=${facadeFormatValidCount} facade_id=${facadeIdPresentCount} facade_aid=${facadeAgentIdPresentCount} facade_hyp=${facadeHypothesisPresentCount} facade_label=${facadeLabelPresentCount} facade_content=${facadeContentPresentCount} ` +
 		`swipe_dec_valid=${swipeDecisionValidCount} swipe_bkt_valid=${swipeLatencyBucketValidCount} swipe_fid=${swipeFacadeIdPresentCount} swipe_aid=${swipeAgentIdPresentCount} swipe_lat_ms_valid=${swipeLatencyMsValidCount} ` +
-		`synth_axes=${synthesisAxesCount}/min=${synthesisAxesMin} synth_axes_conf_valid=${synthesisAxesValidConfidenceCount} synth_axes_label=${synthesisAxesLabelPresentCount} synth_axes_pole_a=${synthesisAxesPoleAPresentCount} synth_axes_pole_b=${synthesisAxesPoleBPresentCount} synth_axes_evidence_basis=${synthesisAxesEvidenceBasisPresentCount} synth_assigns=${synthesisScoutAssignmentsCount}/min=${synthesisScoutAssignmentsMin} synth_assigns_scout_valid=${synthesisScoutAssignmentsValidScoutCount} synth_palette=${synthesisPalettePresentCount} ` +
+		`synth_axes=${synthesisAxesCount}/min=${synthesisAxesMin} synth_axes_conf_valid=${synthesisAxesValidConfidenceCount} synth_axes_label=${synthesisAxesLabelPresentCount} synth_axes_pole_a=${synthesisAxesPoleAPresentCount} synth_axes_pole_b=${synthesisAxesPoleBPresentCount} synth_axes_evidence_basis=${synthesisAxesEvidenceBasisPresentCount} synth_assigns=${synthesisScoutAssignmentsCount}/min=${synthesisScoutAssignmentsMin} synth_assigns_scout_valid=${synthesisScoutAssignmentsValidScoutCount} synth_assigns_probe_axis=${synthesisScoutAssignmentsProbeAxisPresentCount} synth_assigns_reason=${synthesisScoutAssignmentsReasonPresentCount} synth_palette=${synthesisPalettePresentCount} ` +
 		`evid_arr_valid=${evidenceArrayValidCount} anti_arr_valid=${antiPatternsArrayValidCount} evid_len_min/max=${evidenceLengthMin}/${evidenceLengthMax} ` +
 		`evid_items_dec_valid=${evidenceItemsValidDecisionCount} evid_items_fmt_valid=${evidenceItemsValidFormatCount} evid_items_lat_valid=${evidenceItemsValidLatencySignalCount} ` +
 		`evid_items_fid=${evidenceItemsFacadeIdPresentCount} evid_items_content=${evidenceItemsContentPresentCount} evid_items_hyp=${evidenceItemsHypothesisPresentCount} evid_items_impl=${evidenceItemsImplicationPresentCount} ` +
@@ -3552,7 +3703,7 @@ async function main() {
 		`s2_drafts=${stream2.draft_updated_count} s2_drafts_p/r=${stream2.draft_placeholder_count}/${stream2.draft_refined_count} s2_draft_next_hint=${stream2.draft_next_hint_present_count} s2_draft_accepted_pat=${stream2.draft_accepted_patterns_present_count} s2_draft_rejected_pat=${stream2.draft_rejected_patterns_present_count} s2_draft_title=${stream2.draft_title_present_count} s2_draft_summary=${stream2.draft_summary_present_count} s2_draft_html=${stream2.draft_html_present_count} ` +
 		`s2_facades=${stream2.facade_ready_count} s2_synth=${stream2.synthesis_updated_count} s2_evidence=${stream2.evidence_updated_count} ` +
 		`s2_facade_fmt_valid=${stream2.facade_format_valid_count} s2_facade_id=${stream2.facade_id_present_count} s2_facade_aid=${stream2.facade_agent_id_present_count} s2_facade_hyp=${stream2.facade_hypothesis_present_count} s2_facade_label=${stream2.facade_label_present_count} s2_facade_content=${stream2.facade_content_present_count} ` +
-		`s2_synth_axes=${stream2.synthesis_axes_count}/min=${stream2.synthesis_axes_min} s2_synth_axes_conf_valid=${stream2.synthesis_axes_valid_confidence_count} s2_synth_axes_label=${stream2.synthesis_axes_label_present_count} s2_synth_axes_pole_a=${stream2.synthesis_axes_pole_a_present_count} s2_synth_axes_pole_b=${stream2.synthesis_axes_pole_b_present_count} s2_synth_axes_evidence_basis=${stream2.synthesis_axes_evidence_basis_present_count} s2_synth_assigns=${stream2.synthesis_scout_assignments_count}/min=${stream2.synthesis_scout_assignments_min} s2_synth_assigns_scout_valid=${stream2.synthesis_scout_assignments_valid_scout_count} s2_synth_palette=${stream2.synthesis_palette_present_count} ` +
+		`s2_synth_axes=${stream2.synthesis_axes_count}/min=${stream2.synthesis_axes_min} s2_synth_axes_conf_valid=${stream2.synthesis_axes_valid_confidence_count} s2_synth_axes_label=${stream2.synthesis_axes_label_present_count} s2_synth_axes_pole_a=${stream2.synthesis_axes_pole_a_present_count} s2_synth_axes_pole_b=${stream2.synthesis_axes_pole_b_present_count} s2_synth_axes_evidence_basis=${stream2.synthesis_axes_evidence_basis_present_count} s2_synth_assigns=${stream2.synthesis_scout_assignments_count}/min=${stream2.synthesis_scout_assignments_min} s2_synth_assigns_scout_valid=${stream2.synthesis_scout_assignments_valid_scout_count} s2_synth_assigns_probe_axis=${stream2.synthesis_scout_assignments_probe_axis_present_count} s2_synth_assigns_reason=${stream2.synthesis_scout_assignments_reason_present_count} s2_synth_palette=${stream2.synthesis_palette_present_count} ` +
 		`s2_evid_arr_valid=${stream2.evidence_array_valid_count} s2_anti_arr_valid=${stream2.anti_patterns_array_valid_count} s2_evid_len_min/max=${stream2.evidence_length_min}/${stream2.evidence_length_max} ` +
 		`s2_evid_items_dec_valid=${stream2.evidence_items_valid_decision_count} s2_evid_items_fmt_valid=${stream2.evidence_items_valid_format_count} s2_evid_items_lat_valid=${stream2.evidence_items_valid_latency_signal_count} ` +
 		`s2_evid_items_fid=${stream2.evidence_items_facade_id_present_count} s2_evid_items_content=${stream2.evidence_items_content_present_count} s2_evid_items_hyp=${stream2.evidence_items_hypothesis_present_count} s2_evid_items_impl=${stream2.evidence_items_implication_present_count} ` +

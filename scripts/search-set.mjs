@@ -333,6 +333,14 @@ function extractMetrics(artifact) {
 		stream_2_synthesis_axes_evidence_basis_present_count:
 			m.stream_2_synthesis_axes_evidence_basis_present_count ?? 0,
 		stream_2_synthesis_scout_assignments_valid_scout_count: m.stream_2_synthesis_scout_assignments_valid_scout_count ?? 0,
+		// iter-104: stream_2 scout_assignments[] remaining-field presence-
+		// validity probes (probe_axis, reason) — saturates the scout_assignments
+		// 3-way field-validity matrix on stream_2 alongside iter-91's scout
+		// roster probe.
+		stream_2_synthesis_scout_assignments_probe_axis_present_count:
+			m.stream_2_synthesis_scout_assignments_probe_axis_present_count ?? 0,
+		stream_2_synthesis_scout_assignments_reason_present_count:
+			m.stream_2_synthesis_scout_assignments_reason_present_count ?? 0,
 		// iter-94: stream_2 counterpart for iter-94's primary-bus synthesis
 		// palette-presence probe. Under iter-61 healthy-auth 5-intent 12s-window
 		// baseline (cold-start synthesis only, no palette): stream_2 _sum=0
@@ -361,6 +369,14 @@ function extractMetrics(artifact) {
 		synthesis_scout_assignments_count: m.synthesis_scout_assignments_count ?? 0,
 		synthesis_scout_assignments_min: m.synthesis_scout_assignments_min ?? 0,
 		synthesis_scout_assignments_valid_scout_count: m.synthesis_scout_assignments_valid_scout_count ?? 0,
+		// iter-104: scout_assignments[] remaining-field presence-validity probes
+		// (probe_axis, reason) on the primary bus — saturates the 3-way scout_
+		// assignments matrix alongside iter-85 scout typed-union and iter-72
+		// length probes.
+		synthesis_scout_assignments_probe_axis_present_count:
+			m.synthesis_scout_assignments_probe_axis_present_count ?? 0,
+		synthesis_scout_assignments_reason_present_count:
+			m.synthesis_scout_assignments_reason_present_count ?? 0,
 		synthesis_palette_present_count: m.synthesis_palette_present_count ?? 0,
 		evidence_array_valid_count: m.evidence_array_valid_count ?? 0,
 		anti_patterns_array_valid_count: m.anti_patterns_array_valid_count ?? 0,
@@ -2255,6 +2271,91 @@ async function main() {
 			synthesis_scout_assignments_valid_scout_count_min: perIntent.length
 				? Math.min(...perIntent.map((p) => p.metrics.synthesis_scout_assignments_valid_scout_count ?? 0))
 				: 0,
+			// iter-104: scout_assignments[] remaining-field presence-validity
+			// rollups on synthesis-updated.scout_assignments[].{probe_axis, reason}
+			// — closes iter-103's explicitly-named follow-on candidate (a):
+			// 'scout_assignments probe_axis/reason — iter-85 covered only scout'.
+			// Saturates the scout_assignments 3-way field-validity matrix alongside
+			// iter-85's scout roster-membership typed-union probe and iter-72's
+			// length probe. The scout_assignments counterpart to iter-103's
+			// EmergentAxis 5-way saturation on synthesis-updated.axes[], completing
+			// within-element coverage on ALL array-typed synthesis-updated fields.
+			//
+			// Under iter-61 healthy-auth 5-intent 12s-window baseline (cold-start
+			// synthesis fires once per intent with 6 fully-populated scout_
+			// assignments per oracle.ts:350-354 — probe_axis from h.hypothesis,
+			// reason from h.word_probe, both required z.string() in coldStartSchema
+			// at oracle.ts:103):
+			//   synthesis_scout_assignments_probe_axis_present_count_sum = 30
+			//     = synthesis_scout_assignments_count_sum (6 * 5)
+			//     = synthesis_scout_assignments_valid_scout_count_sum (iter-85)
+			//   synthesis_scout_assignments_probe_axis_present_count_min = 6
+			//   synthesis_scout_assignments_reason_present_count_sum = 30
+			//   synthesis_scout_assignments_reason_present_count_min = 6
+			// Under broken-auth baseline: 0 = synthesis_scout_assignments_count_sum
+			// (= 0, no cold-start emission reaches the wire).
+			//
+			// 3-way item-level POSITIVE-IDENTITY chain at aggregate (iter-82/83/102/
+			// 103 pattern continued for the second array-typed field on synthesis-
+			// updated):
+			//   synthesis_scout_assignments_count_sum (iter-72, 30)
+			//     = synthesis_scout_assignments_valid_scout_count_sum (iter-85, 30)
+			//     = synthesis_scout_assignments_probe_axis_present_count_sum (iter-104, 30)
+			//     = synthesis_scout_assignments_reason_present_count_sum (iter-104, 30)
+			//     = 6 × synthesis_updated_count_sum (iter-66, 5)
+			//
+			// Regression classes these probes catch that iter-72/85 cannot:
+			//   - runColdStart at oracle.ts:350-354 mutating probe_axis or reason
+			//     without the other (a refactor that sets reason='' when h.word_
+			//     probe is falsy, or a null-coalesce chain producing '' instead of
+			//     a fallback): valid_scout_count stays at 30 while probe_axis_
+			//     present or reason_present drops to 0 — field-level mutation
+			//     distinct from typed-union corruption on the same array element.
+			//   - coldStartSchema (oracle.ts:103) relaxing z.string() to z.string().
+			//     optional() on hypothesis or word_probe: LLM could emit empty
+			//     strings for one field; probe_axis_present drops independently
+			//     while valid_scout_count stays at 30 — orthogonal discriminative
+			//     signal iter-85's scout-roster probe cannot provide.
+			//   - runSynthesis path (oracle.ts:176, unreachable in 12s window)
+			//     returning a scout_assignment with reason null/undefined: under
+			//     forward-deploy (widened window or multi-swipe), reason_present
+			//     drops below synthesis_scout_assignments_count while valid_scout_
+			//     count stays at identity — forward-deploy-specific regression
+			//     invisible to iter-85's typed-union probe.
+			//   - a TasteSynthesis refactor that drops probe_axis from the scout_
+			//     assignment object literal in cold-start construction (types.ts
+			//     widens to `probe_axis?: string` or cold-start spreads a partial
+			//     object): TypeScript may still type-check but runtime carries
+			//     undefined/'' depending on regime; probe_axis_present drops to 0
+			//     across all intents.
+			//
+			// Orthogonal to iter-103's EmergentAxis string-field probes (label,
+			// poleA, poleB, evidence_basis on axes[]): those catch corruption on
+			// EmergentAxis elements; these catch corruption on scout_assignments
+			// elements. Together with iter-83 (axes.confidence) and iter-85 (scout_
+			// assignments.scout), they form the complete within-element field-
+			// validity coverage on synthesis-updated — 2 arrays × 2-5 field-probes
+			// per element = 7 array-element probes total after iter-104.
+			synthesis_scout_assignments_probe_axis_present_count_sum: sumMetric(
+				'synthesis_scout_assignments_probe_axis_present_count'
+			),
+			synthesis_scout_assignments_probe_axis_present_count_min: perIntent.length
+				? Math.min(
+						...perIntent.map(
+							(p) => p.metrics.synthesis_scout_assignments_probe_axis_present_count ?? 0
+						)
+					)
+				: 0,
+			synthesis_scout_assignments_reason_present_count_sum: sumMetric(
+				'synthesis_scout_assignments_reason_present_count'
+			),
+			synthesis_scout_assignments_reason_present_count_min: perIntent.length
+				? Math.min(
+						...perIntent.map(
+							(p) => p.metrics.synthesis_scout_assignments_reason_present_count ?? 0
+						)
+					)
+				: 0,
 			// iter-94: synthesis-updated.palette presence-validity rollup on the
 			// primary bus. TasteSynthesis.palette? (types.ts:85 iter-73) is an
 			// optional 6-field object (paletteSchema at oracle.ts:37-44 with bg,
@@ -2704,6 +2805,52 @@ async function main() {
 			stream_2_synthesis_scout_assignments_valid_scout_count_sum: sumMetric('stream_2_synthesis_scout_assignments_valid_scout_count'),
 			stream_2_synthesis_scout_assignments_valid_scout_count_min: perIntent.length
 				? Math.min(...perIntent.map((p) => p.metrics.stream_2_synthesis_scout_assignments_valid_scout_count ?? 0))
+				: 0,
+			// iter-104: stream_2 counterparts for iter-104's primary-bus scout_
+			// assignments[] remaining-field presence-validity probes (probe_axis,
+			// reason). Cross-stream POSITIVE-IDENTITY with iter-91 stream_2 scout
+			// roster probe and primary iter-104 string probes under healthy-auth
+			// 5-intent 12s-window baseline: each = 30/_min=6, matching primary.
+			// Saturates the scout_assignments 3-way field-validity matrix on the
+			// /api/stream replay path — the scout_assignments counterpart to iter-
+			// 103's stream_2 EmergentAxis 4-field closure (label/poleA/poleB/
+			// evidence_basis) and iter-102's stream_2 SwipeEvidence 4-field closure.
+			//
+			// Regression classes catchable only by stream_2 counterparts (distinct
+			// from iter-91's stream_2 roster probe): a +server.ts:24-26 replay-
+			// block transform that preserves scout_assignments array-shape and
+			// scout roster-membership but corrupts a string field (a .map(a =>
+			// ({...a, reason: null})) transform, a JSON-serialize pipeline that
+			// strips probe_axis chars, a payload-shape change where replay emits
+			// assignments with only the scout field populated) — stream_2_valid_
+			// scout_count stays at 30 while stream_2 probe_axis_present or reason_
+			// present drops below 30, distinguishing roster-membership corruption
+			// from string-field corruption on the replay path without needing
+			// primary to also drop. Cross-stream divergence (stream_2 counts !=
+			// primary counts under healthy-auth) pinpoints replay-block-only
+			// string-field bugs that iter-91's stream_2 typed-union probe and
+			// this iteration's primary string-field probes cannot individually
+			// discriminate — continuing the cross-stream discrimination pattern
+			// iter-88/90/91/102/103 established.
+			stream_2_synthesis_scout_assignments_probe_axis_present_count_sum: sumMetric(
+				'stream_2_synthesis_scout_assignments_probe_axis_present_count'
+			),
+			stream_2_synthesis_scout_assignments_probe_axis_present_count_min: perIntent.length
+				? Math.min(
+						...perIntent.map(
+							(p) => p.metrics.stream_2_synthesis_scout_assignments_probe_axis_present_count ?? 0
+						)
+					)
+				: 0,
+			stream_2_synthesis_scout_assignments_reason_present_count_sum: sumMetric(
+				'stream_2_synthesis_scout_assignments_reason_present_count'
+			),
+			stream_2_synthesis_scout_assignments_reason_present_count_min: perIntent.length
+				? Math.min(
+						...perIntent.map(
+							(p) => p.metrics.stream_2_synthesis_scout_assignments_reason_present_count ?? 0
+						)
+					)
 				: 0,
 			// iter-94: stream_2 counterpart rollup for iter-94's primary-bus
 			// synthesis_palette_present_count. Paired with the primary rollup
