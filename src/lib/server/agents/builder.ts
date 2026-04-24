@@ -461,6 +461,23 @@ export function startBuilder(): void {
 				'</div>';
 			emitDraftUpdated({ draft: context.draft });
 
+			// iter-78: capture the placeholder html we just wrote so the merge
+			// below can detect if a rebuild (or anything else) mutated
+			// context.draft.html between scaffold start and scaffold end. Under
+			// single-session busy-gated timing, rebuild cannot run until
+			// scaffold's finally releases busy — so context.draft.html stays
+			// equal to this capture and scaffold merges unconditionally (iter-69
+			// frontier-anchor behavior preserved byte-equivalent). Under
+			// multi-session (iter-76 anchor: 1498c-vs-4222c collapsed-distribution
+			// anomaly), session 1's stale scaffold releases busy=false early,
+			// letting session 2's pending-swipe rebuild fire while session 2's
+			// scaffold is still running; when session 2's scaffold then completes,
+			// merging its (naive, swipe-unaware) output clobbers rebuild's
+			// swipe-aware draft. The capture-vs-current comparison catches that
+			// case cleanly: rebuild's merge mutates context.draft.html to
+			// non-placeholder content, the comparison fails, scaffold skips.
+			const capturedPlaceholderHtml = context.draft.html;
+
 			try {
 				const result = await generateText({
 					model: FAST_MODEL,
@@ -494,7 +511,17 @@ export function startBuilder(): void {
 				// gated on busy=false which is released in the finally AFTER this
 				// merge. Directly moves iter-64's frontier anchor draft_refined_count
 				// from 0 to >=1 per intent.
-				if (result.output) {
+				//
+				// iter-78: multi-session race guard — only merge when context.draft.html
+				// is still the placeholder we captured above. Under single-session
+				// timing this invariant holds (busy-gated rebuild cannot interleave),
+				// so the merge fires every intent (iter-74's 5/5 draft_refined_count_sum
+				// baseline preserved byte-equivalent). Under multi-session, a prior
+				// rebuild triggered by a stale-scaffold busy release can mutate the
+				// draft before this scaffold completes — the guard prevents that
+				// scaffold's (naive, swipe-unaware) output from clobbering rebuild's
+				// swipe-aware content.
+				if (result.output && context.draft.html === capturedPlaceholderHtml) {
 					context.draft.title = result.output.title;
 					context.draft.summary = result.output.summary;
 					context.draft.html = result.output.html;
