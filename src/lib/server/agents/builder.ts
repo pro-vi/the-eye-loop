@@ -84,7 +84,10 @@ OUTPUT:
 - title: a working title for the prototype
 - summary: 1-2 sentence description
 - html: basic HTML+CSS scaffold (mobile 375x667, inline styles, no scripts).
-  Start with a CSS variable palette, then build 2-3 placeholder sections.`;
+  Start with a CSS variable palette, then build 2-3 placeholder sections.
+  Keep the scaffold CONCISE — aim for ~2000-3000 chars of html. This is a
+  starting point that will evolve through swipes, NOT the final polished
+  prototype. Three lean sections beat five verbose ones.`;
 
 const SWIPE_PROMPT = `You are the builder agent. You assemble a prototype from what users
 have shown through their choices — not from what they said.
