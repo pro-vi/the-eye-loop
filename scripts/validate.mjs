@@ -2067,6 +2067,86 @@ async function main() {
 		(e) => e.type === 'swipe-result' && VALID_LATENCY_BUCKETS.has(e.data?.record?.latencyBucket)
 	).length;
 
+	// iter-97: SwipeRecord remaining-field presence-validity probes —
+	// closes the 3 of 5 SwipeRecord fields not covered by iter-80's typed-
+	// union pair (decision, latencyBucket). SwipeRecord (types.ts:29-35) has:
+	//   facadeId: string                — identity link to facade-ready
+	//   agentId:  string                — identity link to scout (e.g. scout-03)
+	//   decision: 'accept'|'reject'     — PROBED iter-80
+	//   latencyMs: number               — non-negative number from POST body
+	//   latencyBucket?: 'fast'|'slow'   — PROBED iter-80
+	// After iter-80 closed the typed-union half, this iteration closes the
+	// presence-validity half: facadeId/agentId as non-empty strings, latencyMs
+	// as a finite non-negative number. Mirrors iter-82's pattern of closing
+	// 3 fields on the same event payload in one iteration (decision/format/
+	// latencySignal on evidence-updated items), and is the SwipeRecord
+	// counterpart to iter-86's 'second typed-union field on AgentState' completion
+	// — except SwipeRecord exposes a mix of identity-strings and numerics rather
+	// than two typed-unions, so the probe family shifts from union-membership
+	// to presence-validity (string non-empty, number finite>=0).
+	//
+	// Family: POSITIVE-IDENTITY (distinct from SHOULD-BE-ZERO of iter-93/94/95/96)
+	// — under healthy-auth single-intent baseline all 3 probes equal swipe_result_
+	// count = 1, so identity holds at probe = swipe_result_count for every probe.
+	// Under broken-auth all 3 = 0 trivially (no swipe-result fires). This is
+	// orthogonal to iter-80's typed-union probes: a regression that strips
+	// record.facadeId or corrupts latencyMs would leave swipe_decision_valid_count
+	// at 1 (decision still echoes back unchanged from POST body) but drop the
+	// new probes to 0.
+	//
+	// Regression classes these catch that swipe_result_count + iter-80 cannot:
+	//   - /api/swipe (+server.ts:32-37) drops facadeId from the constructed
+	//     record before passing to addEvidence: swipe_result_count stays at 1,
+	//     swipe_decision_valid still at 1 (decision intact), swipe_facade_id_
+	//     present_count drops to 0 — pinpoints the field-strip bug.
+	//   - context.addEvidence (context.ts:64-94) breaks the facade.agentId lookup
+	//     (e.g. record mutated in place to overwrite agentId, facade-find fails
+	//     silently): swipe_agent_id_present drops to 0 while decision/latencyBucket
+	//     hold (latencyBucket is computed from latencyMs, not agentId).
+	//   - latencyMs corrupted to NaN (parseFloat of empty string), undefined
+	//     (omitted from POST body and not validated), negative (timing-debug bug),
+	//     or non-number (string '600'): swipe_latency_ms_valid drops to 0 while
+	//     swipe_latency_bucket_valid stays at 1 (bucket logic at context.ts:69
+	//     short-circuits to 'slow' when median=0, regardless of latencyMs).
+	//   - SSE serializer (bus.ts emit chain) strips the entire `record` field
+	//     (e.g. JSON.stringify drops because of a circular ref or Symbol key):
+	//     ALL of {decision, bucket, facadeId, agentId, latencyMs}_valid_count
+	//     collapse to 0 simultaneously — regression appears across iter-80 and
+	//     iter-97 probes together, distinguishing serialization-level from field-
+	//     specific corruption.
+	//
+	// Identity invariants under iter-61 healthy-auth baseline:
+	//   single-intent: swipe_facade_id_present_count = swipe_agent_id_present_
+	//     count = swipe_latency_ms_valid_count = swipe_result_count = 1
+	//   5-intent aggregate: each _sum=5 / _min=1 (one swipe per intent), matching
+	//     iter-80's swipe_decision_valid_count_sum=5 / _min=1 exactly.
+	// Under broken-auth: all 3 = 0 / _min=0, identity holds at 0=0=0=0 with
+	// iter-80 probes (no swipe ever fires).
+	//
+	// No stream_2 counterpart by construction: iter-91 documented swipe-result
+	// is NOT replayed on /api/stream (+server.ts:23-38 replay block emits only
+	// synthesis/evidence/facade/draft/stage/agent-status). Parallel structural
+	// status to iter-93's facade-stale and builder-hint probes.
+	const swipeFacadeIdPresentCount = events.filter(
+		(e) =>
+			e.type === 'swipe-result' &&
+			typeof e.data?.record?.facadeId === 'string' &&
+			e.data.record.facadeId.length > 0
+	).length;
+	const swipeAgentIdPresentCount = events.filter(
+		(e) =>
+			e.type === 'swipe-result' &&
+			typeof e.data?.record?.agentId === 'string' &&
+			e.data.record.agentId.length > 0
+	).length;
+	const swipeLatencyMsValidCount = events.filter(
+		(e) =>
+			e.type === 'swipe-result' &&
+			typeof e.data?.record?.latencyMs === 'number' &&
+			Number.isFinite(e.data.record.latencyMs) &&
+			e.data.record.latencyMs >= 0
+	).length;
+
 	// iter-72: synthesis content-validation probes — first content probes on
 	// the synthesis-updated event after 71 iterations of count-only coverage
 	// (iter-66 promoted stream_2_synthesis_updated_count, iter-68 promoted
@@ -2593,6 +2673,9 @@ async function main() {
 			facade_format_valid_count: facadeFormatValidCount,
 			swipe_decision_valid_count: swipeDecisionValidCount,
 			swipe_latency_bucket_valid_count: swipeLatencyBucketValidCount,
+			swipe_facade_id_present_count: swipeFacadeIdPresentCount,
+			swipe_agent_id_present_count: swipeAgentIdPresentCount,
+			swipe_latency_ms_valid_count: swipeLatencyMsValidCount,
 			synthesis_axes_count: synthesisAxesCount,
 			synthesis_axes_min: synthesisAxesMin,
 			synthesis_axes_valid_confidence_count: synthesisAxesValidConfidenceCount,
@@ -2657,7 +2740,7 @@ async function main() {
 		`stage_valid=${stageValidCount} err_src_valid=${errorSourceValidCount} err_code_valid=${errorCodeValidCount} ` +
 		`agent_status_valid=${agentStatusValidCount} agent_status_role_valid=${agentStatusRoleValidCount} stage_swipe_valid=${stageChangedSwipeCountValidCount} ` +
 		`facade_fmt_valid=${facadeFormatValidCount} ` +
-		`swipe_dec_valid=${swipeDecisionValidCount} swipe_bkt_valid=${swipeLatencyBucketValidCount} ` +
+		`swipe_dec_valid=${swipeDecisionValidCount} swipe_bkt_valid=${swipeLatencyBucketValidCount} swipe_fid=${swipeFacadeIdPresentCount} swipe_aid=${swipeAgentIdPresentCount} swipe_lat_ms_valid=${swipeLatencyMsValidCount} ` +
 		`synth_axes=${synthesisAxesCount}/min=${synthesisAxesMin} synth_axes_conf_valid=${synthesisAxesValidConfidenceCount} synth_assigns=${synthesisScoutAssignmentsCount}/min=${synthesisScoutAssignmentsMin} synth_assigns_scout_valid=${synthesisScoutAssignmentsValidScoutCount} synth_palette=${synthesisPalettePresentCount} ` +
 		`evid_arr_valid=${evidenceArrayValidCount} anti_arr_valid=${antiPatternsArrayValidCount} evid_len_min/max=${evidenceLengthMin}/${evidenceLengthMax} ` +
 		`evid_items_dec_valid=${evidenceItemsValidDecisionCount} evid_items_fmt_valid=${evidenceItemsValidFormatCount} evid_items_lat_valid=${evidenceItemsValidLatencySignalCount} ` +

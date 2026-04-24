@@ -256,6 +256,13 @@ function extractMetrics(artifact) {
 		stream_2_synthesis_palette_present_count: m.stream_2_synthesis_palette_present_count ?? 0,
 		swipe_decision_valid_count: m.swipe_decision_valid_count ?? 0,
 		swipe_latency_bucket_valid_count: m.swipe_latency_bucket_valid_count ?? 0,
+		// iter-97: SwipeRecord remaining-field presence-validity probes (primary).
+		// Forward-carries facadeId/agentId/latencyMs validity counts so aggregate
+		// rollups below can establish iter-80 cardinality identity (each = swipe_
+		// result_count) under the healthy-auth single-swipe baseline.
+		swipe_facade_id_present_count: m.swipe_facade_id_present_count ?? 0,
+		swipe_agent_id_present_count: m.swipe_agent_id_present_count ?? 0,
+		swipe_latency_ms_valid_count: m.swipe_latency_ms_valid_count ?? 0,
 		synthesis_axes_count: m.synthesis_axes_count ?? 0,
 		synthesis_axes_min: m.synthesis_axes_min ?? 0,
 		synthesis_axes_valid_confidence_count: m.synthesis_axes_valid_confidence_count ?? 0,
@@ -1487,6 +1494,71 @@ async function main() {
 			swipe_latency_bucket_valid_count_sum: sumMetric('swipe_latency_bucket_valid_count'),
 			swipe_latency_bucket_valid_count_min: perIntent.length
 				? Math.min(...perIntent.map((p) => p.metrics.swipe_latency_bucket_valid_count ?? 0))
+				: 0,
+			// iter-97: SwipeRecord remaining-field presence-validity rollups —
+			// closes the 3 of 5 SwipeRecord fields not covered by iter-80's typed-
+			// union pair (decision, latencyBucket). After iter-80 closed the typed-
+			// union half (decision/latencyBucket), this iteration closes the
+			// presence-validity half (facadeId/agentId as non-empty strings,
+			// latencyMs as a finite non-negative number) — together saturating the
+			// SwipeRecord field-validity matrix on the swipe-result event type.
+			//
+			// Family: POSITIVE-IDENTITY (distinct from SHOULD-BE-ZERO of iter-93/
+			// 94/95/96) — under healthy-auth single-intent baseline all 3 probes
+			// equal swipe_result_count = 1, so identity holds at probe = swipe_
+			// result_count for every probe. Identity invariants under iter-61
+			// healthy-auth 5-intent baseline:
+			//   swipe_facade_id_present_count_sum = swipe_result_count_sum = 5
+			//   swipe_facade_id_present_count_min = 1
+			//   swipe_agent_id_present_count_sum = swipe_result_count_sum = 5
+			//   swipe_agent_id_present_count_min = 1
+			//   swipe_latency_ms_valid_count_sum = swipe_result_count_sum = 5
+			//   swipe_latency_ms_valid_count_min = 1
+			// Three-way identity matches iter-80 swipe_decision_valid_count_sum=5
+			// _min=1 and swipe_latency_bucket_valid_count_sum=5 _min=1, completing
+			// the 5-way SwipeRecord field validity identity chain on swipe-result.
+			// Under broken-auth all 3 = 0 / _min=0 (no swipe-result fires).
+			//
+			// Regression classes these aggregate rollups catch that iter-80's
+			// typed-union rollups + swipe_result_count_sum cannot:
+			//   - /api/swipe drops record.facadeId before passing to addEvidence:
+			//     swipe_decision_valid_count_sum stays at 5 (decision intact),
+			//     swipe_facade_id_present_count_sum drops to 0 / _min to 0.
+			//   - context.addEvidence breaks the facade.agentId lookup (mutation
+			//     bug, find returning undefined silently): decision/bucket hold,
+			//     swipe_agent_id_present drops below 5.
+			//   - latencyMs corrupted to NaN/undefined/negative/string: bucket
+			//     logic at context.ts:69 short-circuits to 'slow' when median=0
+			//     so swipe_latency_bucket_valid stays at 5; swipe_latency_ms_valid
+			//     drops to 0 — pinpoints number-corruption distinct from bucket-
+			//     classification corruption (iter-80 catches the latter).
+			//   - SSE serializer strips entire record field: ALL 5 SwipeRecord
+			//     field probes (iter-80 + iter-97) collapse to 0 simultaneously,
+			//     distinguishing serialization-level from field-specific corruption.
+			//
+			// Forward-deploy: under multi-swipe validators (e.g. 5-swipe per
+			// intent harness) identity scales linearly: each _sum = 5*N where N is
+			// per-intent swipe count, _min = N. Identity holds because all probe
+			// predicates (string non-empty, number finite>=0) cover every valid
+			// emission shape regardless of swipe count, decision distribution, or
+			// latencyMs value within the legal range.
+			//
+			// No stream_2 counterpart by construction: iter-91 documented swipe-
+			// result is NOT replayed on /api/stream (+server.ts:23-38 replay block
+			// emits only synthesis/evidence/facade/draft/stage/agent-status).
+			// Same N/A structural status as iter-80 (decision/latencyBucket) and
+			// iter-93 (facade-stale, builder-hint).
+			swipe_facade_id_present_count_sum: sumMetric('swipe_facade_id_present_count'),
+			swipe_facade_id_present_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.swipe_facade_id_present_count ?? 0))
+				: 0,
+			swipe_agent_id_present_count_sum: sumMetric('swipe_agent_id_present_count'),
+			swipe_agent_id_present_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.swipe_agent_id_present_count ?? 0))
+				: 0,
+			swipe_latency_ms_valid_count_sum: sumMetric('swipe_latency_ms_valid_count'),
+			swipe_latency_ms_valid_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.swipe_latency_ms_valid_count ?? 0))
 				: 0,
 			// iter-72: synthesis content-validation rollups — first content-probe
 			// aggregates on the synthesis-updated event after 71 iterations of
