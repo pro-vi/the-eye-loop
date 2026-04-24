@@ -1313,6 +1313,56 @@ async function main() {
 		(e) => e.type === 'facade-ready' && VALID_FACADE_FORMATS.has(e.data?.facade?.format)
 	).length;
 
+	// iter-72: synthesis content-validation probes — first content probes on
+	// the synthesis-updated event after 71 iterations of count-only coverage
+	// (iter-66 promoted stream_2_synthesis_updated_count, iter-68 promoted
+	// primary synthesis_updated_count to aggregate, neither validated payload
+	// shape). Parallel to iter-67's facade.format probe (first content probe
+	// on facade-ready) and iter-60's session-ready content probe — closes a
+	// recurring 'event type has count probes but no payload-shape validation'
+	// harness-completeness gap.
+	//
+	// Under iter-61 healthy-auth baseline, synthesis-updated fires once per
+	// intent from oracle.runColdStart (oracle.ts:350) carrying 6 axes + 6
+	// scout_assignments derived from intent analysis (poleB="(unknown)",
+	// confidence="unprobed", no palette since no evidence yet). Real evidence-
+	// synthesis from runSynthesis (oracle.ts:216) only fires after 4+ swipes
+	// — unreachable in current 12s validator window — and would carry the
+	// palette field plus filled-out poleB.
+	//
+	// New regression classes these probes catch that synthesis_updated_count
+	// alone cannot:
+	//   - oracle.runColdStart returns axes=[] from a degraded Haiku call:
+	//     synthesis_updated_count stays 1, synthesis_axes_min drops to 0.
+	//   - scout_assignments truncated below the 6-scout roster (e.g. Haiku
+	//     drops Echo): synthesis_updated_count stays 1, synthesis_scout_
+	//     assignments_min drops to 5.
+	//   - axes serialized as object instead of array: Array.isArray check
+	//     coerces to 0, count probe holds at 1 but min drops to 0.
+	//
+	// Identity invariants under healthy-auth baseline (cold-start synthesis):
+	//   synthesis_axes_count = 6 * synthesis_updated_count = 6 (per intent)
+	//   synthesis_axes_min = 6
+	//   synthesis_scout_assignments_count = 6 * synthesis_updated_count = 6
+	//   synthesis_scout_assignments_min = 6
+	const synthesisEvents = events.filter((e) => e.type === 'synthesis-updated');
+	let synthesisAxesCount = 0;
+	let synthesisScoutAssignmentsCount = 0;
+	let synthesisAxesMin = synthesisEvents.length > 0 ? Infinity : 0;
+	let synthesisScoutAssignmentsMin = synthesisEvents.length > 0 ? Infinity : 0;
+	for (const ev of synthesisEvents) {
+		const axes = ev.data?.synthesis?.axes;
+		const assignments = ev.data?.synthesis?.scout_assignments;
+		const axesLen = Array.isArray(axes) ? axes.length : 0;
+		const assignmentsLen = Array.isArray(assignments) ? assignments.length : 0;
+		synthesisAxesCount += axesLen;
+		synthesisScoutAssignmentsCount += assignmentsLen;
+		if (axesLen < synthesisAxesMin) synthesisAxesMin = axesLen;
+		if (assignmentsLen < synthesisScoutAssignmentsMin) synthesisScoutAssignmentsMin = assignmentsLen;
+	}
+	if (synthesisAxesMin === Infinity) synthesisAxesMin = 0;
+	if (synthesisScoutAssignmentsMin === Infinity) synthesisScoutAssignmentsMin = 0;
+
 	// Multi-session probe — always computed, but only populated when
 	// VALIDATE_SECOND_INTENT is set. session-ready events carry the intent in
 	// their data, so we can count distinct sessions and distinct intents
@@ -1477,6 +1527,10 @@ async function main() {
 			agent_status_valid_count: agentStatusValidCount,
 			stage_changed_swipe_count_valid_count: stageChangedSwipeCountValidCount,
 			facade_format_valid_count: facadeFormatValidCount,
+			synthesis_axes_count: synthesisAxesCount,
+			synthesis_axes_min: synthesisAxesMin,
+			synthesis_scout_assignments_count: synthesisScoutAssignmentsCount,
+			synthesis_scout_assignments_min: synthesisScoutAssignmentsMin,
 			oracle_cold_start_latency_ms: oracleColdStartLatencyMs,
 			oracle_synthesis_latency_ms: oracleSynthesisLatencyMs,
 			oracle_reveal_build_latency_ms: oracleRevealBuildLatencyMs,
@@ -1522,6 +1576,7 @@ async function main() {
 		`stage_valid=${stageValidCount} err_src_valid=${errorSourceValidCount} err_code_valid=${errorCodeValidCount} ` +
 		`agent_status_valid=${agentStatusValidCount} stage_swipe_valid=${stageChangedSwipeCountValidCount} ` +
 		`facade_fmt_valid=${facadeFormatValidCount} ` +
+		`synth_axes=${synthesisAxesCount}/min=${synthesisAxesMin} synth_assigns=${synthesisScoutAssignmentsCount}/min=${synthesisScoutAssignmentsMin} ` +
 		`s2_err=${stream2.error_event_count} s2_agents=${stream2.agent_status_count} s2_stage=${stream2.stage_changed_count} s2_diag=${stream2.diagnostic_preserved_count} s2_err_auth=${stream2.error_provider_auth_count} ` +
 		`s2_roles=s${stream2.agent_status_scout_count}/o${stream2.agent_status_oracle_count}/b${stream2.agent_status_builder_count} ` +
 		`s2_stage_valid=${stream2.stage_valid_count} s2_err_src_valid=${stream2.error_source_valid_count} s2_err_code_valid=${stream2.error_code_valid_count} s2_err_msg=${stream2.error_message_present_count} ` +

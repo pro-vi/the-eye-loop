@@ -158,6 +158,10 @@ function extractMetrics(artifact) {
 		stream_2_evidence_updated_count: m.stream_2_evidence_updated_count ?? 0,
 		facade_format_valid_count: m.facade_format_valid_count ?? 0,
 		stream_2_facade_format_valid_count: m.stream_2_facade_format_valid_count ?? 0,
+		synthesis_axes_count: m.synthesis_axes_count ?? 0,
+		synthesis_axes_min: m.synthesis_axes_min ?? 0,
+		synthesis_scout_assignments_count: m.synthesis_scout_assignments_count ?? 0,
+		synthesis_scout_assignments_min: m.synthesis_scout_assignments_min ?? 0,
 		session_ready_intent_present_count: m.session_ready_intent_present_count ?? 0,
 		oracle_cold_start_latency_ms: m.oracle_cold_start_latency_ms ?? null,
 		oracle_synthesis_latency_ms: m.oracle_synthesis_latency_ms ?? null,
@@ -917,6 +921,34 @@ async function main() {
 			stream_2_facade_format_valid_count_sum: sumMetric('stream_2_facade_format_valid_count'),
 			stream_2_facade_format_valid_count_min: perIntent.length
 				? Math.min(...perIntent.map((p) => p.metrics.stream_2_facade_format_valid_count ?? 0))
+				: 0,
+			// iter-72: synthesis content-validation rollups — first content-probe
+			// aggregates on the synthesis-updated event after 71 iterations of
+			// count-only coverage. Parallel to iter-67's facade.format rollups
+			// (first content rollup on facade-ready) and iter-60's session-ready
+			// content rollup. Under iter-61 healthy-auth baseline, synthesis-
+			// updated fires once per intent from cold-start (oracle.ts:350) with
+			// 6 axes + 6 scout_assignments, so the identity invariants are:
+			//   synthesis_axes_count_sum = 6 * synthesis_updated_count_sum = 30
+			//   synthesis_axes_min = 6 (per intent)
+			//   synthesis_scout_assignments_count_sum = 30
+			//   synthesis_scout_assignments_min = 6
+			// Regression classes these rollups catch that synthesis_updated_count_
+			// sum cannot: empty axes from a degraded Haiku call (event_count_sum
+			// stays 5, axes_min drops to 0); scout_assignments truncated below
+			// the 6-roster (event_count_sum stays 5, assignments_min drops to 5);
+			// axes serialized as object instead of array (Array.isArray coerces
+			// to 0, event_count holds at 1 but min drops to 0). Forward-deploy:
+			// when real evidence-synthesis fires (4+ swipes, currently unreachable
+			// in 12s window) the same min invariants apply because Haiku's
+			// synthesis schema requires axes + scout_assignments populated.
+			synthesis_axes_count_sum: sumMetric('synthesis_axes_count'),
+			synthesis_axes_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.synthesis_axes_min ?? 0))
+				: 0,
+			synthesis_scout_assignments_count_sum: sumMetric('synthesis_scout_assignments_count'),
+			synthesis_scout_assignments_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.synthesis_scout_assignments_min ?? 0))
 				: 0,
 			time_to_first_stage_changed_ms_p50: percentile(
 				perIntent.map((p) => p.metrics.time_to_first_stage_changed_ms),
