@@ -181,6 +181,15 @@ function extractMetrics(artifact) {
 		stream_2_synthesis_axes_min: m.stream_2_synthesis_axes_min ?? 0,
 		stream_2_synthesis_scout_assignments_count: m.stream_2_synthesis_scout_assignments_count ?? 0,
 		stream_2_synthesis_scout_assignments_min: m.stream_2_synthesis_scout_assignments_min ?? 0,
+		// iter-89: stream_2 counterparts for iter-81's primary-bus evidence-updated
+		// array-shape probes — forward-carried so that the aggregate rollups below
+		// can establish cross-stream identity with iter-81's primary values under
+		// the healthy-auth 5-intent baseline (each stream_2 metric equals its
+		// primary-bus counterpart = 5/_min=1 for presence-validity; 1/1 for length).
+		stream_2_evidence_array_valid_count: m.stream_2_evidence_array_valid_count ?? 0,
+		stream_2_anti_patterns_array_valid_count: m.stream_2_anti_patterns_array_valid_count ?? 0,
+		stream_2_evidence_length_min: m.stream_2_evidence_length_min ?? 0,
+		stream_2_evidence_length_max: m.stream_2_evidence_length_max ?? 0,
 		swipe_decision_valid_count: m.swipe_decision_valid_count ?? 0,
 		swipe_latency_bucket_valid_count: m.swipe_latency_bucket_valid_count ?? 0,
 		synthesis_axes_count: m.synthesis_axes_count ?? 0,
@@ -1339,6 +1348,70 @@ async function main() {
 			stream_2_synthesis_scout_assignments_count_sum: sumMetric('stream_2_synthesis_scout_assignments_count'),
 			stream_2_synthesis_scout_assignments_count_min: perIntent.length
 				? Math.min(...perIntent.map((p) => p.metrics.stream_2_synthesis_scout_assignments_min ?? 0))
+				: 0,
+			// iter-89: stream_2 counterparts for iter-81's primary-bus evidence-
+			// updated array-shape rollups — closing one of iter-88's 5 explicitly-
+			// named unclosed stream_2 counterpart backlog items (evidence array-
+			// shape). Mirror pattern of iter-88 (which closed the synthesis axes/
+			// scout_assignments count+min counterparts). Under iter-61 healthy-
+			// auth 5-intent 12s-window baseline the stream_2 replay snapshot
+			// captures the 1-item evidence array + empty antiPatterns array that
+			// context.ts:93 persisted from the single accept-swipe (swipe at
+			// ~4-5s, stream_2 opens at ~12s), so the same primary-bus identity
+			// invariants from iter-81 also hold on the replay path:
+			//   stream_2_evidence_array_valid_count_sum = 5
+			//     = evidence_array_valid_count_sum (iter-81, primary bus)
+			//     = stream_2_evidence_updated_count_sum (iter-66)
+			//   stream_2_evidence_array_valid_count_min = 1 (per intent)
+			//   stream_2_anti_patterns_array_valid_count_sum = 5 (antiPatterns
+			//     is always an array, even empty [] satisfies Array.isArray)
+			//   stream_2_anti_patterns_array_valid_count_min = 1
+			//   stream_2_evidence_length_cross_intent_min = 1 (cumulative after
+			//     1 swipe)
+			//   stream_2_evidence_length_cross_intent_max = 1 (same rationale,
+			//     grows with multi-swipe validators landing)
+			//
+			// Regression classes these aggregate rollups catch that iter-81's
+			// primary rollups cannot: a bug in +server.ts:30-32's replay block
+			// that serializes context.evidence as an object (stream_2 array_valid
+			// drops to 0 while iter-66 stream_2_evidence_updated_count holds at
+			// 5); replay cloning evidence then truncating to an empty array
+			// (length_max drops to 0 while primary holds at 1); replay stripping
+			// antiPatterns from the payload (anti_patterns_array_valid drops to
+			// 0 while evidence_array_valid holds — discriminating the two sides
+			// of the payload shape); replay emitting {evidence: evidence[0]}
+			// instead of {evidence: [...evidence]} (stream_2 array_valid drops
+			// to 0 across all intents).
+			//
+			// Cross-stream divergence (stream_2_evidence_array_valid_count_sum
+			// != primary evidence_array_valid_count_sum under healthy-auth)
+			// pinpoints replay-block bugs invisible to single-stream probes. A
+			// regression that breaks BOTH the live emission path and the replay
+			// path would show both counts dropping together (e.g. context.ts:93
+			// corruption affecting both context.evidence state AND its [...]
+			// spread at emit time); a regression affecting ONLY the replay path
+			// (e.g. +server.ts:31 spreading stripped) shows stream_2 drop while
+			// primary holds.
+			//
+			// Under broken-auth baseline: both primary and stream_2 evidence
+			// array_valid _sum=0 because no facade-ready → no swipe → no
+			// addEvidence → no evidence-updated emit on either stream — the
+			// cross-stream identity 0==0 is preserved without being
+			// discriminative on either side. Baseline-regime-invariant just like
+			// iter-67/72/88 probes.
+			stream_2_evidence_array_valid_count_sum: sumMetric('stream_2_evidence_array_valid_count'),
+			stream_2_evidence_array_valid_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.stream_2_evidence_array_valid_count ?? 0))
+				: 0,
+			stream_2_anti_patterns_array_valid_count_sum: sumMetric('stream_2_anti_patterns_array_valid_count'),
+			stream_2_anti_patterns_array_valid_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.stream_2_anti_patterns_array_valid_count ?? 0))
+				: 0,
+			stream_2_evidence_length_cross_intent_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.stream_2_evidence_length_min ?? 0))
+				: 0,
+			stream_2_evidence_length_cross_intent_max: perIntent.length
+				? Math.max(...perIntent.map((p) => p.metrics.stream_2_evidence_length_max ?? 0))
 				: 0,
 			// iter-81: evidence-updated content-validation rollups — first
 			// content-probe aggregates on the evidence-updated event after 80

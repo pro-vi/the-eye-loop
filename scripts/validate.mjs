@@ -433,6 +433,24 @@ async function main() {
 		synthesis_axes_min: 0,
 		synthesis_scout_assignments_count: 0,
 		synthesis_scout_assignments_min: 0,
+		// iter-89: stream_2 counterparts for iter-81's primary-bus evidence-updated
+		// array-shape probes (evidence_array_valid_count, anti_patterns_array_valid_
+		// count, evidence_length_min/max), closing one of iter-88's 5 explicitly-
+		// named unclosed stream_2 counterpart backlog items. +server.ts:30-32
+		// replays evidence-updated once per new client when context.evidence.length
+		// > 0; under iter-61 healthy-auth with one accept-swipe the context.ts:93
+		// addEvidence emit at ~4-5s lands well before stream_2 opens at ~12s, so
+		// the replay carries evidence=[1 item] and antiPatterns=[] — matching
+		// primary-bus identity. Regression classes: context.evidence serialized as
+		// object (array_valid drops to 0 while iter-66 stream_2_evidence_updated_
+		// count holds at 1); replay cloning evidence then truncating the array
+		// (length_max drops to 0 while primary holds at 1); antiPatterns stripped
+		// from the replay payload (anti_patterns_array_valid drops while evidence_
+		// array_valid holds, discriminating the two sides of the payload shape).
+		evidence_array_valid_count: 0,
+		anti_patterns_array_valid_count: 0,
+		evidence_length_min: 0,
+		evidence_length_max: 0,
 		first_event_ms_after_open: null,
 		last_event_ms_after_open: null,
 		replay_span_ms: null,
@@ -745,6 +763,47 @@ async function main() {
 				s2SynthesisScoutAssignmentsMin === Infinity
 					? 0
 					: s2SynthesisScoutAssignmentsMin;
+		}
+		// iter-89: evidence-updated array-shape probes on stream_2 replay —
+		// stream_2 counterparts for iter-81's primary-bus evidence_array_valid,
+		// anti_patterns_array_valid, and evidence_length min/max probes. Mirror
+		// pattern of iter-88 (synthesis axes/scout_assignments count+min). Under
+		// iter-61 healthy-auth 5-intent baseline, +server.ts:30-32 replays
+		// evidence-updated once when context.evidence.length > 0; context.ts:93
+		// addEvidence emits at ~4-5s (well before stream_2 opens at ~12s) and
+		// persists context.evidence with 1 item, so per-intent identity under
+		// 1-swipe baseline is:
+		//   stream_2_evidence_array_valid_count = 1 (matches iter-81 primary)
+		//   stream_2_anti_patterns_array_valid_count = 1 (matches primary)
+		//   stream_2_evidence_length_min = stream_2_evidence_length_max = 1
+		// Aggregate (5 intents): both _valid sums=5/_min=1; length min=max=1.
+		// Regression classes this catches that iter-81 primary alone cannot:
+		// replay-block bug that serializes context.evidence as object (stream_2
+		// array_valid drops to 0 while primary array_valid stays at 5 — iter-66
+		// stream_2_evidence_updated_count still fires at 5 but payload shape
+		// corrupted); replay cloning evidence and truncating (length_max drops
+		// to 0 while primary holds at 1); replay stripping antiPatterns field
+		// (anti_patterns_array_valid drops to 0 while evidence_array_valid holds,
+		// discriminating the two sides of the payload).
+		{
+			const stream2EvidenceEvents = stream2.events.filter(
+				(e) => e.type === 'evidence-updated'
+			);
+			let s2EvidenceLengthMin = stream2EvidenceEvents.length > 0 ? Infinity : 0;
+			let s2EvidenceLengthMax = 0;
+			for (const ev of stream2EvidenceEvents) {
+				const evidenceArr = ev.data?.evidence;
+				const antiArr = ev.data?.antiPatterns;
+				if (Array.isArray(evidenceArr)) {
+					stream2.evidence_array_valid_count++;
+					if (evidenceArr.length < s2EvidenceLengthMin) s2EvidenceLengthMin = evidenceArr.length;
+					if (evidenceArr.length > s2EvidenceLengthMax) s2EvidenceLengthMax = evidenceArr.length;
+				}
+				if (Array.isArray(antiArr)) stream2.anti_patterns_array_valid_count++;
+			}
+			stream2.evidence_length_min =
+				s2EvidenceLengthMin === Infinity ? 0 : s2EvidenceLengthMin;
+			stream2.evidence_length_max = s2EvidenceLengthMax;
 		}
 		// iter-65: draft-replay placeholder/refined discriminator (stream_2
 		// mirror of iter-64's primary-stream split). Under iter-61's healthy-auth
@@ -2034,6 +2093,16 @@ async function main() {
 			stream_2_synthesis_axes_min: stream2.synthesis_axes_min,
 			stream_2_synthesis_scout_assignments_count: stream2.synthesis_scout_assignments_count,
 			stream_2_synthesis_scout_assignments_min: stream2.synthesis_scout_assignments_min,
+			// iter-89: stream_2 counterparts for iter-81's primary-bus evidence-
+			// updated array-shape probes — mirrors evidence_array_valid / anti_
+			// patterns_array_valid / evidence_length min/max onto /api/stream
+			// replay snapshot, closing one of iter-88's 5 explicitly-named backlog
+			// items. Establishes cross-stream identity under healthy-auth 5-intent
+			// baseline: stream_2_evidence_array_valid_count = primary = 5/_min=1.
+			stream_2_evidence_array_valid_count: stream2.evidence_array_valid_count,
+			stream_2_anti_patterns_array_valid_count: stream2.anti_patterns_array_valid_count,
+			stream_2_evidence_length_min: stream2.evidence_length_min,
+			stream_2_evidence_length_max: stream2.evidence_length_max,
 			stream_2_first_event_ms_after_open: stream2.first_event_ms_after_open,
 			stream_2_replay_span_ms: stream2.replay_span_ms,
 			stage_changed_event_count: stageChangedEventCount,
@@ -2122,6 +2191,7 @@ async function main() {
 		`s2_facades=${stream2.facade_ready_count} s2_synth=${stream2.synthesis_updated_count} s2_evidence=${stream2.evidence_updated_count} ` +
 		`s2_facade_fmt_valid=${stream2.facade_format_valid_count} ` +
 		`s2_synth_axes=${stream2.synthesis_axes_count}/min=${stream2.synthesis_axes_min} s2_synth_assigns=${stream2.synthesis_scout_assignments_count}/min=${stream2.synthesis_scout_assignments_min} ` +
+		`s2_evid_arr_valid=${stream2.evidence_array_valid_count} s2_anti_arr_valid=${stream2.anti_patterns_array_valid_count} s2_evid_len_min/max=${stream2.evidence_length_min}/${stream2.evidence_length_max} ` +
 		`s2_first=${stream2.first_event_ms_after_open}ms s2_span=${stream2.replay_span_ms}ms ` +
 		`oracle_cs=${oracleColdStartLatencyMs === null ? '-' : oracleColdStartLatencyMs + 'ms'} ` +
 		`oracle_syn=${oracleSynthesisLatencyMs === null ? '-' : oracleSynthesisLatencyMs + 'ms'} ` +
