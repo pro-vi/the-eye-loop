@@ -347,6 +347,17 @@ function extractMetrics(artifact) {
 		// matching primary. A SHOULD-BE-ZERO cross-stream identity paired with
 		// the primary-bus counterpart.
 		stream_2_synthesis_palette_present_count: m.stream_2_synthesis_palette_present_count ?? 0,
+		// iter-105: stream_2 counterparts for TasteSynthesis top-level remaining-
+		// field probes (edge_case_flags array-shape + persona_anima_divergence
+		// null-or-non-empty-string type validity). Forward-carried per-intent so
+		// the aggregate rollups below can establish cross-stream POSITIVE-IDENTITY:
+		// each = stream_2_synthesis_updated_count = 5/_min=1 under healthy-auth
+		// 5-intent baseline. Saturates the TasteSynthesis struct-boundary 5-way
+		// field-validity matrix on the /api/stream replay path.
+		stream_2_synthesis_edge_case_flags_array_valid_count:
+			m.stream_2_synthesis_edge_case_flags_array_valid_count ?? 0,
+		stream_2_synthesis_persona_anima_divergence_valid_count:
+			m.stream_2_synthesis_persona_anima_divergence_valid_count ?? 0,
 		swipe_decision_valid_count: m.swipe_decision_valid_count ?? 0,
 		swipe_latency_bucket_valid_count: m.swipe_latency_bucket_valid_count ?? 0,
 		// iter-97: SwipeRecord remaining-field presence-validity probes (primary).
@@ -378,6 +389,17 @@ function extractMetrics(artifact) {
 		synthesis_scout_assignments_reason_present_count:
 			m.synthesis_scout_assignments_reason_present_count ?? 0,
 		synthesis_palette_present_count: m.synthesis_palette_present_count ?? 0,
+		// iter-105: TasteSynthesis top-level remaining-field probes on the
+		// primary-bus synthesis-updated event (edge_case_flags array-shape +
+		// persona_anima_divergence null-or-non-empty-string type validity).
+		// Forward-carried per-intent so aggregate rollups below can establish
+		// POSITIVE-IDENTITY: each = synthesis_updated_count = 5/_min=1 under
+		// healthy-auth 5-intent baseline. Saturates the TasteSynthesis struct-
+		// boundary 5-way field-validity matrix on the primary bus.
+		synthesis_edge_case_flags_array_valid_count:
+			m.synthesis_edge_case_flags_array_valid_count ?? 0,
+		synthesis_persona_anima_divergence_valid_count:
+			m.synthesis_persona_anima_divergence_valid_count ?? 0,
 		evidence_array_valid_count: m.evidence_array_valid_count ?? 0,
 		anti_patterns_array_valid_count: m.anti_patterns_array_valid_count ?? 0,
 		evidence_length_min: m.evidence_length_min ?? 0,
@@ -2415,6 +2437,94 @@ async function main() {
 			synthesis_palette_present_count_min: perIntent.length
 				? Math.min(...perIntent.map((p) => p.metrics.synthesis_palette_present_count ?? 0))
 				: 0,
+			// iter-105: TasteSynthesis top-level remaining-field presence-validity
+			// rollups on synthesis-updated.{edge_case_flags, persona_anima_divergence}.
+			// Saturates the TasteSynthesis struct-boundary 5-way field-validity
+			// matrix (types.ts:81-91) alongside iter-72 (axes+scout_assignments count),
+			// iter-83/103 (axes 5-way within-item), iter-85/104 (scout_assignments
+			// 3-way within-item), and iter-94 (palette SHOULD-BE-ZERO presence).
+			// Closes the LAST unprobed fields at the TasteSynthesis struct boundary,
+			// extending the POSITIVE-IDENTITY matrix-saturation cluster that began
+			// iter-97 (SwipeRecord 5-way) to a 10-iteration run: iter-97 SwipeRecord
+			// 5-way → iter-98/99 Facade 6-way → iter-100 PrototypeDraft 6-way →
+			// iter-101 AgentState 5-way → iter-102 SwipeEvidence 7-way → iter-103
+			// EmergentAxis 5-way (within-item) → iter-104 scout_assignments 3-way
+			// (within-item) → iter-105 TasteSynthesis top-level 5-way (this rollup).
+			//
+			// Under iter-61 healthy-auth 5-intent 12s-window baseline, cold-start
+			// synthesis (oracle.ts:339-355) hard-codes edge_case_flags=[] (always
+			// an array — passes Array.isArray) and persona_anima_divergence=null
+			// (always null — passes the null-or-non-empty-string union check). Both
+			// rollups hold at synthesis_updated_count_sum per intent = 5 (_min=1).
+			//
+			// POSITIVE-IDENTITY chain at aggregate under healthy-auth baseline:
+			//   synthesis_updated_count_sum (iter-66, 5)
+			//     = synthesis_edge_case_flags_array_valid_count_sum (iter-105, 5)
+			//     = synthesis_persona_anima_divergence_valid_count_sum (iter-105, 5)
+			//
+			// Under broken-auth baseline: both rollups = 0 (no cold-start emission
+			// reaches the wire — iter-72's synthesis_updated_count_sum also drops
+			// to 0). The identity chain holds at 0 on both sides.
+			//
+			// Regression classes these rollups catch that iter-72/83/85/94/103/104
+			// cannot:
+			//   - oracle.ts:348 refactor assigning edge_case_flags = null/undefined
+			//     instead of []: iter-72/83/103 hold at 30 (axes intact); iter-94
+			//     palette holds at 0 (SHOULD-BE-ZERO unchanged); iter-105 edge_case_
+			//     flags_array_valid drops from 5 to 0, pinpointing the exact field-
+			//     level regression invisible to all other synthesis probes.
+			//   - oracle.ts:354 refactor assigning persona_anima_divergence = '' or
+			//     undefined instead of null: iter-72/83/85/94/103/104 all hold at
+			//     their identity baselines; iter-105 persona_anima_divergence_valid
+			//     drops from 5 to 0 — the null-vs-empty-string boundary is exactly
+			//     what this probe discriminates.
+			//   - synthesisSchema (oracle.ts:48) or coldStartSchema narrowing:
+			//     z.array(z.string()) relaxed to z.any() or z.unknown(), or z.string
+			//     ().nullable() changed to z.string().optional() (allows undefined)
+			//     — one or both rollups drop below 5 while other rollups hold at
+			//     identity, catching schema-narrowing regressions at the field-
+			//     type layer.
+			//   - TasteSynthesis interface refactor dropping edge_case_flags or
+			//     persona_anima_divergence from the required field set: runtime
+			//     wire-level probe catches omission even if compile-time types
+			//     narrow silently.
+			//
+			// Forward-deploy regimes: under runSynthesis (oracle.ts:176, 4+ swipes,
+			// unreachable in 12s window), edge_case_flags may carry populated
+			// string entries (e.g. ['all accepted', 'axis X contradictory']) —
+			// rollup still holds at identity because Array.isArray is orthogonal
+			// to array length. persona_anima_divergence may carry a non-empty
+			// string instead of null — rollup still holds at identity because the
+			// union-valid-type check accepts both null and non-empty string per
+			// types.ts:90. Both probes are cold-start-vs-runSynthesis path-
+			// invariant, synthesis-regime-invariant, and intent-invariant.
+			//
+			// Orthogonal to iter-94's palette SHOULD-BE-ZERO rollup: that probe
+			// fires ZERO under cold-start and positive under runSynthesis, discrim-
+			// inating emission origin; iter-105 probes fire identity under BOTH
+			// paths, providing structural validity signal independent of which
+			// synthesis path ran. Together iter-94 (origin-discriminative) and
+			// iter-105 (origin-invariant) give two-sided coverage: iter-94 tells
+			// WHICH path ran, iter-105 tells HOW WELL that path populated the
+			// remaining top-level fields.
+			synthesis_edge_case_flags_array_valid_count_sum: sumMetric(
+				'synthesis_edge_case_flags_array_valid_count'
+			),
+			synthesis_edge_case_flags_array_valid_count_min: perIntent.length
+				? Math.min(
+						...perIntent.map((p) => p.metrics.synthesis_edge_case_flags_array_valid_count ?? 0)
+					)
+				: 0,
+			synthesis_persona_anima_divergence_valid_count_sum: sumMetric(
+				'synthesis_persona_anima_divergence_valid_count'
+			),
+			synthesis_persona_anima_divergence_valid_count_min: perIntent.length
+				? Math.min(
+						...perIntent.map(
+							(p) => p.metrics.synthesis_persona_anima_divergence_valid_count ?? 0
+						)
+					)
+				: 0,
 			// iter-88: stream_2 counterparts for iter-72's primary-bus synthesis
 			// axes + scout_assignments count rollups — closing the last unprobed
 			// synthesis cells on the /api/stream snapshot matrix. Mirror pattern
@@ -2867,6 +2977,67 @@ async function main() {
 			stream_2_synthesis_palette_present_count_sum: sumMetric('stream_2_synthesis_palette_present_count'),
 			stream_2_synthesis_palette_present_count_min: perIntent.length
 				? Math.min(...perIntent.map((p) => p.metrics.stream_2_synthesis_palette_present_count ?? 0))
+				: 0,
+			// iter-105: stream_2 counterparts for iter-105's primary-bus TasteSynthesis
+			// top-level remaining-field rollups — cross-stream POSITIVE-IDENTITY
+			// under healthy-auth 5-intent 12s-window baseline: both stream_2
+			// counterparts = stream_2_synthesis_updated_count_sum = 5/_min=1, identity-
+			// matched with primary iter-105 at 5/_min=1. Saturates the TasteSynthesis
+			// struct-boundary 5-way field-validity matrix on the /api/stream replay
+			// path alongside iter-88 (axes+scout_assignments count), iter-91 (axes.
+			// confidence + scout_assignments.scout typed-union), iter-94 (palette
+			// SHOULD-BE-ZERO), iter-103 (EmergentAxis 4 string fields), iter-104
+			// (scout_assignments 2 string fields).
+			//
+			// Cross-stream POSITIVE-IDENTITY chain under healthy-auth baseline:
+			//   stream_2_synthesis_updated_count_sum (iter-66, 5)
+			//     = stream_2_synthesis_edge_case_flags_array_valid_count_sum (iter-105, 5)
+			//     = stream_2_synthesis_persona_anima_divergence_valid_count_sum (iter-105, 5)
+			//     = synthesis_edge_case_flags_array_valid_count_sum (primary iter-105, 5)
+			//     = synthesis_persona_anima_divergence_valid_count_sum (primary iter-105, 5)
+			//
+			// Regression classes catchable only at stream_2 (orthogonal to primary
+			// iter-105): a +server.ts:24-26 replay-block transform that strips
+			// edge_case_flags from the JSON payload (a test shim left in, a clone
+			// that drops empty arrays, a payload-shape refactor that omits nullable/
+			// default fields) — primary iter-105 holds at 5 (live emission preserves
+			// the fields), stream_2 iter-105 drops below 5, distinguishing replay-
+			// block serialization from primary-emission corruption. Similarly,
+			// persona_anima_divergence may be mutated by replay: a replay that
+			// coerces null to undefined (e.g. through a JSON.stringify pipeline
+			// followed by a JSON.parse + field-stripping pass) catches in stream_2
+			// but not primary. Cross-stream divergence pinpoints replay-block-only
+			// serialization bugs that neither primary iter-105 nor iter-88/91/94/
+			// 103/104 stream_2 probes can individually discriminate — continuing
+			// the cross-stream discrimination pattern iter-88/90/91/99/102/103/104
+			// established.
+			//
+			// Forward-deploy regimes: same as primary iter-105 — both probes hold
+			// at identity under cold-start (edge_case_flags=[] / persona_anima_
+			// divergence=null) AND runSynthesis (edge_case_flags may be populated /
+			// persona_anima_divergence may be a string). The replay path at
+			// +server.ts:24-26 JSON.stringify's context.synthesis, preserving
+			// both regime outputs unchanged, so the cross-stream identity holds
+			// on BOTH synthesis paths.
+			stream_2_synthesis_edge_case_flags_array_valid_count_sum: sumMetric(
+				'stream_2_synthesis_edge_case_flags_array_valid_count'
+			),
+			stream_2_synthesis_edge_case_flags_array_valid_count_min: perIntent.length
+				? Math.min(
+						...perIntent.map(
+							(p) => p.metrics.stream_2_synthesis_edge_case_flags_array_valid_count ?? 0
+						)
+					)
+				: 0,
+			stream_2_synthesis_persona_anima_divergence_valid_count_sum: sumMetric(
+				'stream_2_synthesis_persona_anima_divergence_valid_count'
+			),
+			stream_2_synthesis_persona_anima_divergence_valid_count_min: perIntent.length
+				? Math.min(
+						...perIntent.map(
+							(p) => p.metrics.stream_2_synthesis_persona_anima_divergence_valid_count ?? 0
+						)
+					)
 				: 0,
 			// iter-81: evidence-updated content-validation rollups — first
 			// content-probe aggregates on the evidence-updated event after 80

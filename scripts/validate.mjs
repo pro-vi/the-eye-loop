@@ -664,6 +664,56 @@ async function main() {
 		// serializes palette as string/array instead of object (count drops to 0
 		// while primary holds positive under forward-deploy).
 		synthesis_palette_present_count: 0,
+		// iter-105: stream_2 counterparts for iter-105's primary-bus TasteSynthesis
+		// top-level remaining-field probes: edge_case_flags (string[] array-shape) and
+		// persona_anima_divergence (string | null — null-sentinel-OR-non-empty-string
+		// type validity). Saturates the TasteSynthesis top-level 5-way field-validity
+		// matrix on the /api/stream replay path alongside iter-88 (axes+scout_
+		// assignments count), iter-91 (axes.confidence + scout_assignments.scout
+		// typed-union), iter-94 (palette presence), iter-103 (EmergentAxis 4 string
+		// fields), and iter-104 (scout_assignments 2 string fields). Closes the
+		// LAST unprobed fields at the TasteSynthesis struct boundary (types.ts:81-91)
+		// on the replay stream.
+		//
+		// Under iter-61 healthy-auth 5-intent 12s-window baseline: +server.ts:24-26
+		// replays synthesis-updated via JSON.stringify on context.synthesis; cold-
+		// start synthesis (oracle.ts:339-355) ALWAYS sets edge_case_flags=[] (always
+		// an array, Array.isArray=true) and persona_anima_divergence=null (always
+		// the null sentinel, === null = true). So both probes equal stream_2_
+		// synthesis_updated_count = 5/_min=1 per intent.
+		//
+		// POSITIVE-IDENTITY invariants (healthy-auth baseline): both stream_2_
+		// synthesis_{edge_case_flags_array_valid,persona_anima_divergence_valid}_
+		// count_sum = 5, _min=1 — matching iter-66's stream_2_synthesis_updated_
+		// count_sum=5. Cross-stream identity with primary iter-105: both primary
+		// and stream_2 counts hold at synthesis-updated count without divergence
+		// under correct behavior.
+		//
+		// Regression classes uniquely catchable at stream_2:
+		//   (a) replay-block transform that strips edge_case_flags from the payload
+		//     (e.g. a JSON-serialize pipeline that drops empty arrays, or a
+		//     .map(s => ({...s, edge_case_flags: undefined})) transform left in):
+		//     primary holds at 5, stream_2 edge_case_flags_array_valid drops to 0,
+		//     catching replay-only serialization regressions invisible to primary.
+		//   (b) replay serializes persona_anima_divergence as undefined / empty
+		//     string / wrong type (e.g. primary encodes null but replay clone
+		//     normalizes to '' or omits the field): primary holds at 5, stream_2
+		//     persona_anima_divergence_valid drops — orthogonal to iter-94's
+		//     palette regression class which is SHOULD-BE-ZERO under cold-start
+		//     regime, whereas this is POSITIVE-IDENTITY.
+		//   (c) cross-stream divergence pinpoints replay-block-only serialization
+		//     bugs that iter-88/91/94/103/104 cannot individually detect — the same
+		//     discrimination pattern iter-90/91/99/102/103/104 established.
+		//
+		// Forward-deploy regimes: under runSynthesis (oracle.ts:176, 4+ swipes,
+		// unreachable in 12s window), edge_case_flags may carry populated string
+		// entries (e.g. ['all accepted', 'axis X contradictory']) — probe still
+		// holds at identity because Array.isArray is orthogonal to array length.
+		// persona_anima_divergence may carry a non-empty string instead of null —
+		// probe still holds at identity because the union-valid-type check accepts
+		// both null and non-empty string per types.ts:90.
+		synthesis_edge_case_flags_array_valid_count: 0,
+		synthesis_persona_anima_divergence_valid_count: 0,
 		// iter-103: stream_2 counterparts for iter-103's primary-bus EmergentAxis
 		// remaining-field presence-validity probes (label, poleA, poleB,
 		// evidence_basis). Saturates the EmergentAxis 5-way field-validity matrix
@@ -1247,6 +1297,24 @@ async function main() {
 					typeof palette.radius === 'string'
 				) {
 					stream2.synthesis_palette_present_count++;
+				}
+				// iter-105: TasteSynthesis top-level remaining-field probes
+				// (edge_case_flags array-shape validity + persona_anima_divergence
+				// null-or-non-empty-string type validity). See init block for full
+				// rationale. Under healthy-auth baseline: both hold at stream_2
+				// synthesis-updated count per intent (cold-start always sets [] and
+				// null).
+				const edgeCaseFlags = ev.data?.synthesis?.edge_case_flags;
+				if (Array.isArray(edgeCaseFlags)) {
+					stream2.synthesis_edge_case_flags_array_valid_count++;
+				}
+				const personaAnimaDivergence = ev.data?.synthesis?.persona_anima_divergence;
+				if (
+					personaAnimaDivergence === null ||
+					(typeof personaAnimaDivergence === 'string' &&
+						personaAnimaDivergence.length > 0)
+				) {
+					stream2.synthesis_persona_anima_divergence_valid_count++;
 				}
 			}
 			stream2.synthesis_axes_min =
@@ -3047,6 +3115,90 @@ async function main() {
 	// iter-67/80/82/83 typed-union probes where each field is independently
 	// validated.
 	let synthesisPalettePresentCount = 0;
+	// iter-105: TasteSynthesis top-level remaining-field probes on the primary-
+	// bus synthesis-updated event. Saturates the TasteSynthesis struct-boundary
+	// 5-way field-validity matrix (types.ts:81-91) alongside the existing probes:
+	//   axes[]                        → iter-72 (count) + iter-83/103 (within-item 5-way)
+	//   scout_assignments[]           → iter-72 (count) + iter-85/104 (within-item 3-way)
+	//   palette?                      → iter-94 (SHOULD-BE-ZERO presence under cold-start)
+	//   edge_case_flags (string[])    → iter-105 (array-shape validity, this probe)
+	//   persona_anima_divergence      → iter-105 (null-or-non-empty-string type validity)
+	//
+	// Under iter-61 healthy-auth 5-intent 12s-window baseline, cold-start
+	// synthesis (oracle.ts:339-355) hard-codes edge_case_flags=[] (always an
+	// array, always Array.isArray-true) and persona_anima_divergence=null
+	// (always the null sentinel). Both probes hold at synthesis_updated_count =
+	// 5/_min=1 per intent under the POSITIVE-IDENTITY invariant class.
+	//
+	// 5-way TasteSynthesis top-level POSITIVE-IDENTITY chain under healthy-auth:
+	//   synthesis_updated_count_sum (iter-66, 5)
+	//     = synthesis_edge_case_flags_array_valid_count_sum (iter-105, 5)
+	//     = synthesis_persona_anima_divergence_valid_count_sum (iter-105, 5)
+	//   And orthogonally:
+	//   synthesis_axes_count_sum (iter-72, 30)                 [6 per synth]
+	//   synthesis_scout_assignments_count_sum (iter-72, 30)    [6 per synth]
+	//   synthesis_palette_present_count_sum (iter-94, 0)       [SHOULD-BE-ZERO]
+	//
+	// Probe design rationale:
+	//
+	// edge_case_flags: the type contract is `string[]` (types.ts:83) — strictly
+	// an array (never nullable, never optional). Under cold-start: always []
+	// (oracle.ts:348). Under runSynthesis (oracle.ts:176, unreachable in 12s
+	// window): always a string[] from synthesisSchema's z.array(z.string()).
+	// The correct probe is Array.isArray — invariant under both regimes and
+	// orthogonal to array length (which is 0 under cold-start but positive
+	// under runSynthesis). A length>0 probe would be SHOULD-BE-ZERO under
+	// current baseline and flip positive under forward-deploy, a different
+	// regression class from the array-shape validity probe.
+	//
+	// persona_anima_divergence: the type contract is `string | null`
+	// (types.ts:90) — an explicitly-nullable field. Under cold-start: always
+	// null (oracle.ts:354). Under runSynthesis: may be null OR a non-empty
+	// string per synthesisSchema's z.string().nullable(). The correct probe
+	// accepts EITHER null OR a non-empty string — matching the type contract
+	// exactly. A length>0-only probe would fail under cold-start (SHOULD-BE-
+	// ZERO), while a null-only probe would fail under runSynthesis with a
+	// populated divergence string. The union-valid probe catches:
+	//   (a) undefined leaking through (type narrowing regression): caught
+	//       because undefined !== null and typeof undefined !== 'string'.
+	//   (b) empty string leak (null-coalesce bug producing '' instead of
+	//       null): caught because typeof '' === 'string' but length = 0.
+	//   (c) wrong type (number, object, array from payload-shape drift):
+	//       caught because typeof !== 'string' and !== null.
+	//   (d) correctly null (cold-start): passes.
+	//   (e) correctly non-empty string (runSynthesis with divergence): passes.
+	//
+	// Regression classes these probes catch that iter-72/83/85/94/103/104 cannot:
+	//   - oracle.ts:348 refactor that assigns edge_case_flags = null/undefined
+	//     instead of []: iter-72/83/103 probes hold at 30 (axes intact); iter-94
+	//     palette probe holds at 0 (SHOULD-BE-ZERO baseline unchanged); iter-
+	//     105 edge_case_flags_array_valid drops from 5 to 0, pinpointing the
+	//     exact field-level regression invisible to all other synthesis probes.
+	//   - oracle.ts:354 refactor that assigns persona_anima_divergence = '' or
+	//     undefined instead of null: iter-72/83/85/94/103/104 all hold at their
+	//     identity baselines; iter-105 persona_anima_divergence_valid drops
+	//     from 5 to 0 — the null-vs-empty-string boundary is exactly what this
+	//     probe discriminates.
+	//   - synthesisSchema (oracle.ts:48) or coldStartSchema narrowing:
+	//     z.array(z.string()) relaxed to z.any() or z.unknown(), or z.string().
+	//     nullable() changed to z.string().optional() (allows undefined) — one
+	//     or both probes drop below 5 while other probes hold at identity,
+	//     catching schema-narrowing regressions at the field-type layer.
+	//   - TasteSynthesis interface refactor that drops edge_case_flags or
+	//     persona_anima_divergence from the required field set: TypeScript
+	//     compiler catches this but only if consumers reference the dropped
+	//     field. If cold-start construction omits the field, iter-105 catches
+	//     it at runtime via the wire-level probe.
+	//
+	// Intervention-diversity: iter-105 extends the POSITIVE-IDENTITY family
+	// from iter-97/98/99/100/101/102/103/104 (9-iteration cluster) to a 10th
+	// consecutive iteration saturating struct-boundary fields, finishing the
+	// TasteSynthesis top-level matrix. Same-family-admissibility holds because
+	// the probes provide independent discriminative power on fields that NO
+	// prior probe covers — edge_case_flags has never been probed, and persona_
+	// anima_divergence has never been probed.
+	let synthesisEdgeCaseFlagsArrayValidCount = 0;
+	let synthesisPersonaAnimaDivergenceValidCount = 0;
 	for (const ev of synthesisEvents) {
 		const axes = ev.data?.synthesis?.axes;
 		const assignments = ev.data?.synthesis?.scout_assignments;
@@ -3103,6 +3255,21 @@ async function main() {
 			typeof palette.radius === 'string'
 		) {
 			synthesisPalettePresentCount++;
+		}
+		// iter-105: edge_case_flags array-shape + persona_anima_divergence
+		// null-or-non-empty-string type validity. Full rationale in the variable
+		// decl block above. Invariant under healthy-auth baseline: both counts
+		// = synthesis_updated_count = 5/_min=1.
+		const edgeCaseFlags = ev.data?.synthesis?.edge_case_flags;
+		if (Array.isArray(edgeCaseFlags)) {
+			synthesisEdgeCaseFlagsArrayValidCount++;
+		}
+		const personaAnimaDivergence = ev.data?.synthesis?.persona_anima_divergence;
+		if (
+			personaAnimaDivergence === null ||
+			(typeof personaAnimaDivergence === 'string' && personaAnimaDivergence.length > 0)
+		) {
+			synthesisPersonaAnimaDivergenceValidCount++;
 		}
 	}
 	if (synthesisAxesMin === Infinity) synthesisAxesMin = 0;
@@ -3565,6 +3732,15 @@ async function main() {
 			stream_2_synthesis_scout_assignments_reason_present_count:
 				stream2.synthesis_scout_assignments_reason_present_count,
 			stream_2_synthesis_palette_present_count: stream2.synthesis_palette_present_count,
+			// iter-105: stream_2 counterparts for primary-bus TasteSynthesis top-level
+			// remaining-field probes. Cross-stream POSITIVE-IDENTITY under healthy-auth
+			// 5-intent baseline: each = stream_2_synthesis_updated_count = 5/_min=1.
+			// Saturates the TasteSynthesis struct-boundary 5-way field-validity matrix
+			// on the /api/stream replay path.
+			stream_2_synthesis_edge_case_flags_array_valid_count:
+				stream2.synthesis_edge_case_flags_array_valid_count,
+			stream_2_synthesis_persona_anima_divergence_valid_count:
+				stream2.synthesis_persona_anima_divergence_valid_count,
 			// iter-103: stream_2 counterparts for iter-103 primary-bus EmergentAxis
 			// remaining-field presence-validity probes (label, poleA, poleB,
 			// evidence_basis). Cross-stream POSITIVE-IDENTITY with iter-91 stream_2
@@ -3622,6 +3798,14 @@ async function main() {
 			synthesis_scout_assignments_probe_axis_present_count: synthesisScoutAssignmentsProbeAxisPresentCount,
 			synthesis_scout_assignments_reason_present_count: synthesisScoutAssignmentsReasonPresentCount,
 			synthesis_palette_present_count: synthesisPalettePresentCount,
+			// iter-105: TasteSynthesis top-level remaining-field probes
+			// (edge_case_flags array-shape + persona_anima_divergence null-or-
+			// non-empty-string). Saturates the TasteSynthesis struct-boundary
+			// 5-way field-validity matrix on primary bus. POSITIVE-IDENTITY under
+			// healthy-auth 5-intent baseline: each = synthesis_updated_count = 5/
+			// _min=1. Full rationale at variable decl block near line 3049.
+			synthesis_edge_case_flags_array_valid_count: synthesisEdgeCaseFlagsArrayValidCount,
+			synthesis_persona_anima_divergence_valid_count: synthesisPersonaAnimaDivergenceValidCount,
 			// iter-103: EmergentAxis remaining-field presence-validity probes (label,
 			// poleA, poleB, evidence_basis). Saturates the EmergentAxis 5-way matrix
 			// alongside iter-83 confidence typed-union and iter-72 axes length probes.
@@ -3692,7 +3876,7 @@ async function main() {
 		`agent_status_valid=${agentStatusValidCount} agent_status_role_valid=${agentStatusRoleValidCount} agent_id=${agentStatusIdPresentCount} agent_name=${agentStatusNamePresentCount} agent_focus=${agentStatusFocusPresentCount} stage_swipe_valid=${stageChangedSwipeCountValidCount} ` +
 		`facade_fmt_valid=${facadeFormatValidCount} facade_id=${facadeIdPresentCount} facade_aid=${facadeAgentIdPresentCount} facade_hyp=${facadeHypothesisPresentCount} facade_label=${facadeLabelPresentCount} facade_content=${facadeContentPresentCount} ` +
 		`swipe_dec_valid=${swipeDecisionValidCount} swipe_bkt_valid=${swipeLatencyBucketValidCount} swipe_fid=${swipeFacadeIdPresentCount} swipe_aid=${swipeAgentIdPresentCount} swipe_lat_ms_valid=${swipeLatencyMsValidCount} ` +
-		`synth_axes=${synthesisAxesCount}/min=${synthesisAxesMin} synth_axes_conf_valid=${synthesisAxesValidConfidenceCount} synth_axes_label=${synthesisAxesLabelPresentCount} synth_axes_pole_a=${synthesisAxesPoleAPresentCount} synth_axes_pole_b=${synthesisAxesPoleBPresentCount} synth_axes_evidence_basis=${synthesisAxesEvidenceBasisPresentCount} synth_assigns=${synthesisScoutAssignmentsCount}/min=${synthesisScoutAssignmentsMin} synth_assigns_scout_valid=${synthesisScoutAssignmentsValidScoutCount} synth_assigns_probe_axis=${synthesisScoutAssignmentsProbeAxisPresentCount} synth_assigns_reason=${synthesisScoutAssignmentsReasonPresentCount} synth_palette=${synthesisPalettePresentCount} ` +
+		`synth_axes=${synthesisAxesCount}/min=${synthesisAxesMin} synth_axes_conf_valid=${synthesisAxesValidConfidenceCount} synth_axes_label=${synthesisAxesLabelPresentCount} synth_axes_pole_a=${synthesisAxesPoleAPresentCount} synth_axes_pole_b=${synthesisAxesPoleBPresentCount} synth_axes_evidence_basis=${synthesisAxesEvidenceBasisPresentCount} synth_assigns=${synthesisScoutAssignmentsCount}/min=${synthesisScoutAssignmentsMin} synth_assigns_scout_valid=${synthesisScoutAssignmentsValidScoutCount} synth_assigns_probe_axis=${synthesisScoutAssignmentsProbeAxisPresentCount} synth_assigns_reason=${synthesisScoutAssignmentsReasonPresentCount} synth_palette=${synthesisPalettePresentCount} synth_edge_flags_arr_valid=${synthesisEdgeCaseFlagsArrayValidCount} synth_divergence_valid=${synthesisPersonaAnimaDivergenceValidCount} ` +
 		`evid_arr_valid=${evidenceArrayValidCount} anti_arr_valid=${antiPatternsArrayValidCount} evid_len_min/max=${evidenceLengthMin}/${evidenceLengthMax} ` +
 		`evid_items_dec_valid=${evidenceItemsValidDecisionCount} evid_items_fmt_valid=${evidenceItemsValidFormatCount} evid_items_lat_valid=${evidenceItemsValidLatencySignalCount} ` +
 		`evid_items_fid=${evidenceItemsFacadeIdPresentCount} evid_items_content=${evidenceItemsContentPresentCount} evid_items_hyp=${evidenceItemsHypothesisPresentCount} evid_items_impl=${evidenceItemsImplicationPresentCount} ` +
@@ -3703,7 +3887,7 @@ async function main() {
 		`s2_drafts=${stream2.draft_updated_count} s2_drafts_p/r=${stream2.draft_placeholder_count}/${stream2.draft_refined_count} s2_draft_next_hint=${stream2.draft_next_hint_present_count} s2_draft_accepted_pat=${stream2.draft_accepted_patterns_present_count} s2_draft_rejected_pat=${stream2.draft_rejected_patterns_present_count} s2_draft_title=${stream2.draft_title_present_count} s2_draft_summary=${stream2.draft_summary_present_count} s2_draft_html=${stream2.draft_html_present_count} ` +
 		`s2_facades=${stream2.facade_ready_count} s2_synth=${stream2.synthesis_updated_count} s2_evidence=${stream2.evidence_updated_count} ` +
 		`s2_facade_fmt_valid=${stream2.facade_format_valid_count} s2_facade_id=${stream2.facade_id_present_count} s2_facade_aid=${stream2.facade_agent_id_present_count} s2_facade_hyp=${stream2.facade_hypothesis_present_count} s2_facade_label=${stream2.facade_label_present_count} s2_facade_content=${stream2.facade_content_present_count} ` +
-		`s2_synth_axes=${stream2.synthesis_axes_count}/min=${stream2.synthesis_axes_min} s2_synth_axes_conf_valid=${stream2.synthesis_axes_valid_confidence_count} s2_synth_axes_label=${stream2.synthesis_axes_label_present_count} s2_synth_axes_pole_a=${stream2.synthesis_axes_pole_a_present_count} s2_synth_axes_pole_b=${stream2.synthesis_axes_pole_b_present_count} s2_synth_axes_evidence_basis=${stream2.synthesis_axes_evidence_basis_present_count} s2_synth_assigns=${stream2.synthesis_scout_assignments_count}/min=${stream2.synthesis_scout_assignments_min} s2_synth_assigns_scout_valid=${stream2.synthesis_scout_assignments_valid_scout_count} s2_synth_assigns_probe_axis=${stream2.synthesis_scout_assignments_probe_axis_present_count} s2_synth_assigns_reason=${stream2.synthesis_scout_assignments_reason_present_count} s2_synth_palette=${stream2.synthesis_palette_present_count} ` +
+		`s2_synth_axes=${stream2.synthesis_axes_count}/min=${stream2.synthesis_axes_min} s2_synth_axes_conf_valid=${stream2.synthesis_axes_valid_confidence_count} s2_synth_axes_label=${stream2.synthesis_axes_label_present_count} s2_synth_axes_pole_a=${stream2.synthesis_axes_pole_a_present_count} s2_synth_axes_pole_b=${stream2.synthesis_axes_pole_b_present_count} s2_synth_axes_evidence_basis=${stream2.synthesis_axes_evidence_basis_present_count} s2_synth_assigns=${stream2.synthesis_scout_assignments_count}/min=${stream2.synthesis_scout_assignments_min} s2_synth_assigns_scout_valid=${stream2.synthesis_scout_assignments_valid_scout_count} s2_synth_assigns_probe_axis=${stream2.synthesis_scout_assignments_probe_axis_present_count} s2_synth_assigns_reason=${stream2.synthesis_scout_assignments_reason_present_count} s2_synth_palette=${stream2.synthesis_palette_present_count} s2_synth_edge_flags_arr_valid=${stream2.synthesis_edge_case_flags_array_valid_count} s2_synth_divergence_valid=${stream2.synthesis_persona_anima_divergence_valid_count} ` +
 		`s2_evid_arr_valid=${stream2.evidence_array_valid_count} s2_anti_arr_valid=${stream2.anti_patterns_array_valid_count} s2_evid_len_min/max=${stream2.evidence_length_min}/${stream2.evidence_length_max} ` +
 		`s2_evid_items_dec_valid=${stream2.evidence_items_valid_decision_count} s2_evid_items_fmt_valid=${stream2.evidence_items_valid_format_count} s2_evid_items_lat_valid=${stream2.evidence_items_valid_latency_signal_count} ` +
 		`s2_evid_items_fid=${stream2.evidence_items_facade_id_present_count} s2_evid_items_content=${stream2.evidence_items_content_present_count} s2_evid_items_hyp=${stream2.evidence_items_hypothesis_present_count} s2_evid_items_impl=${stream2.evidence_items_implication_present_count} ` +
