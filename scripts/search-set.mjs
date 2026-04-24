@@ -170,6 +170,8 @@ function extractMetrics(artifact) {
 		stream_2_evidence_updated_count: m.stream_2_evidence_updated_count ?? 0,
 		facade_format_valid_count: m.facade_format_valid_count ?? 0,
 		stream_2_facade_format_valid_count: m.stream_2_facade_format_valid_count ?? 0,
+		swipe_decision_valid_count: m.swipe_decision_valid_count ?? 0,
+		swipe_latency_bucket_valid_count: m.swipe_latency_bucket_valid_count ?? 0,
 		synthesis_axes_count: m.synthesis_axes_count ?? 0,
 		synthesis_axes_min: m.synthesis_axes_min ?? 0,
 		synthesis_scout_assignments_count: m.synthesis_scout_assignments_count ?? 0,
@@ -1064,6 +1066,40 @@ async function main() {
 			stream_2_facade_format_valid_count_sum: sumMetric('stream_2_facade_format_valid_count'),
 			stream_2_facade_format_valid_count_min: perIntent.length
 				? Math.min(...perIntent.map((p) => p.metrics.stream_2_facade_format_valid_count ?? 0))
+				: 0,
+			// iter-80: swipe-result content-validation rollups — first content-probe
+			// aggregates on the swipe-result event type after 79 iterations of
+			// count-only coverage. Parallel to iter-67's facade.format rollups
+			// (first content rollup on facade-ready) and iter-72's synthesis.axes/
+			// scout_assignments rollups. Under iter-61 healthy-auth baseline with
+			// the validator's single hardcoded accept-swipe-per-intent:
+			//   swipe_decision_valid_count_sum = swipe_result_count_sum = 5
+			//   swipe_decision_valid_count_min = 1 (one swipe per intent)
+			//   swipe_latency_bucket_valid_count_sum = swipe_result_count_sum = 5
+			//   swipe_latency_bucket_valid_count_min = 1
+			// Identity invariants: both equal swipe_result_count_sum because the
+			// validator's single swipe always has decision='accept' (validator
+			// hardcodes this at line ~358) and latencyBucket='slow' (first swipe
+			// per session triggers sessionMedianLatency=0 → else-branch 'slow' in
+			// context.addEvidence). Under broken-auth both are 0 because no
+			// facade-ready means no swipe-watcher POST means no swipe-result emit.
+			// Regression classes these aggregate rollups catch that swipe_result_
+			// count_sum alone cannot: record.decision stripped or set to an invalid
+			// literal (_sum drops below count, _min drops to 0 on any intent
+			// missing decision); record.latencyBucket set to a non-union value
+			// (e.g. 'medium' from a misguided three-bucket refactor) or stripped
+			// (if addEvidence logic regresses): _sum drops, _min drops to 0.
+			// Forward-deploy: when future multi-swipe validators land, identity
+			// invariants scale linearly (_sum = N*swipe_result_count_sum) because
+			// both union-value sets cover all valid emissions; this is a baseline-
+			// regime-invariant probe just like iter-67's facade_format_valid_count.
+			swipe_decision_valid_count_sum: sumMetric('swipe_decision_valid_count'),
+			swipe_decision_valid_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.swipe_decision_valid_count ?? 0))
+				: 0,
+			swipe_latency_bucket_valid_count_sum: sumMetric('swipe_latency_bucket_valid_count'),
+			swipe_latency_bucket_valid_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.swipe_latency_bucket_valid_count ?? 0))
 				: 0,
 			// iter-72: synthesis content-validation rollups — first content-probe
 			// aggregates on the synthesis-updated event after 71 iterations of

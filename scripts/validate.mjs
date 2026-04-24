@@ -1460,6 +1460,56 @@ async function main() {
 		(e) => e.type === 'facade-ready' && VALID_FACADE_FORMATS.has(e.data?.facade?.format)
 	).length;
 
+	// iter-80: swipe-result content probes — first content probes on the
+	// swipe-result event type after 79 iterations of count-only coverage
+	// (swipe_result_count landed in iter-18-ish; no payload-shape validation
+	// until now). Parallel to iter-67's facade.format probe (first content
+	// probe on facade-ready after 66 iterations) — closes the recurring
+	// 'event type has count probes but no content probes' harness-completeness
+	// gap on another high-signal event.
+	//
+	// SwipeRecord (types.ts:29-35) exposes TWO typed-union fields ideal for
+	// membership probes: decision ∈ {'accept','reject'} (required, set by the
+	// client at POST /api/swipe) and latencyBucket ∈ {'fast','slow'} (optional
+	// in the type declaration but set unconditionally by context.addEvidence
+	// before emitSwipeResult fires — median>0 && latencyMs<median is the 'fast'
+	// path, else 'slow', so on the first-swipe-per-session baseline latencyBucket
+	// is always 'slow' because sessionMedianLatency starts at 0).
+	//
+	// Regression classes these probes catch that swipe_result_count alone cannot:
+	//   - /api/swipe endpoint drift emits swipe-result without decision (schema
+	//     mismatch): swipe_result_count stays intact, swipe_decision_valid_count
+	//     drops to 0.
+	//   - context.addEvidence bucketing logic breaks (returns undefined or
+	//     a non-union value like 'medium'): swipe_result_count stays intact,
+	//     swipe_latency_bucket_valid_count drops to 0.
+	//   - SSEEventMap derivation misaligns (types.ts:110-112 loses the 'record'
+	//     Omit<E,'type'> shape): record payload shows up as undefined on the
+	//     wire, both probes collapse to 0 while the count probe holds.
+	//
+	// Identity invariants under both regimes:
+	//   broken-auth: swipe_result_count = 0 (no facade → no swipe to post), so
+	//     swipe_decision_valid_count = 0 and swipe_latency_bucket_valid_count = 0.
+	//     Identity holds at 0 = 0 = 0.
+	//   healthy-auth single-intent: swipe_result_count = 1 (validator posts one
+	//     hardcoded accept swipe at line ~358 once facade-ready observed); both
+	//     probes = 1. Identity: swipe_decision_valid_count = swipe_latency_bucket
+	//     _valid_count = swipe_result_count = 1.
+	//   healthy-auth 5-intent aggregate: identity holds at sum=5/_min=1.
+	//
+	// Forward-deploy discriminator: when future multi-swipe validators land,
+	// the identity invariants will hold as long as the same-value probes still
+	// map all emissions to valid union members — the probe is regime-invariant
+	// just like iter-67's facade_format_valid_count across word/mockup stages.
+	const VALID_SWIPE_DECISIONS = new Set(['accept', 'reject']);
+	const VALID_LATENCY_BUCKETS = new Set(['fast', 'slow']);
+	const swipeDecisionValidCount = events.filter(
+		(e) => e.type === 'swipe-result' && VALID_SWIPE_DECISIONS.has(e.data?.record?.decision)
+	).length;
+	const swipeLatencyBucketValidCount = events.filter(
+		(e) => e.type === 'swipe-result' && VALID_LATENCY_BUCKETS.has(e.data?.record?.latencyBucket)
+	).length;
+
 	// iter-72: synthesis content-validation probes — first content probes on
 	// the synthesis-updated event after 71 iterations of count-only coverage
 	// (iter-66 promoted stream_2_synthesis_updated_count, iter-68 promoted
@@ -1686,6 +1736,8 @@ async function main() {
 			agent_status_valid_count: agentStatusValidCount,
 			stage_changed_swipe_count_valid_count: stageChangedSwipeCountValidCount,
 			facade_format_valid_count: facadeFormatValidCount,
+			swipe_decision_valid_count: swipeDecisionValidCount,
+			swipe_latency_bucket_valid_count: swipeLatencyBucketValidCount,
 			synthesis_axes_count: synthesisAxesCount,
 			synthesis_axes_min: synthesisAxesMin,
 			synthesis_scout_assignments_count: synthesisScoutAssignmentsCount,
@@ -1739,6 +1791,7 @@ async function main() {
 		`stage_valid=${stageValidCount} err_src_valid=${errorSourceValidCount} err_code_valid=${errorCodeValidCount} ` +
 		`agent_status_valid=${agentStatusValidCount} stage_swipe_valid=${stageChangedSwipeCountValidCount} ` +
 		`facade_fmt_valid=${facadeFormatValidCount} ` +
+		`swipe_dec_valid=${swipeDecisionValidCount} swipe_bkt_valid=${swipeLatencyBucketValidCount} ` +
 		`synth_axes=${synthesisAxesCount}/min=${synthesisAxesMin} synth_assigns=${synthesisScoutAssignmentsCount}/min=${synthesisScoutAssignmentsMin} ` +
 		`s2_err=${stream2.error_event_count} s2_agents=${stream2.agent_status_count} s2_stage=${stream2.stage_changed_count} s2_diag=${stream2.diagnostic_preserved_count} s2_err_auth=${stream2.error_provider_auth_count} ` +
 		`s2_roles=s${stream2.agent_status_scout_count}/o${stream2.agent_status_oracle_count}/b${stream2.agent_status_builder_count} ` +
