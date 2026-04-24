@@ -1560,6 +1560,93 @@ async function main() {
 	if (synthesisAxesMin === Infinity) synthesisAxesMin = 0;
 	if (synthesisScoutAssignmentsMin === Infinity) synthesisScoutAssignmentsMin = 0;
 
+	// iter-81: evidence-updated content probes — first content probes on the
+	// evidence-updated event after 80 iterations of count-only coverage
+	// (evidence_updated_count promoted by iter-68, stream_2_evidence_updated_
+	// count promoted by iter-66; neither validated payload shape). Closes iter-
+	// 80's explicitly-named gap: 'evidence-updated (payload = evidence[] +
+	// antiPatterns[], both arrays — would need array-shape probes not union-
+	// membership)'. Parallel to iter-67's facade.format probe (first content
+	// probe on facade-ready), iter-72's synthesis content probes (first content
+	// probes on synthesis-updated), and iter-80's swipe-result content probes.
+	//
+	// SSEEvent shape per types.ts:93: { type:'evidence-updated', evidence:
+	// SwipeEvidence[], antiPatterns: string[] } — both fields are array-typed,
+	// so iter-67/72/80's union-membership pattern doesn't apply. Instead use
+	// Array.isArray presence-validity (catches: payload truncation, JSON.stringify
+	// of non-array, undefined leak from a context.evidence reset bug) plus
+	// length-distribution min/max (catches: cumulative-state regressions where
+	// emit body is the deltas instead of the running total).
+	//
+	// Emit topology — evidence-updated fires from TWO sites:
+	//   context.ts:93   — addEvidence() on every swipe, with evidence as a
+	//                     [...this.evidence] snapshot (cumulative running total)
+	//                     and antiPatterns as the live reference (may be empty)
+	//   builder.ts:374  — rebuild() ONLY IF rebuild's LLM output added new
+	//                     anti-patterns; uses the same shape ([...evidence],
+	//                     antiPatterns)
+	// Under iter-69 healthy-auth + iter-71/74 scaffold improvements, the validator's
+	// 12s window with one accept-swipe captures the addEvidence emission (1 swipe
+	// → 1 emit, evidence.length=1) but rebuild's evidence-updated rarely fires
+	// because: (a) rebuild itself takes ~10s+ so completion lands near window
+	// close and (b) addedAntiPatterns is conditional on the LLM output containing
+	// rejectedPatterns the user hasn't seen, which the synthetic accept-swipe
+	// path may or may not produce.
+	//
+	// Identity invariants under healthy-auth baseline (12s window, 1 swipe):
+	//   evidence_array_valid_count = evidence_updated_count = 1 per intent
+	//     (addEvidence's emit always passes a real array; presence-validity
+	//     identity holds as long as the wire format preserves array-ness)
+	//   anti_patterns_array_valid_count = evidence_updated_count = 1 per intent
+	//     (antiPatterns is always an array, even if empty — the [] zero-value
+	//     of string[] satisfies Array.isArray identity)
+	//   evidence_length_min = evidence_length_max = 1 (single addEvidence emit
+	//     after the 1st swipe carries cumulative evidence with length=1)
+	// Aggregate (5 intents): _sum=5/_min=1 for both presence-validity probes;
+	// evidence_length_min=1, evidence_length_max=1 across cross-intent.
+	//
+	// Forward-deploy regimes:
+	//   - multi-swipe validators land: evidence_length_max grows with swipe
+	//     count (cumulative evidence is the running total); presence-validity
+	//     probes stay at identity with event count.
+	//   - rebuild's evidence-updated emit fires within window (latency win or
+	//     wider window): evidence_updated_count climbs to 2 per intent on
+	//     intents where rebuild added anti-patterns; both presence-validity
+	//     probes track event_count, evidence_length_max stays at 1 (still 1
+	//     swipe), but a future antiPatterns_length probe would flip non-zero.
+	//
+	// Regression classes these probes catch that count probes alone cannot:
+	//   - context.evidence accidentally serialized as object (Array.isArray
+	//     coerces to false): event_count stays at 1, evidence_array_valid drops
+	//     to 0 — exact mirror of the iter-72 'axes serialized as object' case.
+	//   - emit-side regression where evidence is replaced with a single
+	//     SwipeEvidence object instead of [...evidence]: same as above.
+	//   - evidence-as-deltas refactor where each emit carries only the new
+	//     entry rather than cumulative state: evidence_array_valid stays at
+	//     count, but evidence_length_max stays at 1 even after multi-swipe
+	//     extension lands — flagging the semantic regression invisibly to all
+	//     count probes.
+	//   - antiPatterns stripped from payload (refactor that omits the field
+	//     under JSON serialization): event_count stays at 1, anti_patterns_
+	//     array_valid drops to 0 while evidence_array_valid holds — orthogonal
+	//     to evidence-side regressions.
+	const evidenceUpdatedEvents = events.filter((e) => e.type === 'evidence-updated');
+	let evidenceArrayValidCount = 0;
+	let antiPatternsArrayValidCount = 0;
+	let evidenceLengthMin = evidenceUpdatedEvents.length > 0 ? Infinity : 0;
+	let evidenceLengthMax = 0;
+	for (const ev of evidenceUpdatedEvents) {
+		const evidenceArr = ev.data?.evidence;
+		const antiArr = ev.data?.antiPatterns;
+		if (Array.isArray(evidenceArr)) {
+			evidenceArrayValidCount++;
+			if (evidenceArr.length < evidenceLengthMin) evidenceLengthMin = evidenceArr.length;
+			if (evidenceArr.length > evidenceLengthMax) evidenceLengthMax = evidenceArr.length;
+		}
+		if (Array.isArray(antiArr)) antiPatternsArrayValidCount++;
+	}
+	if (evidenceLengthMin === Infinity) evidenceLengthMin = 0;
+
 	// Multi-session probe — always computed, but only populated when
 	// VALIDATE_SECOND_INTENT is set. session-ready events carry the intent in
 	// their data, so we can count distinct sessions and distinct intents
@@ -1742,6 +1829,10 @@ async function main() {
 			synthesis_axes_min: synthesisAxesMin,
 			synthesis_scout_assignments_count: synthesisScoutAssignmentsCount,
 			synthesis_scout_assignments_min: synthesisScoutAssignmentsMin,
+			evidence_array_valid_count: evidenceArrayValidCount,
+			anti_patterns_array_valid_count: antiPatternsArrayValidCount,
+			evidence_length_min: evidenceLengthMin,
+			evidence_length_max: evidenceLengthMax,
 			oracle_cold_start_latency_ms: oracleColdStartLatencyMs,
 			oracle_synthesis_latency_ms: oracleSynthesisLatencyMs,
 			oracle_reveal_build_latency_ms: oracleRevealBuildLatencyMs,
@@ -1793,6 +1884,7 @@ async function main() {
 		`facade_fmt_valid=${facadeFormatValidCount} ` +
 		`swipe_dec_valid=${swipeDecisionValidCount} swipe_bkt_valid=${swipeLatencyBucketValidCount} ` +
 		`synth_axes=${synthesisAxesCount}/min=${synthesisAxesMin} synth_assigns=${synthesisScoutAssignmentsCount}/min=${synthesisScoutAssignmentsMin} ` +
+		`evid_arr_valid=${evidenceArrayValidCount} anti_arr_valid=${antiPatternsArrayValidCount} evid_len_min/max=${evidenceLengthMin}/${evidenceLengthMax} ` +
 		`s2_err=${stream2.error_event_count} s2_agents=${stream2.agent_status_count} s2_stage=${stream2.stage_changed_count} s2_diag=${stream2.diagnostic_preserved_count} s2_err_auth=${stream2.error_provider_auth_count} ` +
 		`s2_roles=s${stream2.agent_status_scout_count}/o${stream2.agent_status_oracle_count}/b${stream2.agent_status_builder_count} ` +
 		`s2_stage_valid=${stream2.stage_valid_count} s2_err_src_valid=${stream2.error_source_valid_count} s2_err_code_valid=${stream2.error_code_valid_count} s2_err_msg=${stream2.error_message_present_count} ` +

@@ -176,6 +176,10 @@ function extractMetrics(artifact) {
 		synthesis_axes_min: m.synthesis_axes_min ?? 0,
 		synthesis_scout_assignments_count: m.synthesis_scout_assignments_count ?? 0,
 		synthesis_scout_assignments_min: m.synthesis_scout_assignments_min ?? 0,
+		evidence_array_valid_count: m.evidence_array_valid_count ?? 0,
+		anti_patterns_array_valid_count: m.anti_patterns_array_valid_count ?? 0,
+		evidence_length_min: m.evidence_length_min ?? 0,
+		evidence_length_max: m.evidence_length_max ?? 0,
 		session_ready_intent_present_count: m.session_ready_intent_present_count ?? 0,
 		oracle_cold_start_latency_ms: m.oracle_cold_start_latency_ms ?? null,
 		oracle_synthesis_latency_ms: m.oracle_synthesis_latency_ms ?? null,
@@ -1128,6 +1132,58 @@ async function main() {
 			synthesis_scout_assignments_count_sum: sumMetric('synthesis_scout_assignments_count'),
 			synthesis_scout_assignments_count_min: perIntent.length
 				? Math.min(...perIntent.map((p) => p.metrics.synthesis_scout_assignments_min ?? 0))
+				: 0,
+			// iter-81: evidence-updated content-validation rollups — first
+			// content-probe aggregates on the evidence-updated event after 80
+			// iterations of count-only coverage. Parallel to iter-72's synthesis
+			// content rollups and iter-80's swipe-result content rollups. Closes
+			// iter-80's explicitly-named gap: 'evidence-updated (payload =
+			// evidence[] + antiPatterns[], both arrays — would need array-shape
+			// probes not union-membership)'. Under iter-69 healthy-auth baseline
+			// with the validator's single hardcoded accept-swipe-per-intent:
+			//   evidence_array_valid_count_sum = evidence_updated_count_sum = 5
+			//   evidence_array_valid_count_min = 1 (addEvidence's emit always
+			//     passes a real array — [...this.evidence] is constructed inline
+			//     at emit time, so presence-validity identity holds on the wire
+			//     as long as JSON.stringify preserves array-ness)
+			//   anti_patterns_array_valid_count_sum = 5
+			//   anti_patterns_array_valid_count_min = 1 (antiPatterns is always
+			//     an array, even when empty — context.ts:38 initializes as
+			//     string[] = [], the [] zero-value satisfies Array.isArray)
+			//   evidence_length_cross_intent_min = 1 (cumulative evidence after
+			//     1st swipe has length exactly 1 — per-intent min equals max)
+			//   evidence_length_cross_intent_max = 1 (same rationale; becomes
+			//     > 1 when multi-swipe validators land or rebuild's evidence-
+			//     updated emit fires within window adding a 2nd event — but the
+			//     cumulative state in that 2nd event still equals swipeCount)
+			// Regression classes these aggregate rollups catch that evidence_
+			// updated_count_sum alone cannot: context.evidence serialized as
+			// object rather than array (event_count_sum stays 5, array_valid_
+			// sum drops below 5); emit-side regression replacing [...evidence]
+			// with a single SwipeEvidence object (same collapse); evidence-as-
+			// deltas refactor where each emit carries the new entry rather than
+			// cumulative state (array_valid identity holds, but evidence_length_
+			// cross_intent_max stays at 1 after multi-swipe validators land,
+			// flagging the semantic regression); antiPatterns stripped from
+			// payload (event_count_sum stays 5, anti_patterns_array_valid_sum
+			// drops to 0, orthogonal to evidence-side regressions). Forward-
+			// deploy: when multi-swipe validators land, evidence_length_cross_
+			// intent_max grows with swipe count per intent while both presence-
+			// validity probes track event_count — the probe is baseline-regime-
+			// invariant just like iter-67/72/80's content probes.
+			evidence_array_valid_count_sum: sumMetric('evidence_array_valid_count'),
+			evidence_array_valid_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.evidence_array_valid_count ?? 0))
+				: 0,
+			anti_patterns_array_valid_count_sum: sumMetric('anti_patterns_array_valid_count'),
+			anti_patterns_array_valid_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.anti_patterns_array_valid_count ?? 0))
+				: 0,
+			evidence_length_cross_intent_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.evidence_length_min ?? 0))
+				: 0,
+			evidence_length_cross_intent_max: perIntent.length
+				? Math.max(...perIntent.map((p) => p.metrics.evidence_length_max ?? 0))
 				: 0,
 			time_to_first_stage_changed_ms_p50: percentile(
 				perIntent.map((p) => p.metrics.time_to_first_stage_changed_ms),
