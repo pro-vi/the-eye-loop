@@ -42,6 +42,21 @@ const DraftUpdateSchema = z.object({
 	nextHint: z.string().nullable()
 });
 
+// iter-71: dedicated scaffold schema with only the three fields the scaffold
+// merge reads (title, summary, html). Under the full DraftUpdateSchema the
+// model was obligated to emit changeNote/acceptedPatterns/rejectedPatterns/
+// probeBriefs/nextHint even though SCAFFOLD_PROMPT tells it they must be
+// empty — those filler tokens and the nested probeBriefs tool-definition
+// burden contributed to the ~11.8s p50 scaffold latency (iter-70), which
+// put draft_refined_count at the 12s window's edge and flaked between 4/5
+// and 5/5. Rebuild still uses DraftUpdateSchema because its merge reads
+// probeBriefs / accepted / rejected / nextHint.
+const ScaffoldSchema = z.object({
+	title: z.string(),
+	summary: z.string(),
+	html: z.string()
+});
+
 // ── Builder memory ──────────────────────────────────────────────────
 
 interface BuilderNote {
@@ -69,11 +84,7 @@ OUTPUT:
 - title: a working title for the prototype
 - summary: 1-2 sentence description
 - html: basic HTML+CSS scaffold (mobile 375x667, inline styles, no scripts).
-  Start with a CSS variable palette, then build 2-3 placeholder sections.
-- acceptedPatterns: [] (none yet)
-- rejectedPatterns: [] (none yet)
-- probeBriefs: [] (no evidence yet)
-- nextHint: null`;
+  Start with a CSS variable palette, then build 2-3 placeholder sections.`;
 
 const SWIPE_PROMPT = `You are the builder agent. You assemble a prototype from what users
 have shown through their choices — not from what they said.
@@ -433,7 +444,7 @@ export function startBuilder(): void {
 			try {
 				const result = await generateText({
 					model: FAST_MODEL,
-					output: Output.object({ schema: DraftUpdateSchema }),
+					output: Output.object({ schema: ScaffoldSchema }),
 					temperature: 0,
 					system: SCAFFOLD_PROMPT.replace('{intent}', intent),
 					prompt: 'Generate the initial draft scaffold for this session.'

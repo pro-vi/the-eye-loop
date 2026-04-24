@@ -1,0 +1,1216 @@
+{
+  "started_at": "2026-04-24T00:14:51.508Z",
+  "finished_at": "2026-04-24T00:15:08.961Z",
+  "elapsed_ms": 17452,
+  "result": "PASS",
+  "reason": "facade_and_draft_observed",
+  "intent": "a bookshop website",
+  "dev_url": "http://localhost:38591",
+  "session": {
+    "rtt_ms": 10,
+    "status": 200,
+    "body": {
+      "intent": "a bookshop website",
+      "sessionId": "3f32eb12-c265-408f-9092-e4e776dddb31"
+    },
+    "error": null
+  },
+  "session_2": {
+    "attempted": false,
+    "intent": null,
+    "rtt_ms": null,
+    "status": null,
+    "body": null,
+    "error": null,
+    "posted_at_ms": null,
+    "waited_ms": null
+  },
+  "stream": {
+    "opened_at_ms": 833,
+    "error": null,
+    "event_counts": {
+      "agent-status": 21,
+      "stage-changed": 1,
+      "draft-updated": 2,
+      "session-ready": 1,
+      "facade-ready": 7,
+      "swipe-result": 1,
+      "evidence-updated": 1,
+      "synthesis-updated": 1
+    },
+    "first_event_ms": {
+      "agent-status": 838,
+      "stage-changed": 838,
+      "draft-updated": 1351,
+      "session-ready": 1351,
+      "facade-ready": 3880,
+      "swipe-result": 3929,
+      "evidence-updated": 3929,
+      "synthesis-updated": 4802
+    },
+    "events": [
+      {
+        "ts_ms": 838,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "oracle",
+            "name": "Oracle",
+            "role": "oracle",
+            "status": "idle",
+            "focus": "monitoring"
+          }
+        }
+      },
+      {
+        "ts_ms": 838,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "idle",
+            "focus": "waiting for session"
+          }
+        }
+      },
+      {
+        "ts_ms": 838,
+        "type": "stage-changed",
+        "data": {
+          "type": "stage-changed",
+          "stage": "words",
+          "swipeCount": 0
+        }
+      },
+      {
+        "ts_ms": 1351,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "thinking",
+            "focus": "generating initial scaffold"
+          }
+        }
+      },
+      {
+        "ts_ms": 1351,
+        "type": "draft-updated",
+        "data": {
+          "type": "draft-updated",
+          "draft": {
+            "title": "a bookshop website",
+            "summary": "Drafting your prototype from the swipes…",
+            "html": "<div style=\"padding:2rem;text-align:center;color:var(--muted,#8a7f78);opacity:0.75\"><h2 style=\"margin:0 0 1rem;font-weight:400\">a bookshop website</h2><p style=\"margin:0\">Building your first draft…</p></div>",
+            "acceptedPatterns": [],
+            "rejectedPatterns": []
+          }
+        }
+      },
+      {
+        "ts_ms": 1351,
+        "type": "session-ready",
+        "data": {
+          "type": "session-ready",
+          "intent": "a bookshop website"
+        }
+      },
+      {
+        "ts_ms": 1351,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "oracle",
+            "name": "Oracle",
+            "role": "oracle",
+            "status": "thinking",
+            "focus": "cold-start analysis"
+          }
+        }
+      },
+      {
+        "ts_ms": 1351,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-01",
+            "name": "Iris",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1351,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-02",
+            "name": "Prism",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1351,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-03",
+            "name": "Lumen",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1351,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-04",
+            "name": "Aura",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1351,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-05",
+            "name": "Facet",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 1351,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-06",
+            "name": "Echo",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe"
+          }
+        }
+      },
+      {
+        "ts_ms": 3880,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "31f0b54c-eb7f-4ec9-9aa3-ce521ce75af1",
+            "agentId": "scout-06",
+            "hypothesis": "Users prefer animated page transitions over instant loads for bookshop navigation",
+            "axisTargeted": "transition_style",
+            "label": "Page slides in smoothly",
+            "content": "Page slides in smoothly",
+            "format": "word",
+            "acceptImplies": "Build fluid, eased transitions between book categories and detail pages; motion signals intentionality and care",
+            "rejectImplies": "Prioritize instant, zero-latency navigation; users want speed and directness over choreography"
+          }
+        }
+      },
+      {
+        "ts_ms": 3880,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-06",
+            "name": "Echo",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Page slides in smoothly\"",
+            "lastFacadeId": "31f0b54c-eb7f-4ec9-9aa3-ce521ce75af1"
+          }
+        }
+      },
+      {
+        "ts_ms": 3894,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "2861751e-1b66-44e3-9005-7a2fbe9f299c",
+            "agentId": "scout-03",
+            "hypothesis": "Users prefer a friendly, approachable voice over corporate formality when browsing books online",
+            "axisTargeted": "Voice and personality (friendly vs professional)",
+            "label": "Warm, conversational tone",
+            "content": "Warm, conversational tone",
+            "format": "word",
+            "acceptImplies": "The bookshop site should use casual language, first-person recommendations, and a human touch in copy—like a friend suggesting books, not a catalog",
+            "rejectImplies": "Users prefer a more polished, professional voice with formal product descriptions and neutral brand language"
+          }
+        }
+      },
+      {
+        "ts_ms": 3894,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-03",
+            "name": "Lumen",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Warm, conversational tone\"",
+            "lastFacadeId": "2861751e-1b66-44e3-9005-7a2fbe9f299c"
+          }
+        }
+      },
+      {
+        "ts_ms": 3929,
+        "type": "swipe-result",
+        "data": {
+          "type": "swipe-result",
+          "record": {
+            "facadeId": "31f0b54c-eb7f-4ec9-9aa3-ce521ce75af1",
+            "agentId": "scout-06",
+            "decision": "accept",
+            "latencyMs": 600,
+            "latencyBucket": "slow"
+          }
+        }
+      },
+      {
+        "ts_ms": 3929,
+        "type": "evidence-updated",
+        "data": {
+          "type": "evidence-updated",
+          "evidence": [
+            {
+              "facadeId": "31f0b54c-eb7f-4ec9-9aa3-ce521ce75af1",
+              "content": "Page slides in smoothly",
+              "hypothesis": "Users prefer animated page transitions over instant loads for bookshop navigation",
+              "decision": "accept",
+              "latencySignal": "slow",
+              "format": "word",
+              "implication": "Build fluid, eased transitions between book categories and detail pages; motion signals intentionality and care"
+            }
+          ],
+          "antiPatterns": []
+        }
+      },
+      {
+        "ts_ms": 3929,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-06",
+            "name": "Echo",
+            "role": "scout",
+            "status": "thinking",
+            "focus": "generating probe",
+            "lastFacadeId": "31f0b54c-eb7f-4ec9-9aa3-ce521ce75af1"
+          }
+        }
+      },
+      {
+        "ts_ms": 4087,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "e60597c0-2e6a-459a-9b62-cd6822d1b29d",
+            "agentId": "scout-05",
+            "hypothesis": "Users differ on whether they want to see many titles at once (dense grid) or fewer titles with more detail (sparse layout)",
+            "axisTargeted": "Information density",
+            "label": "Book count per page",
+            "content": "Book count per page",
+            "format": "word",
+            "acceptImplies": "User prefers dense, high-volume browsing—many book covers visible, minimal text, scan-and-click behavior",
+            "rejectImplies": "User prefers breathing room—fewer books shown, larger covers, more metadata visible per item, slower deliberate browsing"
+          }
+        }
+      },
+      {
+        "ts_ms": 4087,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-05",
+            "name": "Facet",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Book count per page\"",
+            "lastFacadeId": "e60597c0-2e6a-459a-9b62-cd6822d1b29d"
+          }
+        }
+      },
+      {
+        "ts_ms": 4162,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "69013fe3-8742-4b70-8acf-1e16f3714146",
+            "agentId": "scout-02",
+            "hypothesis": "Users prefer a persistent left navigation paired with card-based product displays rather than top tabs with list layouts",
+            "axisTargeted": "Navigation structure + Content container type",
+            "label": "Sidebar with cards",
+            "content": "Sidebar with cards",
+            "format": "word",
+            "acceptImplies": "Explore navigation fixed to left, browse books in card grid—persistent context, discoverable categories",
+            "rejectImplies": "User may prefer top navigation, horizontal tabs, or list-based layouts for simpler, flatter hierarchy"
+          }
+        }
+      },
+      {
+        "ts_ms": 4162,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-02",
+            "name": "Prism",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Sidebar with cards\"",
+            "lastFacadeId": "69013fe3-8742-4b70-8acf-1e16f3714146"
+          }
+        }
+      },
+      {
+        "ts_ms": 4382,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "293b5738-6134-4435-853f-10acfb04152f",
+            "agentId": "scout-01",
+            "hypothesis": "Users expect bookshops to feel inviting and tactile, with natural materials and soft lighting that encourage browsing",
+            "axisTargeted": "Color palette and material warmth",
+            "label": "Warm cream & wood",
+            "content": "Warm cream & wood",
+            "format": "word",
+            "acceptImplies": "Pursue earthy, natural color schemes with cream, beige, and wood tones; soft, ambient lighting; handcrafted or organic-feeling textures",
+            "rejectImplies": "Move toward cooler palettes (grays, blues, whites); sleeker, more minimalist aesthetic; brighter, more clinical lighting; digital-first visual language"
+          }
+        }
+      },
+      {
+        "ts_ms": 4382,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-01",
+            "name": "Iris",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Warm cream & wood\"",
+            "lastFacadeId": "293b5738-6134-4435-853f-10acfb04152f"
+          }
+        }
+      },
+      {
+        "ts_ms": 4456,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "f00a48e4-c161-4a88-bcac-b55a3ae274aa",
+            "agentId": "scout-04",
+            "hypothesis": "Warm, intimate mood with soft overhead lighting creates a refuge-like atmosphere that encourages lingering and browsing.",
+            "axisTargeted": "warm vs cool",
+            "label": "Dim amber lighting",
+            "content": "Dim amber lighting",
+            "format": "word",
+            "acceptImplies": "User leans toward cozy, inviting, low-contrast environments. Likely prefers warm color palettes and soft visual hierarchy.",
+            "rejectImplies": "User may prefer brightness, clarity, and crisp contrast. Possibly drawn to cool tones or more energetic, lit-up atmospheres."
+          }
+        }
+      },
+      {
+        "ts_ms": 4456,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-04",
+            "name": "Aura",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Dim amber lighting\"",
+            "lastFacadeId": "f00a48e4-c161-4a88-bcac-b55a3ae274aa"
+          }
+        }
+      },
+      {
+        "ts_ms": 4802,
+        "type": "synthesis-updated",
+        "data": {
+          "type": "synthesis-updated",
+          "synthesis": {
+            "axes": [
+              {
+                "label": "Whether user prefers clean minimalist book displays vs rich visual book imagery and covers",
+                "poleA": "Book covers visible",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user wants browsing categories upfront vs search-first navigation for finding books",
+                "poleA": "Browse or search",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user responds to enthusiastic book recommendations vs neutral informational tone",
+                "poleA": "Passionate recommendations",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user wants cozy intimate bookshop feeling vs modern sleek bookstore aesthetic",
+                "poleA": "Cozy or modern",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user needs detailed book info (reviews, summaries, ratings) vs minimal essential details",
+                "poleA": "Detailed book info",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user prefers instant feedback and quick interactions vs slower contemplative browsing pace",
+                "poleA": "Quick or slow",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              }
+            ],
+            "edge_case_flags": [],
+            "scout_assignments": [
+              {
+                "scout": "Iris",
+                "probe_axis": "Whether user prefers clean minimalist book displays vs rich visual book imagery and covers",
+                "reason": "Cold start: first question for Iris"
+              },
+              {
+                "scout": "Prism",
+                "probe_axis": "Whether user wants browsing categories upfront vs search-first navigation for finding books",
+                "reason": "Cold start: first question for Prism"
+              },
+              {
+                "scout": "Lumen",
+                "probe_axis": "Whether user responds to enthusiastic book recommendations vs neutral informational tone",
+                "reason": "Cold start: first question for Lumen"
+              },
+              {
+                "scout": "Aura",
+                "probe_axis": "Whether user wants cozy intimate bookshop feeling vs modern sleek bookstore aesthetic",
+                "reason": "Cold start: first question for Aura"
+              },
+              {
+                "scout": "Facet",
+                "probe_axis": "Whether user needs detailed book info (reviews, summaries, ratings) vs minimal essential details",
+                "reason": "Cold start: first question for Facet"
+              },
+              {
+                "scout": "Echo",
+                "probe_axis": "Whether user prefers instant feedback and quick interactions vs slower contemplative browsing pace",
+                "reason": "Cold start: first question for Echo"
+              }
+            ],
+            "persona_anima_divergence": null
+          }
+        }
+      },
+      {
+        "ts_ms": 4802,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "oracle",
+            "name": "Oracle",
+            "role": "oracle",
+            "status": "idle",
+            "focus": "monitoring"
+          }
+        }
+      },
+      {
+        "ts_ms": 6762,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "77055345-c40a-4c11-94b0-e8eff53a4860",
+            "agentId": "scout-06",
+            "hypothesis": "Users expect interactive feedback (elevation, shadow) on book hovers to signal clickability and create tactile sensation in a digital space",
+            "axisTargeted": "Motion and Behavior — static affordance vs. dynamic micro-interaction",
+            "label": "Hover lifts book",
+            "content": "Hover lifts book",
+            "format": "word",
+            "acceptImplies": "Design book cards with lift/shadow on hover; micro-interactions signal interactivity and add tactile delight to browsing; motion rewards user exploration",
+            "rejectImplies": "Keep book cards flat and static on hover; minimize motion overhead; users prioritize quick scanning over interactive feedback; reserve motion for macro-level page transitions only"
+          }
+        }
+      },
+      {
+        "ts_ms": 6762,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-06",
+            "name": "Echo",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Hover lifts book\"",
+            "lastFacadeId": "77055345-c40a-4c11-94b0-e8eff53a4860"
+          }
+        }
+      },
+      {
+        "ts_ms": 16861,
+        "type": "draft-updated",
+        "data": {
+          "type": "draft-updated",
+          "draft": {
+            "title": "Bookshop Homepage",
+            "summary": "A warm, inviting bookshop website with featured books, categories, and a search interface. Designed with earthy tones and serif typography to evoke a cozy reading experience.",
+            "html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>Bookshop</title>\n  <style>\n    :root {\n      --bg: #FFF8F0;\n      --card: #FFF;\n      --accent: #D4845C;\n      --text: #3E3530;\n      --muted: #9B8B82;\n      --radius: 12px;\n      --space: 20px;\n    }\n    * {\n      margin: 0;\n      padding: 0;\n      box-sizing: border-box;\n    }\n    body {\n      font-family: 'Georgia', serif;\n      background-color: var(--bg);\n      color: var(--text);\n      line-height: 1.6;\n    }\n    .container {\n      width: 100%;\n      max-width: 375px;\n      margin: 0 auto;\n      padding: var(--space);\n    }\n    header {\n      margin-bottom: 32px;\n    }\n    .header-top {\n      display: flex;\n      justify-content: space-between;\n      align-items: center;\n      margin-bottom: 24px;\n    }\n    .logo {\n      font-size: 24px;\n      font-weight: bold;\n      color: var(--text);\n      letter-spacing: -0.5px;\n    }\n    .header-actions {\n      display: flex;\n      gap: 12px;\n    }\n    .icon-btn {\n      width: 40px;\n      height: 40px;\n      border: 1px solid var(--muted);\n      border-radius: var(--radius);\n      background: var(--card);\n      color: var(--text);\n      cursor: pointer;\n      font-size: 16px;\n      display: flex;\n      align-items: center;\n      justify-content: center;\n    }\n    .search-bar {\n      display: flex;\n      gap: 8px;\n    }\n    .search-input {\n      flex: 1;\n      padding: 12px 16px;\n      border: 1px solid var(--muted);\n      border-radius: var(--radius);\n      background: var(--card);\n      color: var(--text);\n      font-family: 'Georgia', serif;\n      font-size: 14px;\n    }\n    .search-input::placeholder {\n      color: var(--muted);\n    }\n    .search-btn {\n      width: 40px;\n      height: 40px;\n      border: 1px solid var(--accent);\n      border-radius: var(--radius);\n      background: var(--accent);\n      color: var(--card);\n      cursor: pointer;\n      font-size: 16px;\n      display: flex;\n      align-items: center;\n      justify-content: center;\n    }\n    .section-title {\n      font-size: 20px;\n      font-weight: bold;\n      margin-bottom: 16px;\n      color: var(--text);\n    }\n    .featured {\n      margin-bottom: 40px;\n    }\n    .featured-book {\n      background: linear-gradient(135deg, var(--accent), #E8A878);\n      border-radius: var(--radius);\n      padding: 24px;\n      color: var(--card);\n      margin-bottom: 16px;\n    }\n    .featured-book-title {\n      font-size: 20px;\n      font-weight: bold;\n      margin-bottom: 8px;\n    }\n    .featured-book-author {\n      font-size: 14px;\n      opacity: 0.9;\n      margin-bottom: 12px;\n    }\n    .featured-book-desc {\n      font-size: 13px;\n      line-height: 1.5;\n      margin-bottom: 16px;\n    }\n    .cta-btn {\n      display: inline-block;\n      padding: 10px 20px;\n      background: var(--card);\n      color: var(--accent);\n      border: none;\n      border-radius: 8px;\n      font-family: 'Georgia', serif;\n      font-size: 14px;\n      font-weight: bold;\n      cursor: pointer;\n    }\n    .categories {\n      margin-bottom: 40px;\n    }\n    .category-grid {\n      display: grid;\n      grid-template-columns: 1fr 1fr;\n      gap: 12px;\n    }\n    .category-card {\n      background: var(--card);\n      border: 1px solid #E8D5C4;\n      border-radius: var(--radius);\n      padding: 16px;\n      text-align: center;\n      cursor: pointer;\n      transition: border-color 0.2s;\n    }\n    .category-card:hover {\n      border-color: var(--accent);\n    }\n    .category-name {\n      font-size: 14px;\n      font-weight: bold;\n      color: var(--text);\n    }\n    .category-count {\n      font-size: 12px;\n      color: var(--muted);\n      margin-top: 4px;\n    }\n    .bestsellers {\n      margin-bottom: 40px;\n    }\n    .book-item {\n      display: flex;\n      gap: 12px;\n      margin-bottom: 16px;\n      padding: 12px;\n      background: var(--card);\n      border-radius: var(--radius);\n      border: 1px solid #E8D5C4;\n    }\n    .book-cover {\n      width: 60px;\n      height: 90px;\n      background: linear-gradient(135deg, var(--accent), var(--bg));\n      border-radius: 6px;\n      flex-shrink: 0;\n    }\n    .book-info {\n      flex: 1;\n      display: flex;\n      flex-direction: column;\n      justify-content: space-between;\n    }\n    .book-title {\n      font-size: 14px;\n      font-weight: bold;\n      color: var(--text);\n    }\n    .book-author {\n      font-size: 12px;\n      color: var(--muted);\n    }\n    .book-price {\n      font-size: 14px;\n      font-weight: bold;\n      color: var(--accent);\n    }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <header>\n      <div class=\"header-top\">\n        <div class=\"logo\">Bookshop</div>\n        <div class=\"header-actions\">\n          <button class=\"icon-btn\">♡</button>\n          <button class=\"icon-btn\">⚙</button>\n        </div>\n      </div>\n      <div class=\"search-bar\">\n        <input type=\"text\" class=\"search-input\" placeholder=\"Search books...\">\n        <button class=\"search-btn\">→</button>\n      </div>\n    </header>\n\n    <section class=\"featured\">\n      <div class=\"featured-book\">\n        <div class=\"featured-book-title\">The Midnight Library</div>\n        <div class=\"featured-book-author\">by Matt Haig</div>\n        <div class=\"featured-book-desc\">A dazzling novel about all the choices that go into a life well lived.</div>\n        <button class=\"cta-btn\">View Details</button>\n      </div>\n    </section>\n\n    <section class=\"categories\">\n      <div class=\"section-title\">Browse Categories</div>\n      <div class=\"category-grid\">\n        <div class=\"category-card\">\n          <div class=\"category-name\">Fiction</div>\n          <div class=\"category-count\">1,240 books</div>\n        </div>\n        <div class=\"category-card\">\n          <div class=\"category-name\">Mystery</div>\n          <div class=\"category-count\">580 books</div>\n        </div>\n        <div class=\"category-card\">\n          <div class=\"category-name\">Science</div>\n          <div class=\"category-count\">420 books</div>\n        </div>\n        <div class=\"category-card\">\n          <div class=\"category-name\">Biography</div>\n          <div class=\"category-count\">310 books</div>\n        </div>\n      </div>\n    </section>\n\n    <section class=\"bestsellers\">\n      <div class=\"section-title\">Bestsellers This Week</div>\n      <div class=\"book-item\">\n        <div class=\"book-cover\"></div>\n        <div class=\"book-info\">\n          <div>\n            <div class=\"book-title\">Fourth Wing</div>\n            <div class=\"book-author\">Rebecca Yarros</div>\n          </div>\n          <div class=\"book-price\">$18.99</div>\n        </div>\n      </div>\n      <div class=\"book-item\">\n        <div class=\"book-cover\"></div>\n        <div class=\"book-info\">\n          <div>\n            <div class=\"book-title\">Lessons in Chemistry</div>\n            <div class=\"book-author\">Bonnie Garmus</div>\n          </div>\n          <div class=\"book-price\">$17.99</div>\n        </div>\n      </div>\n      <div class=\"book-item\">\n        <div class=\"book-cover\"></div>\n        <div class=\"book-info\">\n          <div>\n            <div class=\"book-title\">The Woman in Me</div>\n            <div class=\"book-author\">Britney Spears</div>\n          </div>\n          <div class=\"book-price\">$19.99</div>\n        </div>\n      </div>\n    </section>\n  </div>\n</body>\n</html>",
+            "acceptedPatterns": [],
+            "rejectedPatterns": []
+          }
+        }
+      },
+      {
+        "ts_ms": 16861,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "idle",
+            "focus": "watching for swipes"
+          }
+        }
+      },
+      {
+        "ts_ms": 16861,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "thinking",
+            "focus": "analyzing accept on \"Page slides in smoothly\""
+          }
+        }
+      }
+    ]
+  },
+  "stream_2": {
+    "attempted": true,
+    "opened_at_ms": 16346,
+    "elapsed_ms": 804,
+    "event_counts": {
+      "synthesis-updated": 1,
+      "draft-updated": 2,
+      "evidence-updated": 1,
+      "agent-status": 10,
+      "facade-ready": 6,
+      "stage-changed": 1
+    },
+    "error_event_count": 0,
+    "agent_status_count": 10,
+    "stage_changed_count": 1,
+    "draft_updated_count": 2,
+    "draft_placeholder_count": 1,
+    "draft_refined_count": 1,
+    "facade_ready_count": 6,
+    "synthesis_updated_count": 1,
+    "evidence_updated_count": 1,
+    "diagnostic_preserved_count": 0,
+    "error_provider_auth_count": 0,
+    "agent_status_scout_count": 6,
+    "agent_status_oracle_count": 1,
+    "agent_status_builder_count": 3,
+    "stage_valid_count": 1,
+    "error_source_valid_count": 0,
+    "error_code_valid_count": 0,
+    "error_message_present_count": 0,
+    "agent_status_valid_count": 10,
+    "stage_changed_swipe_count_valid_count": 1,
+    "facade_format_valid_count": 6,
+    "first_event_ms_after_open": 3,
+    "last_event_ms_after_open": 515,
+    "replay_span_ms": 512,
+    "events": [
+      {
+        "ts_ms": 16349,
+        "type": "synthesis-updated",
+        "data": {
+          "type": "synthesis-updated",
+          "synthesis": {
+            "axes": [
+              {
+                "label": "Whether user prefers clean minimalist book displays vs rich visual book imagery and covers",
+                "poleA": "Book covers visible",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user wants browsing categories upfront vs search-first navigation for finding books",
+                "poleA": "Browse or search",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user responds to enthusiastic book recommendations vs neutral informational tone",
+                "poleA": "Passionate recommendations",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user wants cozy intimate bookshop feeling vs modern sleek bookstore aesthetic",
+                "poleA": "Cozy or modern",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user needs detailed book info (reviews, summaries, ratings) vs minimal essential details",
+                "poleA": "Detailed book info",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              },
+              {
+                "label": "Whether user prefers instant feedback and quick interactions vs slower contemplative browsing pace",
+                "poleA": "Quick or slow",
+                "poleB": "(unknown)",
+                "confidence": "unprobed",
+                "leaning_toward": null,
+                "evidence_basis": "intent analysis (no evidence yet)"
+              }
+            ],
+            "edge_case_flags": [],
+            "scout_assignments": [
+              {
+                "scout": "Iris",
+                "probe_axis": "Whether user prefers clean minimalist book displays vs rich visual book imagery and covers",
+                "reason": "Cold start: first question for Iris"
+              },
+              {
+                "scout": "Prism",
+                "probe_axis": "Whether user wants browsing categories upfront vs search-first navigation for finding books",
+                "reason": "Cold start: first question for Prism"
+              },
+              {
+                "scout": "Lumen",
+                "probe_axis": "Whether user responds to enthusiastic book recommendations vs neutral informational tone",
+                "reason": "Cold start: first question for Lumen"
+              },
+              {
+                "scout": "Aura",
+                "probe_axis": "Whether user wants cozy intimate bookshop feeling vs modern sleek bookstore aesthetic",
+                "reason": "Cold start: first question for Aura"
+              },
+              {
+                "scout": "Facet",
+                "probe_axis": "Whether user needs detailed book info (reviews, summaries, ratings) vs minimal essential details",
+                "reason": "Cold start: first question for Facet"
+              },
+              {
+                "scout": "Echo",
+                "probe_axis": "Whether user prefers instant feedback and quick interactions vs slower contemplative browsing pace",
+                "reason": "Cold start: first question for Echo"
+              }
+            ],
+            "persona_anima_divergence": null
+          }
+        }
+      },
+      {
+        "ts_ms": 16349,
+        "type": "draft-updated",
+        "data": {
+          "type": "draft-updated",
+          "draft": {
+            "title": "a bookshop website",
+            "summary": "Drafting your prototype from the swipes…",
+            "html": "<div style=\"padding:2rem;text-align:center;color:var(--muted,#8a7f78);opacity:0.75\"><h2 style=\"margin:0 0 1rem;font-weight:400\">a bookshop website</h2><p style=\"margin:0\">Building your first draft…</p></div>",
+            "acceptedPatterns": [],
+            "rejectedPatterns": []
+          }
+        }
+      },
+      {
+        "ts_ms": 16349,
+        "type": "evidence-updated",
+        "data": {
+          "type": "evidence-updated",
+          "evidence": [
+            {
+              "facadeId": "31f0b54c-eb7f-4ec9-9aa3-ce521ce75af1",
+              "content": "Page slides in smoothly",
+              "hypothesis": "Users prefer animated page transitions over instant loads for bookshop navigation",
+              "decision": "accept",
+              "latencySignal": "slow",
+              "format": "word",
+              "implication": "Build fluid, eased transitions between book categories and detail pages; motion signals intentionality and care"
+            }
+          ],
+          "antiPatterns": []
+        }
+      },
+      {
+        "ts_ms": 16349,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "thinking",
+            "focus": "generating initial scaffold"
+          }
+        }
+      },
+      {
+        "ts_ms": 16349,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "oracle",
+            "name": "Oracle",
+            "role": "oracle",
+            "status": "idle",
+            "focus": "monitoring"
+          }
+        }
+      },
+      {
+        "ts_ms": 16349,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-01",
+            "name": "Iris",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Warm cream & wood\"",
+            "lastFacadeId": "293b5738-6134-4435-853f-10acfb04152f"
+          }
+        }
+      },
+      {
+        "ts_ms": 16349,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-02",
+            "name": "Prism",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Sidebar with cards\"",
+            "lastFacadeId": "69013fe3-8742-4b70-8acf-1e16f3714146"
+          }
+        }
+      },
+      {
+        "ts_ms": 16349,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-03",
+            "name": "Lumen",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Warm, conversational tone\"",
+            "lastFacadeId": "2861751e-1b66-44e3-9005-7a2fbe9f299c"
+          }
+        }
+      },
+      {
+        "ts_ms": 16349,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-04",
+            "name": "Aura",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Dim amber lighting\"",
+            "lastFacadeId": "f00a48e4-c161-4a88-bcac-b55a3ae274aa"
+          }
+        }
+      },
+      {
+        "ts_ms": 16349,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-05",
+            "name": "Facet",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Book count per page\"",
+            "lastFacadeId": "e60597c0-2e6a-459a-9b62-cd6822d1b29d"
+          }
+        }
+      },
+      {
+        "ts_ms": 16349,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "scout-06",
+            "name": "Echo",
+            "role": "scout",
+            "status": "waiting",
+            "focus": "\"Hover lifts book\"",
+            "lastFacadeId": "77055345-c40a-4c11-94b0-e8eff53a4860"
+          }
+        }
+      },
+      {
+        "ts_ms": 16349,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "2861751e-1b66-44e3-9005-7a2fbe9f299c",
+            "agentId": "scout-03",
+            "hypothesis": "Users prefer a friendly, approachable voice over corporate formality when browsing books online",
+            "axisTargeted": "Voice and personality (friendly vs professional)",
+            "label": "Warm, conversational tone",
+            "content": "Warm, conversational tone",
+            "format": "word",
+            "acceptImplies": "The bookshop site should use casual language, first-person recommendations, and a human touch in copy—like a friend suggesting books, not a catalog",
+            "rejectImplies": "Users prefer a more polished, professional voice with formal product descriptions and neutral brand language"
+          }
+        }
+      },
+      {
+        "ts_ms": 16349,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "e60597c0-2e6a-459a-9b62-cd6822d1b29d",
+            "agentId": "scout-05",
+            "hypothesis": "Users differ on whether they want to see many titles at once (dense grid) or fewer titles with more detail (sparse layout)",
+            "axisTargeted": "Information density",
+            "label": "Book count per page",
+            "content": "Book count per page",
+            "format": "word",
+            "acceptImplies": "User prefers dense, high-volume browsing—many book covers visible, minimal text, scan-and-click behavior",
+            "rejectImplies": "User prefers breathing room—fewer books shown, larger covers, more metadata visible per item, slower deliberate browsing"
+          }
+        }
+      },
+      {
+        "ts_ms": 16349,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "69013fe3-8742-4b70-8acf-1e16f3714146",
+            "agentId": "scout-02",
+            "hypothesis": "Users prefer a persistent left navigation paired with card-based product displays rather than top tabs with list layouts",
+            "axisTargeted": "Navigation structure + Content container type",
+            "label": "Sidebar with cards",
+            "content": "Sidebar with cards",
+            "format": "word",
+            "acceptImplies": "Explore navigation fixed to left, browse books in card grid—persistent context, discoverable categories",
+            "rejectImplies": "User may prefer top navigation, horizontal tabs, or list-based layouts for simpler, flatter hierarchy"
+          }
+        }
+      },
+      {
+        "ts_ms": 16349,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "293b5738-6134-4435-853f-10acfb04152f",
+            "agentId": "scout-01",
+            "hypothesis": "Users expect bookshops to feel inviting and tactile, with natural materials and soft lighting that encourage browsing",
+            "axisTargeted": "Color palette and material warmth",
+            "label": "Warm cream & wood",
+            "content": "Warm cream & wood",
+            "format": "word",
+            "acceptImplies": "Pursue earthy, natural color schemes with cream, beige, and wood tones; soft, ambient lighting; handcrafted or organic-feeling textures",
+            "rejectImplies": "Move toward cooler palettes (grays, blues, whites); sleeker, more minimalist aesthetic; brighter, more clinical lighting; digital-first visual language"
+          }
+        }
+      },
+      {
+        "ts_ms": 16349,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "f00a48e4-c161-4a88-bcac-b55a3ae274aa",
+            "agentId": "scout-04",
+            "hypothesis": "Warm, intimate mood with soft overhead lighting creates a refuge-like atmosphere that encourages lingering and browsing.",
+            "axisTargeted": "warm vs cool",
+            "label": "Dim amber lighting",
+            "content": "Dim amber lighting",
+            "format": "word",
+            "acceptImplies": "User leans toward cozy, inviting, low-contrast environments. Likely prefers warm color palettes and soft visual hierarchy.",
+            "rejectImplies": "User may prefer brightness, clarity, and crisp contrast. Possibly drawn to cool tones or more energetic, lit-up atmospheres."
+          }
+        }
+      },
+      {
+        "ts_ms": 16349,
+        "type": "facade-ready",
+        "data": {
+          "type": "facade-ready",
+          "facade": {
+            "id": "77055345-c40a-4c11-94b0-e8eff53a4860",
+            "agentId": "scout-06",
+            "hypothesis": "Users expect interactive feedback (elevation, shadow) on book hovers to signal clickability and create tactile sensation in a digital space",
+            "axisTargeted": "Motion and Behavior — static affordance vs. dynamic micro-interaction",
+            "label": "Hover lifts book",
+            "content": "Hover lifts book",
+            "format": "word",
+            "acceptImplies": "Design book cards with lift/shadow on hover; micro-interactions signal interactivity and add tactile delight to browsing; motion rewards user exploration",
+            "rejectImplies": "Keep book cards flat and static on hover; minimize motion overhead; users prioritize quick scanning over interactive feedback; reserve motion for macro-level page transitions only"
+          }
+        }
+      },
+      {
+        "ts_ms": 16349,
+        "type": "stage-changed",
+        "data": {
+          "type": "stage-changed",
+          "stage": "words",
+          "swipeCount": 1
+        }
+      },
+      {
+        "ts_ms": 16861,
+        "type": "draft-updated",
+        "data": {
+          "type": "draft-updated",
+          "draft": {
+            "title": "Bookshop Homepage",
+            "summary": "A warm, inviting bookshop website with featured books, categories, and a search interface. Designed with earthy tones and serif typography to evoke a cozy reading experience.",
+            "html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>Bookshop</title>\n  <style>\n    :root {\n      --bg: #FFF8F0;\n      --card: #FFF;\n      --accent: #D4845C;\n      --text: #3E3530;\n      --muted: #9B8B82;\n      --radius: 12px;\n      --space: 20px;\n    }\n    * {\n      margin: 0;\n      padding: 0;\n      box-sizing: border-box;\n    }\n    body {\n      font-family: 'Georgia', serif;\n      background-color: var(--bg);\n      color: var(--text);\n      line-height: 1.6;\n    }\n    .container {\n      width: 100%;\n      max-width: 375px;\n      margin: 0 auto;\n      padding: var(--space);\n    }\n    header {\n      margin-bottom: 32px;\n    }\n    .header-top {\n      display: flex;\n      justify-content: space-between;\n      align-items: center;\n      margin-bottom: 24px;\n    }\n    .logo {\n      font-size: 24px;\n      font-weight: bold;\n      color: var(--text);\n      letter-spacing: -0.5px;\n    }\n    .header-actions {\n      display: flex;\n      gap: 12px;\n    }\n    .icon-btn {\n      width: 40px;\n      height: 40px;\n      border: 1px solid var(--muted);\n      border-radius: var(--radius);\n      background: var(--card);\n      color: var(--text);\n      cursor: pointer;\n      font-size: 16px;\n      display: flex;\n      align-items: center;\n      justify-content: center;\n    }\n    .search-bar {\n      display: flex;\n      gap: 8px;\n    }\n    .search-input {\n      flex: 1;\n      padding: 12px 16px;\n      border: 1px solid var(--muted);\n      border-radius: var(--radius);\n      background: var(--card);\n      color: var(--text);\n      font-family: 'Georgia', serif;\n      font-size: 14px;\n    }\n    .search-input::placeholder {\n      color: var(--muted);\n    }\n    .search-btn {\n      width: 40px;\n      height: 40px;\n      border: 1px solid var(--accent);\n      border-radius: var(--radius);\n      background: var(--accent);\n      color: var(--card);\n      cursor: pointer;\n      font-size: 16px;\n      display: flex;\n      align-items: center;\n      justify-content: center;\n    }\n    .section-title {\n      font-size: 20px;\n      font-weight: bold;\n      margin-bottom: 16px;\n      color: var(--text);\n    }\n    .featured {\n      margin-bottom: 40px;\n    }\n    .featured-book {\n      background: linear-gradient(135deg, var(--accent), #E8A878);\n      border-radius: var(--radius);\n      padding: 24px;\n      color: var(--card);\n      margin-bottom: 16px;\n    }\n    .featured-book-title {\n      font-size: 20px;\n      font-weight: bold;\n      margin-bottom: 8px;\n    }\n    .featured-book-author {\n      font-size: 14px;\n      opacity: 0.9;\n      margin-bottom: 12px;\n    }\n    .featured-book-desc {\n      font-size: 13px;\n      line-height: 1.5;\n      margin-bottom: 16px;\n    }\n    .cta-btn {\n      display: inline-block;\n      padding: 10px 20px;\n      background: var(--card);\n      color: var(--accent);\n      border: none;\n      border-radius: 8px;\n      font-family: 'Georgia', serif;\n      font-size: 14px;\n      font-weight: bold;\n      cursor: pointer;\n    }\n    .categories {\n      margin-bottom: 40px;\n    }\n    .category-grid {\n      display: grid;\n      grid-template-columns: 1fr 1fr;\n      gap: 12px;\n    }\n    .category-card {\n      background: var(--card);\n      border: 1px solid #E8D5C4;\n      border-radius: var(--radius);\n      padding: 16px;\n      text-align: center;\n      cursor: pointer;\n      transition: border-color 0.2s;\n    }\n    .category-card:hover {\n      border-color: var(--accent);\n    }\n    .category-name {\n      font-size: 14px;\n      font-weight: bold;\n      color: var(--text);\n    }\n    .category-count {\n      font-size: 12px;\n      color: var(--muted);\n      margin-top: 4px;\n    }\n    .bestsellers {\n      margin-bottom: 40px;\n    }\n    .book-item {\n      display: flex;\n      gap: 12px;\n      margin-bottom: 16px;\n      padding: 12px;\n      background: var(--card);\n      border-radius: var(--radius);\n      border: 1px solid #E8D5C4;\n    }\n    .book-cover {\n      width: 60px;\n      height: 90px;\n      background: linear-gradient(135deg, var(--accent), var(--bg));\n      border-radius: 6px;\n      flex-shrink: 0;\n    }\n    .book-info {\n      flex: 1;\n      display: flex;\n      flex-direction: column;\n      justify-content: space-between;\n    }\n    .book-title {\n      font-size: 14px;\n      font-weight: bold;\n      color: var(--text);\n    }\n    .book-author {\n      font-size: 12px;\n      color: var(--muted);\n    }\n    .book-price {\n      font-size: 14px;\n      font-weight: bold;\n      color: var(--accent);\n    }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <header>\n      <div class=\"header-top\">\n        <div class=\"logo\">Bookshop</div>\n        <div class=\"header-actions\">\n          <button class=\"icon-btn\">♡</button>\n          <button class=\"icon-btn\">⚙</button>\n        </div>\n      </div>\n      <div class=\"search-bar\">\n        <input type=\"text\" class=\"search-input\" placeholder=\"Search books...\">\n        <button class=\"search-btn\">→</button>\n      </div>\n    </header>\n\n    <section class=\"featured\">\n      <div class=\"featured-book\">\n        <div class=\"featured-book-title\">The Midnight Library</div>\n        <div class=\"featured-book-author\">by Matt Haig</div>\n        <div class=\"featured-book-desc\">A dazzling novel about all the choices that go into a life well lived.</div>\n        <button class=\"cta-btn\">View Details</button>\n      </div>\n    </section>\n\n    <section class=\"categories\">\n      <div class=\"section-title\">Browse Categories</div>\n      <div class=\"category-grid\">\n        <div class=\"category-card\">\n          <div class=\"category-name\">Fiction</div>\n          <div class=\"category-count\">1,240 books</div>\n        </div>\n        <div class=\"category-card\">\n          <div class=\"category-name\">Mystery</div>\n          <div class=\"category-count\">580 books</div>\n        </div>\n        <div class=\"category-card\">\n          <div class=\"category-name\">Science</div>\n          <div class=\"category-count\">420 books</div>\n        </div>\n        <div class=\"category-card\">\n          <div class=\"category-name\">Biography</div>\n          <div class=\"category-count\">310 books</div>\n        </div>\n      </div>\n    </section>\n\n    <section class=\"bestsellers\">\n      <div class=\"section-title\">Bestsellers This Week</div>\n      <div class=\"book-item\">\n        <div class=\"book-cover\"></div>\n        <div class=\"book-info\">\n          <div>\n            <div class=\"book-title\">Fourth Wing</div>\n            <div class=\"book-author\">Rebecca Yarros</div>\n          </div>\n          <div class=\"book-price\">$18.99</div>\n        </div>\n      </div>\n      <div class=\"book-item\">\n        <div class=\"book-cover\"></div>\n        <div class=\"book-info\">\n          <div>\n            <div class=\"book-title\">Lessons in Chemistry</div>\n            <div class=\"book-author\">Bonnie Garmus</div>\n          </div>\n          <div class=\"book-price\">$17.99</div>\n        </div>\n      </div>\n      <div class=\"book-item\">\n        <div class=\"book-cover\"></div>\n        <div class=\"book-info\">\n          <div>\n            <div class=\"book-title\">The Woman in Me</div>\n            <div class=\"book-author\">Britney Spears</div>\n          </div>\n          <div class=\"book-price\">$19.99</div>\n        </div>\n      </div>\n    </section>\n  </div>\n</body>\n</html>",
+            "acceptedPatterns": [],
+            "rejectedPatterns": []
+          }
+        }
+      },
+      {
+        "ts_ms": 16861,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "idle",
+            "focus": "watching for swipes"
+          }
+        }
+      },
+      {
+        "ts_ms": 16861,
+        "type": "agent-status",
+        "data": {
+          "type": "agent-status",
+          "agent": {
+            "id": "builder-01",
+            "name": "Meridian",
+            "role": "builder",
+            "status": "thinking",
+            "focus": "analyzing accept on \"Page slides in smoothly\""
+          }
+        }
+      }
+    ],
+    "error": null
+  },
+  "facade_visible": {
+    "attempted": true,
+    "status": 200,
+    "error": null,
+    "rtt_ms": 3
+  },
+  "swipe": {
+    "attempted": true,
+    "facadeId": "31f0b54c-eb7f-4ec9-9aa3-ce521ce75af1",
+    "facade_ready_at_ms": 3880,
+    "posted_at_ms": 3925,
+    "rtt_ms": 4,
+    "status": 200,
+    "body": {
+      "ok": true,
+      "swipeCount": 1,
+      "stage": "words"
+    },
+    "error": null
+  },
+  "metrics": {
+    "time_to_first_facade_ms": 3880,
+    "time_to_first_draft_ms": 1351,
+    "time_to_first_synthesis_ms": 4802,
+    "time_to_first_draft_after_swipe_ms": 12936,
+    "time_to_first_evidence_after_swipe_ms": 4,
+    "time_to_session_ready_ms": 1351,
+    "time_to_first_error_ms": null,
+    "time_from_session_to_first_facade_ms": 2529,
+    "time_from_session_to_first_draft_ms": 0,
+    "time_from_session_to_first_error_ms": null,
+    "facade_ready_count": 7,
+    "draft_updated_count": 2,
+    "draft_placeholder_count": 1,
+    "draft_refined_count": 1,
+    "synthesis_updated_count": 1,
+    "swipe_result_count": 1,
+    "evidence_updated_count": 1,
+    "reveal_reached": false,
+    "error_event_count": 0,
+    "error_code_counts": {},
+    "error_source_counts": {},
+    "error_agent_counts": {},
+    "distinct_error_agent_count": 0,
+    "error_source_scout_count": 0,
+    "error_source_oracle_count": 0,
+    "error_source_builder_count": 0,
+    "provider_auth_failure_count": 0,
+    "error_message_present_count": 0,
+    "auth_diagnostic_preserved_count": 0,
+    "agent_status_event_count": 21,
+    "agent_status_scout_count": 14,
+    "agent_status_oracle_count": 3,
+    "agent_status_builder_count": 4,
+    "agent_error_signal_count": 0,
+    "scout_started_count": 6,
+    "first_scout_started_ms": 1351,
+    "last_scout_started_ms": 1351,
+    "scout_start_spread_ms": 0,
+    "first_error_event_ms": null,
+    "last_error_event_ms": null,
+    "error_event_spread_ms": null,
+    "session_ready_count": 1,
+    "distinct_session_ready_intent_count": 1,
+    "session_ready_intent_present_count": 1,
+    "error_event_count_before_session_2": null,
+    "error_event_count_after_session_2": null,
+    "time_from_session_2_to_first_error_ms": null,
+    "stream_2_error_event_count": 0,
+    "stream_2_agent_status_count": 10,
+    "stream_2_stage_changed_count": 1,
+    "stream_2_diagnostic_preserved_count": 0,
+    "stream_2_error_provider_auth_count": 0,
+    "stream_2_agent_status_scout_count": 6,
+    "stream_2_agent_status_oracle_count": 1,
+    "stream_2_agent_status_builder_count": 3,
+    "stream_2_stage_valid_count": 1,
+    "stream_2_error_source_valid_count": 0,
+    "stream_2_error_code_valid_count": 0,
+    "stream_2_error_message_present_count": 0,
+    "stream_2_agent_status_valid_count": 10,
+    "stream_2_stage_changed_swipe_count_valid_count": 1,
+    "stream_2_draft_updated_count": 2,
+    "stream_2_draft_placeholder_count": 1,
+    "stream_2_draft_refined_count": 1,
+    "stream_2_facade_ready_count": 6,
+    "stream_2_synthesis_updated_count": 1,
+    "stream_2_evidence_updated_count": 1,
+    "stream_2_facade_format_valid_count": 6,
+    "stream_2_first_event_ms_after_open": 3,
+    "stream_2_replay_span_ms": 512,
+    "stage_changed_event_count": 1,
+    "time_to_first_stage_changed_ms": 838,
+    "stage_changed_before_session_ready": 1,
+    "stage_valid_count": 1,
+    "error_source_valid_count": 0,
+    "error_code_valid_count": 0,
+    "agent_status_valid_count": 21,
+    "stage_changed_swipe_count_valid_count": 1,
+    "facade_format_valid_count": 7,
+    "oracle_cold_start_latency_ms": 3451,
+    "oracle_synthesis_latency_ms": null,
+    "oracle_reveal_build_latency_ms": null,
+    "oracle_cold_start_count": 1,
+    "oracle_synthesis_count": 0,
+    "oracle_reveal_build_count": 0,
+    "scout_probe_latency_ms_p50": 2811,
+    "scout_probe_latency_ms_max": 3105,
+    "scout_probe_count": 7,
+    "builder_scaffold_latency_ms": 15510,
+    "builder_scaffold_count": 1,
+    "builder_rebuild_latency_ms": null,
+    "builder_rebuild_latency_ms_p50": null,
+    "builder_rebuild_latency_ms_max": null,
+    "builder_rebuild_count": 0
+  },
+  "error_event_samples": [],
+  "provider_error_samples": [],
+  "stderr_tail": "",
+  "artifact_path": "/Users/provi/Development/_projs/the-eye-loop-gnhf-worktrees/you-are-running-an-e-2c98fb/scripts/findings/validate-2026-04-24T00-15-08-962Z.json"
+}
