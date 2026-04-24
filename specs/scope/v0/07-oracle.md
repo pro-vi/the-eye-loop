@@ -10,7 +10,7 @@ Two exports:
 
 2. `startOracle()` — idempotent bus subscription on `swipe-result`. On each swipe:
    - **Concreteness floor** (synchronous): check `context.concretenessFloor` (< 4 → word, 4-7 → image, 8+ → mockup). If floor advanced, update `context.stage`, emit `stage-changed`.
-   - **Reveal** (synchronous): if evidence >= 15, trigger reveal.
+   - **Reveal** (synchronous): if evidence >= 42, trigger reveal.
    - **Synthesis** (async, non-blocking): every 4 swipes, run LLM synthesis. Captures evidence snapshot before async call. Session staleness guard on result commit.
 
 ### Emergent Axis Synthesis
@@ -46,7 +46,7 @@ Exposed via `context.concretenessFloor` getter ('word' | 'image' | 'mockup'). Se
 - [x] `synthesis-updated` event fires on bus with `TasteSynthesis` payload (emergent axes format: axes, edge_case_flags, scout_assignments, persona_anima_divergence)
 - [x] Concreteness floor advances: word (< 4) → image (4-7) → mockup (8+)
 - [x] `stage-changed` fires when floor advances
-- [x] Reveal triggers at evidence >= 15
+- [x] Reveal triggers at evidence >= 42
 - [x] `context.queuePressure` returns hungry/healthy/full
 - [x] `pnpm check && pnpm build` both pass
 

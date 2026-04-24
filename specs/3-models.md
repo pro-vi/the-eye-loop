@@ -1,21 +1,23 @@
 # Model Architecture — The Eye Loop
 
-Landed runtime: **Anthropic Claude**, two-tier. Fast tier for scouts/builder-incremental/oracle; quality tier reserved for builder reveal. Images are cut — scouts emit `word` or `mockup` facades only. Source of truth: `src/lib/server/ai.ts`.
+Landed runtime: **Anthropic Claude**, role-tiered. Defaults keep a two-tier latency profile — Haiku for scouts/oracle/builder-incremental and Sonnet for reveal — but each role is independently configurable. Images are cut — scouts emit `word` or `mockup` facades only. Source of truth: `src/lib/server/ai.ts`.
 
 ---
 
-## Model Roster (landed)
+## Model Roster (landed defaults)
 
-| Tier | Model ID | Display Name | Role |
+| Binding | Default model ID | Display Name | Role |
 |------|----------|-------------|------|
-| Fast | `claude-haiku-4-5-20251001` | Haiku 4.5 | Scouts (word + HTML mockup), Oracle synthesis, Builder scaffold/rebuild |
-| Quality | `claude-sonnet-4-6` | Sonnet 4.6 | Builder reveal |
+| `SCOUT_MODEL` | `claude-haiku-4-5-20251001` | Haiku 4.5 | Scouts (word + HTML mockup) |
+| `ORACLE_MODEL` | `claude-haiku-4-5-20251001` | Haiku 4.5 | Oracle cold-start + synthesis |
+| `BUILDER_MODEL` | `claude-haiku-4-5-20251001` | Haiku 4.5 | Builder scaffold + rebuild |
+| `REVEAL_MODEL` | `claude-sonnet-4-6` | Sonnet 4.6 | Builder reveal |
 
-Exported as `FAST_MODEL` and `QUALITY_MODEL` from `src/lib/server/ai.ts`. Call sites live in `src/lib/server/agents/{scout,builder,oracle}.ts`.
+Configured by env vars `SCOUT_MODEL_ID`, `ORACLE_MODEL_ID`, `BUILDER_MODEL_ID`, and `REVEAL_MODEL_ID`, then exported from `src/lib/server/ai.ts`. Call sites live in `src/lib/server/agents/{scout,builder,oracle}.ts`.
 
 ## Tier Responsibilities
 
-### Fast (Haiku 4.5)
+### Fast defaults (Haiku 4.5)
 
 Every swipe-cycle path. Must feel responsive.
 
@@ -25,7 +27,7 @@ Every swipe-cycle path. Must feel responsive.
 - **Builder scaffold** — initial draft on session-created, maintains `PrototypeDraft`
 - **Builder incremental rebuild** — on swipe-result, integrates accepted/rejected patterns
 
-### Quality (Sonnet 4.6)
+### Quality default (Sonnet 4.6)
 
 Single call: builder reveal at stage=`reveal`. Exchanges latency for coherence on the final artifact.
 
@@ -53,8 +55,10 @@ const anthropic = createAnthropic({
   },
 });
 
-export const FAST_MODEL = anthropic('claude-haiku-4-5-20251001');
-export const QUALITY_MODEL = anthropic('claude-sonnet-4-6');
+export const SCOUT_MODEL = anthropic(env.SCOUT_MODEL_ID ?? 'claude-haiku-4-5-20251001');
+export const ORACLE_MODEL = anthropic(env.ORACLE_MODEL_ID ?? 'claude-haiku-4-5-20251001');
+export const BUILDER_MODEL = anthropic(env.BUILDER_MODEL_ID ?? 'claude-haiku-4-5-20251001');
+export const REVEAL_MODEL = anthropic(env.REVEAL_MODEL_ID ?? 'claude-sonnet-4-6');
 ```
 
 Missing/invalid token surfaces as `401 Invalid bearer token` at the first provider call and is classified as `provider_auth_failure` on the bus (`src/lib/server/bus.ts:classifyErrorCode`).
@@ -68,18 +72,18 @@ Matches landed call sites in `src/lib/server/agents/{scout,builder,oracle}.ts`:
 | Call site | Temperature | Why |
 |-----------|------------|-----|
 | Scout probe generation | `1.0` | Creative — diverse taste probes |
-| Scout HTML mockup | default | Inherits from `FAST_MODEL`, free-form HTML |
+| Scout HTML mockup | default | Inherits from `SCOUT_MODEL`, free-form HTML |
 | Builder scaffold / rebuild / reveal | `0` | Analytical — integrate evidence deterministically |
 | Oracle synthesis / cold-start | `0` | Analytical — emergent-axis inference |
 
 ## Fallback plan (landed runtime)
 
-If Haiku 4.5 is flaky or rate-limited, swap `FAST_MODEL` in `src/lib/server/ai.ts` to another Claude SKU. One edit, propagates to every agent. Typical fallbacks:
+If Haiku 4.5 is flaky or you want to tune latency per role, swap the relevant `*_MODEL_ID` env var without touching the call sites. Typical fallbacks:
 
-| From | To | Trade-off |
-|------|-----|-----------|
-| `claude-haiku-4-5-20251001` | `claude-sonnet-4-6` | Higher quality, higher latency, higher cost |
-| `claude-sonnet-4-6` (reveal) | `claude-haiku-4-5-20251001` | Drops reveal coherence for speed |
+| Binding | From | To | Trade-off |
+|------|------|-----|-----------|
+| `SCOUT_MODEL_ID` / `ORACLE_MODEL_ID` / `BUILDER_MODEL_ID` | `claude-haiku-4-5-20251001` | `claude-sonnet-4-6` | Higher quality, higher latency, higher cost |
+| `REVEAL_MODEL_ID` | `claude-sonnet-4-6` | `claude-haiku-4-5-20251001` | Drops reveal coherence for speed |
 
 Provider auth never fails over automatically — every call uses the same `CLAUDE_CODE_OAUTH_TOKEN` via `createAnthropic(...)`.
 

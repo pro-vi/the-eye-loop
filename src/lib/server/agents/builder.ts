@@ -15,7 +15,12 @@ import {
 import type { AgentState, Facade, SwipeRecord } from '$lib/context/types';
 import { debugLog } from '$lib/server/debug-log';
 import { HTML_QUALITY_RULES } from '$lib/server/prompts';
-import { FAST_MODEL, QUALITY_MODEL } from '$lib/server/ai';
+import { BUILDER_MODEL, REVEAL_MODEL } from '$lib/server/ai';
+import {
+	BUILDER_MODEL_ID,
+	REVEAL_MAX_OUTPUT_TOKENS,
+	REVEAL_MODEL_ID
+} from '$lib/server/runtime-config';
 
 // ── Constants ────────────────────────────────────────────────────────
 const BUILDER_ID = 'builder-01';
@@ -63,7 +68,7 @@ const ScaffoldSchema = z.object({
 // changeNote, acceptedPatterns, rejectedPatterns, probeBriefs). The reveal
 // prompt was already instructing the model "probeBriefs = [], nextHint = null"
 // even though those were required by DraftUpdateSchema — filler output that
-// costs QUALITY_MODEL (Sonnet) tokens and tool-definition overhead on every
+// costs the reveal model tokens and tool-definition overhead on every
 // reveal build. Trimming to 3 fields matches iter-71's proven pattern and
 // reduces Sonnet latency on the reveal build, improving the V0 demo's
 // reveal-reachability row without regressing any scaffold/rebuild baseline
@@ -187,6 +192,29 @@ function setStatus(status: AgentState['status'], focus: string) {
 	emitAgentStatus({ agent });
 }
 
+function errorStatusCode(err: unknown): number | undefined {
+	if (typeof err === 'object' && err !== null && 'statusCode' in err) {
+		const code = (err as { statusCode?: unknown }).statusCode;
+		if (typeof code === 'number') return code;
+	}
+	return undefined;
+}
+
+function errorText(err: unknown): string {
+	const parts: string[] = [];
+	if (err instanceof Error) parts.push(err.name, err.message);
+	if (typeof err === 'object' && err !== null) {
+		const providerErr = err as { responseBody?: unknown; data?: unknown };
+		if (typeof providerErr.responseBody === 'string') parts.push(providerErr.responseBody);
+		if (providerErr.data) parts.push(JSON.stringify(providerErr.data));
+	}
+	return parts.filter(Boolean).join(' ') || String(err);
+}
+
+function isRateLimitError(err: unknown): boolean {
+	return errorStatusCode(err) === 429 || /rate_limit_error|429|too many requests/i.test(errorText(err));
+}
+
 // ── Serialization gate (HMR-safe via globalThis) ────────────────────
 
 const G = globalThis as Record<string, unknown>;
@@ -282,7 +310,7 @@ async function rebuild(facade: Facade, record: SwipeRecord) {
 			.replace('{content_summary}', summarizeFacade(facade));
 
 		const result = await generateText({
-			model: FAST_MODEL,
+			model: BUILDER_MODEL,
 			output: Output.object({ schema: DraftUpdateSchema }),
 			temperature: 0,
 			system,
@@ -480,7 +508,7 @@ export function startBuilder(): void {
 
 			try {
 				const result = await generateText({
-					model: FAST_MODEL,
+					model: BUILDER_MODEL,
 					output: Output.object({ schema: ScaffoldSchema }),
 					temperature: 0,
 					system: SCAFFOLD_PROMPT.replace('{intent}', intent),
@@ -616,13 +644,13 @@ export async function buildRevealDraft(): Promise<void> {
 	// overwrite 'provider auth failed' with the generic 'reveal complete'.
 	// Only matters post-healthy-auth (buildRevealDraft fires once at stage=
 	// reveal, unreachable under broken auth because no swipes reach the
-	// REVEAL_THRESHOLD=15 evidence count).
+	// auto-reveal evidence threshold).
 	let authFailed = false;
 	// iter-49: cross-session staleness flag, parallel family to iter-45
 	// runColdStart catch, iter-46 rebuild catch+finally, iter-47 runSynthesis
 	// catch, and iter-48 scaffold catch+finally. buildRevealDraft is invoked
 	// fire-and-forget via oracle.ts:432's buildRevealDraft().finally(...) so
-	// under tight multi-session timing (reveal-triggered slow QUALITY_MODEL
+	// under tight multi-session timing (reveal-triggered slow reveal model
 	// generateText + mid-run new session) a stale rejection or success would
 	// otherwise emitError (polluting N+1's bus.lastError, iter-26 replay
 	// source) or setStatus via finally (overwriting N+1's builder-01 focus
@@ -686,14 +714,35 @@ ${HTML_QUALITY_RULES}
 
 OUTPUT: final title, summary, html (complete, polished, rich)`;
 
-		const result = await generateText({
-			model: QUALITY_MODEL,
-			output: Output.object({ schema: RevealSchema }),
-			temperature: 0,
-			system: finalPrompt,
-			prompt: 'Generate the final reveal prototype. Make it beautiful.',
-			maxOutputTokens: 16000
-		});
+		const runReveal = async (model: typeof REVEAL_MODEL) =>
+			generateText({
+				model,
+				output: Output.object({ schema: RevealSchema }),
+				temperature: 0,
+				system: finalPrompt,
+				prompt: 'Generate the final reveal prototype. Make it beautiful.',
+				maxOutputTokens: REVEAL_MAX_OUTPUT_TOKENS
+			});
+
+		let result;
+		try {
+			result = await runReveal(REVEAL_MODEL);
+		} catch (err) {
+			if (isRateLimitError(err) && REVEAL_MODEL_ID !== BUILDER_MODEL_ID) {
+				debugLog('Builder', 'reveal-rate-limit-fallback', {
+					primaryModel: REVEAL_MODEL_ID,
+					fallbackModel: BUILDER_MODEL_ID,
+					statusCode: errorStatusCode(err)
+				});
+				console.warn(
+					`[builder] reveal model rate-limited (${REVEAL_MODEL_ID}), retrying with ${BUILDER_MODEL_ID}`
+				);
+				setStatus('thinking', 'reveal rate-limited, retrying fast tier');
+				result = await runReveal(BUILDER_MODEL);
+			} else {
+				throw err;
+			}
+		}
 
 		// iter-49: staleness check first — parallel to iter-46 rebuild success
 		// path. A stale run must skip both the merge AND the finally's setStatus

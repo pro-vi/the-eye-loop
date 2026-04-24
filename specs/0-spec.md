@@ -58,21 +58,93 @@ with eligibility: step size >= local JND; children enter only after parent locks
 
 ## Agent Roster
 
-V0 runs on the Anthropic two-tier Claude runtime — FAST_MODEL (`claude-haiku-4-5-20251001`) and QUALITY_MODEL (`claude-sonnet-4-6`), reached through the Claude Code OAuth header path (`src/lib/server/ai.ts`, env var `CLAUDE_CODE_OAUTH_TOKEN`). The roles below name the tier each agent uses today; the original Gemini three-tier allocation is preserved in *Appendix: historical Gemini three-tier design* in the Tech Stack section for future image/motion work.
+V0 runs on a role-tiered Anthropic Claude runtime, reached through the Claude Code OAuth header path (`src/lib/server/ai.ts`, env var `CLAUDE_CODE_OAUTH_TOKEN`). Defaults keep the validated Haiku/Sonnet split, but each role can now be tuned independently via env: `SCOUT_MODEL_ID`, `ORACLE_MODEL_ID`, `BUILDER_MODEL_ID`, `REVEAL_MODEL_ID`. The original Gemini three-tier allocation is preserved in *Appendix: historical Gemini three-tier design* in the Tech Stack section for future image/motion work.
 
-**Oracle** -- FAST_MODEL. The brain. Manages agent lifecycle, routes swipe results, assigns probe briefs, monitors queue health, triggers compaction. Never generates facades.
+**Oracle** -- `ORACLE_MODEL` (default: Haiku 4.5). The brain. Manages agent lifecycle, routes swipe results, assigns probe briefs, monitors queue health, triggers compaction. Never generates facades.
 
-**Builder** -- FAST_MODEL for incremental draft rebuilds, QUALITY_MODEL for the final reveal synthesis. The architect. Runs continuously from first surviving artifact. Maintains a living draft prototype. Identifies construction ambiguities and writes probe briefs. Has the best view of what the system doesn't yet know -- because it's the one trying to build with incomplete information. Never generates facades. Never swipe-facing.
+**Builder** -- `BUILDER_MODEL` (default: Haiku 4.5) for incremental draft rebuilds, `REVEAL_MODEL` (default: Sonnet 4.6) for the final reveal synthesis. The architect. Runs continuously from first surviving artifact. Maintains a living draft prototype. Identifies construction ambiguities and writes probe briefs. Has the best view of what the system doesn't yet know -- because it's the one trying to build with incomplete information. Never generates facades. Never swipe-facing.
 
-**Scout (x6 fixed roster: Iris, Prism, Lumen, Aura, Facet, Echo)** -- FAST_MODEL for both the word-probe generation pass and the optional mockup-HTML rendering pass. The hands. Each runs a Ralph-style loop: generate -> push -> wait -> receive feedback -> decide -> loop. Pulls probe briefs from the builder first, self-assigns from Anima uncertainty if no briefs pending. Fract-style child spawning is explicitly cut from V0 (see `specs/2-v0-spec.md`).
+**Scout (x6 fixed roster: Iris, Prism, Lumen, Aura, Facet, Echo)** -- `SCOUT_MODEL` (default: Haiku 4.5) for both the word-probe generation pass and the optional mockup-HTML rendering pass. The hands. Each runs a Ralph-style loop: generate -> push -> wait -> receive feedback -> decide -> loop. Pulls probe briefs from the builder first, self-assigns from Anima uncertainty if no briefs pending. Fract-style child spawning is explicitly cut from V0 (see `specs/2-v0-spec.md`).
 
-**Compactor** -- function within oracle, reserved for V1. Explicitly cut from V0 per `specs/2-v0-spec.md`; oracle synthesis every 4 swipes (FAST_MODEL) covers the evidence-rollup role in the Akinator pivot. When the full compactor lands it would run every 5 swipes or on contradiction detection via FAST_MODEL, merging convergent evidence and promoting contradictions to new probe briefs.
+**Compactor** -- function within oracle, reserved for V1. Explicitly cut from V0 per `specs/2-v0-spec.md`; oracle synthesis every 4 swipes (`ORACLE_MODEL`) covers the evidence-rollup role in the Akinator pivot. When the full compactor lands it would run every 5 swipes or on contradiction detection via `ORACLE_MODEL`, merging convergent evidence and promoting contradictions to new probe briefs.
 
 > Depth: `research/iec-fatigue.md` -- Approximately 30-40 binary decisions before fatigue. Oracle is 80% code, 20% LLM. Most oracle functions (queue health, freshness pruning, scout retirement, event routing) are pure code. LLM used only for compaction, fract detection, and stuck detection.
 
 ---
 
 ## Architecture
+
+**Status note:** the codebase currently ships the singleton `EyeLoopContext` + global bus described below. That landed V0 is good enough to validate the loop, but it is not the best fit for the intended "short warmup, then 42 Tinder-fast swipes" experience. The next architecture should be a per-session orchestrator with a shared prefilled reservoir. That target design is specified here first so implementation can move without re-deciding the shape.
+
+### Hot Session Target (next architecture, not landed)
+
+The user may wait through a brief loading / warmup screen. Once they enter the swipe loop, the next card should already be ready. That requires a session-owned pipeline, not scout-owned one-card blocking loops.
+
+**Runtime states**
+
+`creating -> warming -> ready -> swiping -> reveal-prepared -> revealing -> revealed`
+
+- `creating`: allocate session id, initialize session object, seed empty draft + initial taste snapshot
+- `warming`: prefill the shared deck and first draft before the client enters swiping
+- `ready`: return bootstrap snapshot (`sessionId`, initial facades, draft, synthesis, stage, queue stats)
+- `swiping`: user consumes cards from the ready deck while adaptation runs in the background
+- `reveal-prepared`: reveal artifact already exists or is close enough that threshold crossing is just a state change
+
+**Ownership split**
+
+- `SessionRegistry`: in-memory map of `sessionId -> EyeLoopSession`
+- `EyeLoopSession`: evidence, swipe count, stage, taste version, draft, reveal state, and worker coordination
+- `Reservoir`: card inventory, draw order, queue stats, replacement policy, stale eviction
+- `Scouts`: stateless producers that generate candidates against a session snapshot; they do not own exactly one card each
+- `Oracle`: coalesced taste updates, synthesis cadence, scout assignments, and freshness version bumps
+- `Builder`: async draft/reveal pipeline with its own work queue; never blocks swipe delivery
+- `SSE`: session-scoped stream and replay surface, not a single global bus for all sessions
+
+**Hot path vs async path**
+
+- Hot swipe path: record swipe, validate session/card, append compact evidence, increment count, consume current card, reveal next ready card immediately
+- Async path: oracle synthesis, scout generation, draft patching, stale-card replacement, and reveal preparation
+- Rule: no LLM call belongs between a swipe and the next visible facade
+
+**Reservoir policy**
+
+- Warm to at least `12` ready cards before entering `ready`
+- Maintain `16-24` ready cards during swiping
+- Treat `8` as the hard low-water mark that triggers aggressive refill
+- Expect roughly `55-70` total generated candidates across a 42-swipe session so stale or low-value cards can be discarded without starving the feed
+
+These are operating targets, not sacred constants. The real invariant is that the user should almost never wait for the next card.
+
+**Freshness contract**
+
+Every queued facade should carry:
+
+- `tasteVersion`
+- `createdAt`
+- `generationReason`
+
+On each oracle update, prefer the newest cards, allow at most `1-2` taste versions of lag for continuity, and demote / replace anything older unless the reservoir is close to empty. Prefetch is useful only if stale work can be evicted cheaply.
+
+**Reveal contract**
+
+- Start reveal preparation early, around swipes `8-12`
+- Rebuild or patch reveal material at each synthesis cadence
+- Force a dedicated reveal-prep pass by about swipe `36`
+- At swipe `42`, transition into reveal using an already-prepared artifact; only final polish may remain on the premium model
+
+The reveal threshold is therefore a presentation gate, not the moment heavy generation begins.
+
+**Migration order**
+
+1. Add `SessionRegistry` + `EyeLoopSession`
+2. Change `POST /api/session` to return a bootstrap snapshot after warmup
+3. Replace scout-owned blocking loops with a shared `Reservoir`
+4. Make swipe handling append-only and non-blocking
+5. Give the builder a real async queue instead of a single pending swipe
+6. Version taste snapshots and queued cards
+7. Add pre-threshold reveal preparation
+
+The sections below describe the currently landed V0 singleton design. They remain accurate for the codebase until the hot-session refactor lands.
 
 ### System Diagram
 
@@ -171,7 +243,7 @@ The intelligence lives in the getters. `.mostUncertain` implements BALD. `.shoul
 loop:
   brief <- context.nextProbe OR self-assign from context.mostUncertain
 
-  facade <- generate(brief, context.anima)     // generateText to FAST_MODEL
+  facade <- generate(brief, context.anima)     // generateText to SCOUT_MODEL
   optionally: critique and refine internally
 
   context.pushFacade(facade)
@@ -389,11 +461,11 @@ The slow cases are the most valuable for learning because they identify the indi
 
 **V0 landed set** (per `src/lib/context/types.ts` `Stage = 'words' | 'mockups' | 'reveal'`): Words → HTML Mockups → Reveal. Images and Interactive Snippets were cut during the hackathon ramp and sit in the appendix below for future work.
 
-**Words (1-6):** Single words, near-instant. Broadest partitioning. FAST_MODEL generates from intent + evidence + scout lens.
+**Words (1-6):** Single words, near-instant. Broadest partitioning. `SCOUT_MODEL` generates from intent + evidence + scout lens.
 
-**HTML Mockups (7-14):** FAST_MODEL generates both the probe-card prompt and the mockup HTML (sandboxed iframe render on the client). Builder issuing probe briefs. Concreteness floor lifts from `word` to `mockup` at 4 accumulated pieces of evidence (`context.concretenessFloor` in `src/lib/server/context.ts`).
+**HTML Mockups (7-14):** `SCOUT_MODEL` generates both the probe-card prompt and the mockup HTML (sandboxed iframe render on the client). Builder issuing probe briefs. Concreteness floor lifts from `word` to `mockup` at 4 accumulated pieces of evidence (`context.concretenessFloor` in `src/lib/server/context.ts`).
 
-**Reveal:** Information gain drops (triggered at 15 swipes in `src/lib/server/agents/oracle.ts`). Builder presents assembled prototype using QUALITY_MODEL for the final synthesis pass.
+**Reveal:** Information gain drops (triggered at 42 swipes in `src/lib/server/agents/oracle.ts`). Builder presents assembled prototype using `REVEAL_MODEL` for the final synthesis pass.
 
 > Appendix: Historical image + motion stages (cut from V0)
 >
@@ -424,8 +496,8 @@ The builder doesn't assemble at the end. It grows the prototype behind every swi
 
 - **SvelteKit + Svelte 5** -- runes, reactive context class
 - **Vercel AI SDK 6** -- agent tool calling, structured output, `generateText` with `Output.object({ schema })` and Zod
-- **Anthropic Claude Haiku 4.5** (`FAST_MODEL`) -- scouts (probe + mockup HTML), builder incremental rebuilds, oracle cold-start + synthesis
-- **Anthropic Claude Sonnet 4.6** (`QUALITY_MODEL`) -- builder final reveal synthesis
+- **Anthropic Claude Haiku 4.5** (default for `SCOUT_MODEL`, `ORACLE_MODEL`, `BUILDER_MODEL`) -- scouts (probe + mockup HTML), builder incremental rebuilds, oracle cold-start + synthesis
+- **Anthropic Claude Sonnet 4.6** (default for `REVEAL_MODEL`) -- builder final reveal synthesis
 - **Claude Code OAuth** (`CLAUDE_CODE_OAUTH_TOKEN`) -- Anthropic auth path at `src/lib/server/ai.ts`; `createAnthropic` with `Authorization: Bearer` + `anthropic-beta: claude-code-20250219,oauth-2025-04-20`
 - **SSE** -- server -> client event stream (native `ReadableStream` + `text/event-stream`)
 - **Vercel Fluid Compute** -- adapter-vercel, Node.js runtime, `maxDuration: 300` on long-lived routes
@@ -433,7 +505,7 @@ The builder doesn't assemble at the end. It grows the prototype behind every swi
 > Appendix: historical Gemini three-tier design (not landed; image + motion modalities deferred past V0)
 >
 > - **Gemini 3.1 Pro** -- oracle, builder, compaction (replaced by Anthropic Haiku 4.5 + Sonnet 4.6)
-> - **Gemini Flash** -- scout HTML generation (folded into FAST_MODEL)
+> - **Gemini Flash** -- scout HTML generation (folded into `SCOUT_MODEL`)
 > - **Nano Banana** -- scout image generation (image stage cut from V0; reference-first renderer pattern preserved in `specs/3-models.md` appendix)
 > - **Veo** -- late-stage interaction clips (interactive snippet stage explicitly cut from V0 per `specs/2-v0-spec.md`)
 

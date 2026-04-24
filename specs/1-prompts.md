@@ -284,14 +284,14 @@ interface TasteSynthesis {
 
 - **Queue health:** `context.queuePressure` getter (hungry/healthy/full)
 - **Concreteness floor:** `context.concretenessFloor` getter (word/image/mockup)
-- **Reveal trigger:** evidence >= 15 or all-axes-resolved
+- **Reveal trigger:** evidence >= 42
 - **Freshness pruning:** age-based — facades older than N swipes dropped on stage change
 
 ---
 
 ## Structured Output Constraints
 
-All structured output uses Vercel AI SDK `Output.object()` with Zod schemas against Anthropic Claude (FAST_MODEL = Haiku 4.5, QUALITY_MODEL = Sonnet 4.6) via `src/lib/server/ai.ts`.
+All structured output uses Vercel AI SDK `Output.object()` with Zod schemas against Anthropic Claude via `src/lib/server/ai.ts` (`SCOUT_MODEL`, `ORACLE_MODEL`, `BUILDER_MODEL`, `REVEAL_MODEL`; defaults: Haiku 4.5 for non-reveal paths, Sonnet 4.6 for reveal).
 
 Keep schemas flat. Use string enums over unions. If a field is sometimes absent, use `.nullable()` not `.optional()` with union types — Claude's tool-use schema conversion handles flat, JSON-Schema-shaped Zod objects reliably, and flat shapes travel the fewest SDK conversion layers.
 

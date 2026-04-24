@@ -15,12 +15,12 @@ import { buildRevealDraft } from './builder';
 import { generateText, Output } from 'ai';
 import { z } from 'zod';
 import { debugLog } from '$lib/server/debug-log';
-import { FAST_MODEL } from '$lib/server/ai';
+import { ORACLE_MODEL } from '$lib/server/ai';
+import { AUTO_REVEAL_SWIPE_THRESHOLD } from '$lib/server/runtime-config';
 
 // ── Constants ────────────────────────────────────────────────────────
 
 const ORACLE_AGENT_ID = 'oracle';
-const REVEAL_THRESHOLD = 15;
 const SYNTHESIS_CADENCE = 4;
 
 // ── Synthesis schema (snake_case — matches spec + Zod output) ────────
@@ -198,7 +198,7 @@ async function runSynthesis() {
 			.replace('{evidence}', evidenceSnapshot);
 
 		const result = await generateText({
-			model: FAST_MODEL,
+			model: ORACLE_MODEL,
 			output: Output.object({ schema: synthesisSchema }),
 			temperature: 0,
 			prompt
@@ -321,7 +321,7 @@ async function runColdStart(intent: string, capturedSessionId: string) {
 	setOracleStatus('thinking', 'cold-start analysis');
 	try {
 		const result = await generateText({
-			model: FAST_MODEL,
+			model: ORACLE_MODEL,
 			output: Output.object({ schema: coldStartSchema }),
 			temperature: 0,
 			prompt: COLD_START_PROMPT.replace('{INTENT}', intent)
@@ -418,7 +418,11 @@ export function startOracle(): void {
 			checkFloor();
 
 			// 2. Reveal trigger (async — builder must finish before client sees reveal)
-			if (!revealFired && context.stage !== 'reveal' && context.evidence.length >= REVEAL_THRESHOLD) {
+			if (
+				!revealFired &&
+				context.stage !== 'reveal' &&
+				context.evidence.length >= AUTO_REVEAL_SWIPE_THRESHOLD
+			) {
 				revealFired = true;
 				context.stage = 'reveal';
 
@@ -446,7 +450,7 @@ export function startOracle(): void {
 				// the NEW session's bus, polluting the client UI which is in
 				// 'words' stage. buildRevealDraft's own iter-49 guards suppress
 				// its emitError/setStatus but not this outer wrapper. Unreachable
-				// under broken-auth (REVEAL_THRESHOLD=15 never reached), forward-
+				// under broken-auth (auto reveal never reaches threshold), forward-
 				// deploy defense identical to the rest of the family.
 				const revealCapturedSessionId = context.sessionId;
 				buildRevealDraft().finally(() => {

@@ -42,7 +42,7 @@ Anything that does not improve one of those five outcomes is out of scope for V0
 3. The user sees one facade at a time and swipes `accept` or `reject`.
 4. Every facade shows a hypothesis, agent name, and stage-appropriate content.
 5. Every swipe updates the evidence list, oracle synthesis (every 4 swipes), builder draft, and agent activity.
-6. After roughly 8-14 swipes, the user can inspect a coherent draft prototype built from the accumulated taste model.
+6. After roughly 8-14 swipes, the user can inspect a coherent draft prototype built from the accumulated taste model, well before the auto-reveal threshold.
 
 ---
 
@@ -95,6 +95,8 @@ These are implementation cuts, not product cuts.
 
 ## Runtime Architecture
 
+This section describes the currently landed V0 runtime. The next-step architecture for a "short warmup, then 42 Tinder-fast swipes" session is a per-session reservoir design documented in `specs/0-spec.md` under `Hot Session Target (next architecture, not landed)`. Until that refactor ships, this file stays aligned to the singleton implementation.
+
 ### Deploy
 
 Vercel with Fluid Compute (adapter-vercel, Node.js runtime). Module-level singleton state. Set `maxDuration: 300` on long-lived routes. `.research/synthesis-runtime`
@@ -137,8 +139,8 @@ Loop:
 1. read evidence history + oracle synthesis (emergent axes, scout assignment, edge case flags) + queue contents for de-duplication + any builder probe brief
 2. generate one facade targeting the biggest gap in taste knowledge (LLM decides, not code)
    - format chosen by scout based on evidence depth, gated by oracle concreteness floor
-   - **words:** `FAST_MODEL` (Claude Haiku 4.5) with `Output.object()`
-   - **mockups:** `FAST_MODEL` (Claude Haiku 4.5) generating HTML
+   - **words:** `SCOUT_MODEL` (default: Claude Haiku 4.5) with `Output.object()`
+   - **mockups:** `SCOUT_MODEL` (default: Claude Haiku 4.5) generating HTML
 3. push it into the queue
 4. wait for its swipe result (EventEmitter subscription)
 5. update local history (last 3 hypotheses for diversity constraint) and continue
@@ -158,7 +160,7 @@ The oracle has two roles. `specs/4-akinator.md`, `specs/scope/v0/07-oracle.md`
 
 **Code (every swipe):**
 - Concreteness floor: `< 4 evidence = word, >= 4 = mockup` (two-tier; images cut)
-- Reveal trigger: evidence >= 15 or all-axes-resolved
+- Reveal trigger: evidence >= 42
 - Queue pressure: `context.queuePressure` getter (hungry/healthy/full)
 
 **LLM (every 4 swipes):**
@@ -363,7 +365,7 @@ If latency becomes a problem:
 - pre-generate facade buffer before user sees first card
 
 If the fast tier misbehaves:
-- Swap `FAST_MODEL` in `src/lib/server/ai.ts` to another Claude SKU via `createAnthropic(...)` (e.g. `claude-sonnet-4-6`). One edit, everywhere.
+- Tune `SCOUT_MODEL_ID`, `ORACLE_MODEL_ID`, `BUILDER_MODEL_ID`, or `REVEAL_MODEL_ID` in env to move individual roles between Claude SKUs without touching call sites.
 - Provider auth uses `CLAUDE_CODE_OAUTH_TOKEN` via the Claude Code OAuth headers (`x-api-key: ''`, `Authorization: Bearer <token>`, `anthropic-beta: claude-code-20250219,oauth-2025-04-20`). See `specs/3-models.md`.
 
 ---
@@ -378,9 +380,11 @@ pnpm add ai@6.0.134 @ai-sdk/anthropic@^3.0.64 zod@^3.24.0
 
 | What | How | Reference |
 |------|-----|-----------|
-| Text facades | `generateText()` with `FAST_MODEL` (Claude Haiku 4.5) from `$lib/server/ai` | `specs/3-models.md` |
-| HTML mockups | `generateText()` with `FAST_MODEL` (Claude Haiku 4.5), no `Output.object()` — free-form HTML parsing | `src/lib/server/agents/scout.ts` |
-| Quality reveal | `QUALITY_MODEL` (Claude Sonnet 4.6) for builder reveal; fast tier elsewhere | `src/lib/server/ai.ts` |
+| Text facades | `generateText()` with `SCOUT_MODEL` (default: Claude Haiku 4.5) from `$lib/server/ai` | `specs/3-models.md` |
+| HTML mockups | `generateText()` with `SCOUT_MODEL` (default: Claude Haiku 4.5), no `Output.object()` — free-form HTML parsing | `src/lib/server/agents/scout.ts` |
+| Builder scaffold / rebuild | `generateText()` with `BUILDER_MODEL` (default: Claude Haiku 4.5) | `src/lib/server/agents/builder.ts` |
+| Oracle cold-start / synthesis | `generateText()` with `ORACLE_MODEL` (default: Claude Haiku 4.5) | `src/lib/server/agents/oracle.ts` |
+| Quality reveal | `REVEAL_MODEL` (default: Claude Sonnet 4.6) for builder reveal | `src/lib/server/ai.ts` |
 | Structured output | `output: Output.object({ schema: z.object({...}) })` — avoid `z.union()` | `.research/synthesis-sdk-verified` |
 | SSE | Native `ReadableStream` + `text/event-stream` (custom bus, not AI SDK streaming) | `.research/synthesis-runtime` |
 | Provider auth | Claude Code OAuth headers on `createAnthropic({ apiKey: 'x', headers: { Authorization: 'Bearer <token>', 'anthropic-beta': 'claude-code-20250219,oauth-2025-04-20', ... } })` | `src/lib/server/ai.ts` |

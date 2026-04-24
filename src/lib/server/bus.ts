@@ -97,11 +97,21 @@ emitter.on('session-ready', () => {
 });
 
 export function classifyErrorCode(err: unknown): SSEEventMap['error']['code'] {
-	const s = err instanceof Error ? `${err.message}` : String(err);
+	const details: string[] = [];
+	if (err instanceof Error) {
+		details.push(err.name, err.message);
+	}
+	if (typeof err === 'object' && err !== null) {
+		const withStatus = err as { statusCode?: unknown; responseBody?: unknown; data?: unknown };
+		if (typeof withStatus.statusCode === 'number') details.push(String(withStatus.statusCode));
+		if (typeof withStatus.responseBody === 'string') details.push(withStatus.responseBody);
+		if (withStatus.data) details.push(JSON.stringify(withStatus.data));
+	}
+	const s = details.filter(Boolean).join(' ') || String(err);
 	if (/401|Invalid bearer|authentication_error|x-api-key/i.test(s)) {
 		return 'provider_auth_failure';
 	}
-	if (/AI_APICall|fetch failed|ECONNREFUSED|timeout/i.test(s)) {
+	if (/AI_APICall|rate_limit_error|429|fetch failed|ECONNREFUSED|timeout/i.test(s)) {
 		return 'provider_error';
 	}
 	return 'generation_error';

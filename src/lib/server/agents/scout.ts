@@ -11,7 +11,7 @@ import {
 import type { Facade, AgentState } from '$lib/context/types';
 import { debugLog } from '$lib/server/debug-log';
 import { HTML_QUALITY_RULES } from '$lib/server/prompts';
-import { FAST_MODEL } from '$lib/server/ai';
+import { SCOUT_MODEL } from '$lib/server/ai';
 
 // ── Constants ────────────────────────────────────────────────────────
 // 30s from when user SEES the card (top of stack), not from queue push.
@@ -297,7 +297,7 @@ function startScout(agentId: string, name: string): () => void {
 					const scoutSchema =
 						floor === 'word' ? ScoutOutputSchemaWord : ScoutOutputSchemaMockup;
 					const result = await generateText({
-						model: FAST_MODEL,
+						model: SCOUT_MODEL,
 						output: Output.object({ schema: scoutSchema }),
 						temperature: 1.0,
 						system,
@@ -390,7 +390,7 @@ Output ONLY the HTML — no markdown fences, no explanation.
 Mobile viewport 375x667. No scripts. No external resources.`;
 
 							const htmlResult = await generateText({
-								model: FAST_MODEL,
+								model: SCOUT_MODEL,
 								prompt: mockupPrompt,
 								maxOutputTokens: 10000,
 								abortSignal: signal
@@ -515,7 +515,7 @@ Mobile viewport 375x667. No scripts. No external resources.`;
 // Scout starts are simultaneous. The historical 500ms inter-scout stagger
 // (specs/ANNOUNCEMENT-scout-dedup.md) assumed LLM-probe latency < 500ms so
 // scout-N's prompt would read scout-(N-1)'s just-pushed facade; that premise
-// no longer holds with Claude Haiku at ~1-2s per call. The real dedup is the
+// no longer holds with the current scout tier at ~1-2s per call. The real dedup is the
 // post-generateText axis-targeted isDuplicate check at line ~292, reinforced
 // by distinct SCOUT_LENSES biasing each scout toward a different probe axis.
 // Starting all 6 scouts at session-ready compresses scout-06's start by

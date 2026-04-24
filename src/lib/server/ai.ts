@@ -1,5 +1,11 @@
 import { createAnthropic } from '@ai-sdk/anthropic';
 import { env } from '$env/dynamic/private';
+import {
+	BUILDER_MODEL_ID,
+	ORACLE_MODEL_ID,
+	REVEAL_MODEL_ID,
+	SCOUT_MODEL_ID
+} from '$lib/server/runtime-config';
 
 const anthropic = createAnthropic({
 	apiKey: 'x',
@@ -12,8 +18,11 @@ const anthropic = createAnthropic({
 	}
 });
 
-// Fast tier — scouts, builder (scaffold/rebuild), oracle
-export const FAST_MODEL = anthropic('claude-haiku-4-5-20251001');
+// Role-tiered bindings. Defaults keep the validated Haiku/Sonnet split,
+// but each role can now be tuned independently through env vars.
+export const SCOUT_MODEL = anthropic(SCOUT_MODEL_ID);
+export const ORACLE_MODEL = anthropic(ORACLE_MODEL_ID);
+export const BUILDER_MODEL = anthropic(BUILDER_MODEL_ID);
 
 // Quality tier — builder reveal
-export const QUALITY_MODEL = anthropic('claude-sonnet-4-6');
+export const REVEAL_MODEL = anthropic(REVEAL_MODEL_ID);
