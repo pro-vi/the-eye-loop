@@ -106,6 +106,9 @@ function extractMetrics(artifact) {
 		draft_updated_count: m.draft_updated_count ?? 0,
 		draft_placeholder_count: m.draft_placeholder_count ?? 0,
 		draft_refined_count: m.draft_refined_count ?? 0,
+		draft_refined_html_length_p50: m.draft_refined_html_length_p50 ?? null,
+		draft_refined_html_length_max: m.draft_refined_html_length_max ?? null,
+		draft_refined_html_length_min: m.draft_refined_html_length_min ?? null,
 		synthesis_updated_count: m.synthesis_updated_count ?? 0,
 		swipe_result_count: m.swipe_result_count ?? 0,
 		evidence_updated_count: m.evidence_updated_count ?? 0,
@@ -414,6 +417,55 @@ async function main() {
 			draft_refined_count_min: perIntent.length
 				? Math.min(...perIntent.map((p) => p.metrics.draft_refined_count ?? 0))
 				: 0,
+			// iter-75 draft refined html length distribution rollups — iter-74
+			// reduced Haiku's scaffold output from ~5800-7300 chars (iter-71
+			// observation) to ~4200-5500 chars via a prompt-level length hint
+			// in SCAFFOLD_PROMPT, but there was no typed metric surfaced at
+			// aggregate to confirm the length intervention holds across future
+			// iterations. Converts iter-74's ad-hoc observation into a
+			// forward-deploy measurement: a regression where Haiku drifts back
+			// to verbose outputs (or a future further-reduction intervention
+			// like tighter prompt hints, or a rebuild-path length hint per the
+			// iter-74 pattern applied to SWIPE_PROMPT) is directly visible at
+			// aggregate without requiring manual sample inspection.
+			//
+			// Distinct from iter-64's count probe (tracks emission cardinality,
+			// not size), iter-51/70's latency probes (tracks time, not size),
+			// and iter-67/72's content-validation probes (tracks shape, not
+			// magnitude). Null at aggregate when all per-intent p50 values are
+			// null (broken-auth or iter-64 refined=0 regime); non-null tier
+			// aligns with iter-64's refined_count_sum >= 1 gating.
+			//
+			// Expected invariants under the iter-74 healthy-auth 12s-window
+			// baseline: aggregate p50 should sit in the 4200-5500 range
+			// matching iter-74's observed "asked for 2000-3000, got 4200-5500"
+			// steering outcome. A regression that flips refined HTML back to
+			// the iter-71 ~5800-7300 range would move p50 upward; a future
+			// further-reduction intervention would move p50 downward below
+			// 4200. Aggregation pattern matches iter-51/70's scaffold/rebuild
+			// latency family: p50 (median of per-intent p50 values), p90
+			// (p90 of per-intent p50 values — tail sensitivity), max (max of
+			// per-intent max values — single-worst-refined-draft ceiling).
+			draft_refined_html_length_p50: percentile(
+				perIntent.map((p) => p.metrics.draft_refined_html_length_p50),
+				50
+			),
+			draft_refined_html_length_p90: percentile(
+				perIntent.map((p) => p.metrics.draft_refined_html_length_p50),
+				90
+			),
+			draft_refined_html_length_max: (() => {
+				const vals = perIntent
+					.map((p) => p.metrics.draft_refined_html_length_max)
+					.filter((v) => typeof v === 'number' && Number.isFinite(v));
+				return vals.length ? Math.max(...vals) : null;
+			})(),
+			draft_refined_html_length_min: (() => {
+				const vals = perIntent
+					.map((p) => p.metrics.draft_refined_html_length_min)
+					.filter((v) => typeof v === 'number' && Number.isFinite(v));
+				return vals.length ? Math.min(...vals) : null;
+			})(),
 			synthesis_updated_count_sum: synthesisUpdatedCountSum,
 			swipe_result_count_sum: swipeResultCountSum,
 			error_event_count_sum: errorEventSum,

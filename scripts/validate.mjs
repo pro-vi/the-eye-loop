@@ -824,6 +824,36 @@ async function main() {
 		return typeof html === 'string' && !html.includes(DRAFT_PLACEHOLDER_SIGNATURE);
 	}).length;
 
+	// iter-75: draft refined html length distribution probe. iter-74 reduced
+	// Haiku's scaffold output from ~5800-7300 chars (iter-71 observation) to
+	// ~4200-5500 chars via a prompt-level length hint in SCAFFOLD_PROMPT, but
+	// there was no typed metric to confirm the length intervention holds
+	// across future iterations. Converts that ad-hoc observation into a
+	// forward-deploy measurement: a regression where Haiku drifts back to
+	// verbose outputs (or a future further-reduction intervention) is
+	// directly visible at aggregate without requiring manual sample inspection.
+	// Distinct from iter-64's count probe (tracks emission cardinality, not
+	// size), iter-51/70's latency probes (tracks time, not size), and
+	// iter-67/72's content-validation probes (tracks shape, not magnitude).
+	// Null when draft_refined_count === 0 (broken-auth or empty-session runs);
+	// non-null tier aligns with iter-64's refined >= 1 gating. Inline sort/
+	// indexing avoids forward-reference to pctInline (defined later in scope)
+	// and matches the stable-on-tie p50 semantics used for iter-51/70 latency.
+	const refinedHtmlLengths = draftUpdatedEvents
+		.map((e) => e.data?.draft?.html)
+		.filter((h) => typeof h === 'string' && !h.includes(DRAFT_PLACEHOLDER_SIGNATURE))
+		.map((h) => h.length);
+	const refinedHtmlLengthSorted = [...refinedHtmlLengths].sort((a, b) => a - b);
+	const draftRefinedHtmlLengthP50 = refinedHtmlLengthSorted.length
+		? refinedHtmlLengthSorted[Math.floor(refinedHtmlLengthSorted.length / 2)]
+		: null;
+	const draftRefinedHtmlLengthMax = refinedHtmlLengthSorted.length
+		? refinedHtmlLengthSorted[refinedHtmlLengthSorted.length - 1]
+		: null;
+	const draftRefinedHtmlLengthMin = refinedHtmlLengthSorted.length
+		? refinedHtmlLengthSorted[0]
+		: null;
+
 	// Reveal reachability — any stage-changed event with stage==='reveal'.
 	const revealReached = events.some(
 		(e) => e.type === 'stage-changed' && e.data?.stage === 'reveal'
@@ -1460,6 +1490,9 @@ async function main() {
 			draft_updated_count: draftUpdatedCount,
 			draft_placeholder_count: draftPlaceholderCount,
 			draft_refined_count: draftRefinedCount,
+			draft_refined_html_length_p50: draftRefinedHtmlLengthP50,
+			draft_refined_html_length_max: draftRefinedHtmlLengthMax,
+			draft_refined_html_length_min: draftRefinedHtmlLengthMin,
 			synthesis_updated_count: synthesisUpdatedCount,
 			swipe_result_count: swipeResultCount,
 			evidence_updated_count: evidenceUpdatedCount,
@@ -1566,6 +1599,7 @@ async function main() {
 		`[validate] result=${artifact.result} reason=${reason} ` +
 		`${sessionSummary} facades=${facadeReadyCount} drafts=${draftUpdatedCount} ` +
 		`drafts_p/r=${draftPlaceholderCount}/${draftRefinedCount} ` +
+		`drafts_r_len=${draftRefinedHtmlLengthP50 === null ? '-' : draftRefinedHtmlLengthP50 + 'c'}/min=${draftRefinedHtmlLengthMin === null ? '-' : draftRefinedHtmlLengthMin + 'c'}/max=${draftRefinedHtmlLengthMax === null ? '-' : draftRefinedHtmlLengthMax + 'c'} ` +
 		`synth=${synthesisUpdatedCount} swipe=${swipe.attempted ? swipe.status : 'skipped'} ` +
 		`sse_err=${errorEventCount} auth_err=${agentErrorLines.length} ` +
 		`err_msg=${errorMessagePresentCount} ` +
