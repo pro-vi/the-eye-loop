@@ -211,16 +211,39 @@ async function main() {
 		process.exit(2);
 	}
 
-	// 3. Open SSE first so we catch everything.
+	// 3. POST /api/session first. The session-scoped reservoir runtime returns
+	// a warm bootstrap payload with the session id needed by /api/stream.
 	const events = [];
 	const firsts = {};
 	let streamError = null;
 	const streamController = new AbortController();
-	const tStreamOpen = Date.now();
+	let tStreamOpen = 0;
+	const tPost = Date.now();
+	let sessionStatus = 0;
+	let sessionBody = null;
+	let sessionError = null;
+	try {
+		const res = await fetch(detectedUrl + '/api/session', {
+			method: 'POST',
+			headers: { 'content-type': 'application/json' },
+			body: JSON.stringify({ intent: DEMO_INTENT })
+		});
+		sessionStatus = res.status;
+		sessionBody = await res.json().catch(() => null);
+	} catch (err) {
+		sessionError = String(err?.message ?? err);
+	}
+	const sessionRttMs = Date.now() - tPost;
+	const sessionId = typeof sessionBody?.sessionId === 'string' ? sessionBody.sessionId : null;
 
 	const streamTask = (async () => {
+		if (!sessionId) {
+			streamError = 'missing sessionId';
+			return;
+		}
 		try {
-			const res = await fetch(detectedUrl + '/api/stream', {
+			tStreamOpen = Date.now();
+			const res = await fetch(`${detectedUrl}/api/stream?sessionId=${encodeURIComponent(sessionId)}`, {
 				headers: { accept: 'text/event-stream' },
 				signal: streamController.signal
 			});
@@ -253,26 +276,7 @@ async function main() {
 		}
 	})();
 
-	// Small gap so SSE is live before we kick the session.
 	await sleep(500);
-
-	// 4. POST /api/session
-	const tPost = Date.now();
-	let sessionStatus = 0;
-	let sessionBody = null;
-	let sessionError = null;
-	try {
-		const res = await fetch(detectedUrl + '/api/session', {
-			method: 'POST',
-			headers: { 'content-type': 'application/json' },
-			body: JSON.stringify({ intent: DEMO_INTENT })
-		});
-		sessionStatus = res.status;
-		sessionBody = await res.json().catch(() => null);
-	} catch (err) {
-		sessionError = String(err?.message ?? err);
-	}
-	const sessionRttMs = Date.now() - tPost;
 
 	// 5. Swipe watcher — on first facade-ready, mark visible + POST one swipe.
 	// This extends the validator to cover the expensive outer channel target
@@ -362,7 +366,7 @@ async function main() {
 			const vr = await fetch(detectedUrl + '/api/facade-visible', {
 				method: 'POST',
 				headers: { 'content-type': 'application/json' },
-				body: JSON.stringify({ facadeId })
+				body: JSON.stringify({ sessionId, facadeId })
 			});
 			facadeVisible.status = vr.status;
 		} catch (e) {
@@ -377,7 +381,7 @@ async function main() {
 			const r = await fetch(detectedUrl + '/api/swipe', {
 				method: 'POST',
 				headers: { 'content-type': 'application/json' },
-				body: JSON.stringify({ facadeId, decision: 'accept', latencyMs: 600 })
+				body: JSON.stringify({ sessionId, facadeId, decision: 'accept', latencyMs: 600 })
 			});
 			swipe.status = r.status;
 			swipe.body = await r.json().catch(() => null);
@@ -900,7 +904,10 @@ async function main() {
 		const ctrl2 = new AbortController();
 		const tS2 = Date.now();
 		try {
-			const r2 = await fetch(detectedUrl + '/api/stream', {
+			const stream2Url = sessionId
+				? `${detectedUrl}/api/stream?sessionId=${encodeURIComponent(sessionId)}`
+				: `${detectedUrl}/api/stream`;
+			const r2 = await fetch(stream2Url, {
 				headers: { accept: 'text/event-stream' },
 				signal: ctrl2.signal
 			});
