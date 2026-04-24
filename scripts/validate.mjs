@@ -539,6 +539,25 @@ async function main() {
 		// serializes palette as string/array instead of object (count drops to 0
 		// while primary holds positive under forward-deploy).
 		synthesis_palette_present_count: 0,
+		// iter-95: stream_2 counterpart for iter-95's primary-bus draft_next_hint_
+		// present_count probe on draft-updated.draft.nextHint. PrototypeDraft.nextHint
+		// (types.ts:52) is `string | undefined`; only rebuild() (builder.ts:323,
+		// unreachable under the 12s single-swipe validator window) sets it from
+		// output.nextHint ?? undefined. Under iter-61 healthy-auth baseline
+		// stream_2 replay carries context.draft snapshot at open time — placeholder
+		// (iter-63) and scaffold (iter-48 merge) paths leave nextHint undefined,
+		// so stream_2_draft_next_hint_present_count = 0 per intent. A SHOULD-BE-
+		// ZERO cross-stream invariant paired with primary iter-95 and iter-93's
+		// builder_hint_count: when rebuild is reachable (widened window or multi-
+		// swipe regime), all three transition together because builder.ts:369-371
+		// gates emitBuilderHint on output.nextHint (same predicate that sets
+		// context.draft.nextHint). Regression classes: (a) placeholder or scaffold
+		// path accidentally sets nextHint (count flips 0→1 inappropriately);
+		// (b) /api/stream replay drops nextHint from context.draft payload while
+		// primary keeps it (stream_2 count drops below primary under forward-
+		// deploy rebuild regime); (c) JSON serialization turns undefined into null
+		// but typeof still !== 'string' so probe holds correct semantic.
+		draft_next_hint_present_count: 0,
 		first_event_ms_after_open: null,
 		last_event_ms_after_open: null,
 		replay_span_ms: null,
@@ -993,6 +1012,24 @@ async function main() {
 				typeof e.data?.draft?.html === 'string' &&
 				!e.data.draft.html.includes(DRAFT_PLACEHOLDER_SIGNATURE)
 		).length;
+		// iter-95: stream_2 draft.nextHint presence-validity probe. PrototypeDraft.
+		// nextHint (types.ts:52) is `string | undefined`; only rebuild() at
+		// builder.ts:323 sets it from output.nextHint ?? undefined, and rebuild is
+		// unreachable under the 12s single-swipe validator window. Under iter-61
+		// healthy-auth baseline the /api/stream replay snapshot captures context.
+		// draft at open time, which carries placeholder or scaffold content but
+		// never nextHint — so _sum=0/_min=0 per intent. Cross-stream SHOULD-BE-
+		// ZERO identity with primary iter-95. Forward-deploy transition: under a
+		// rebuild-reachable regime (widened window or multi-swipe harness), the
+		// primary count rises and stream_2 tracks IF context.draft.nextHint is
+		// still set at stream_2 open time (it is — rebuild mutates context.draft
+		// in place without clearing nextHint until the next scaffold cycle).
+		stream2.draft_next_hint_present_count = stream2.events.filter(
+			(e) =>
+				e.type === 'draft-updated' &&
+				typeof e.data?.draft?.nextHint === 'string' &&
+				e.data.draft.nextHint.length > 0
+		).length;
 		// Replay-tightness probe — closes iter-34's explicitly-deferred "assert
 		// p90-p50<20ms as an additional stability invariant" opportunity, but
 		// generalized: the /api/stream start() block emits ALL replay events
@@ -1148,6 +1185,58 @@ async function main() {
 	const draftRefinedCount = draftUpdatedEvents.filter((e) => {
 		const html = e.data?.draft?.html;
 		return typeof html === 'string' && !html.includes(DRAFT_PLACEHOLDER_SIGNATURE);
+	}).length;
+
+	// iter-95: draft.nextHint presence-validity on the primary bus. PrototypeDraft.
+	// nextHint (types.ts:52) is `string | undefined` — only rebuild() at
+	// builder.ts:323 sets it from output.nextHint ?? undefined. The four
+	// emission paths diverge on this field:
+	//   placeholder (builder.ts:454-462, sync pre-scaffold): nextHint never set,
+	//     context.draft init at context.ts:31-37 omits the field (= undefined).
+	//   scaffold success (builder.ts:524-528): scaffold merge updates title/
+	//     summary/html only; nextHint remains undefined from init.
+	//   rebuild success (builder.ts:319-323): sets nextHint = output.nextHint
+	//     ?? undefined — the ONLY path that can populate nextHint with a string.
+	//   reveal success (builder.ts:708-712): explicitly sets nextHint = undefined
+	//     (clears any rebuild-populated value).
+	// Under iter-61 healthy-auth 12s-window baseline with 1 swipe: rebuild runs
+	// only at swipeCount %4 === 0 (oracle.ts:260-266 gate) AND its ~15s Haiku
+	// call rarely completes in-window — so nextHint stays undefined on every
+	// draft-updated emit, yielding draft_next_hint_present_count = 0 per intent.
+	// A SHOULD-BE-ZERO invariant under current regime parallel to iter-93's
+	// facade_stale_count/builder_hint_count and iter-94's synthesis_palette_
+	// present_count — all forward-deploy under widened windows or multi-swipe
+	// regimes to positive counts matching specific emission-path predicates.
+	//
+	// Identity pairing with iter-93's builder_hint_count: emitBuilderHint at
+	// builder.ts:369-371 is gated on `if (output.nextHint)` — the SAME predicate
+	// that set context.draft.nextHint three lines earlier at builder.ts:323. So
+	// under rebuild-reachable regimes, builder_hint_count and draft_next_hint_
+	// present_count transition together in lock-step: the count of draft-updated
+	// emits carrying a nextHint string EQUALS the count of builder-hint events.
+	// A regression that breaks one emit without breaking the other (e.g. skipped
+	// emitDraftUpdated after rebuild success but builder-hint still fires) would
+	// split this identity, pinpointing the gap.
+	//
+	// Regression classes this catches that iter-64/65/75/76 html-level probes
+	// cannot:
+	//   (a) placeholder or scaffold path accidentally populates nextHint (e.g.
+	//       someone adds a "placeholder hint" string to the sync emit). Count
+	//       flips from 0 per intent to positive — iter-64's placeholder count
+	//       stays at 1, iter-76's scaffold count stays at 1, but next_hint
+	//       jumps, surfacing the field-level regression.
+	//   (b) rebuild completes but never calls emitDraftUpdated for the nextHint-
+	//       populated draft (e.g. a refactor drops the emit after the merge
+	//       while retaining the context mutation). Under forward-deploy rebuild-
+	//       reachable regime, builder_hint_count (iter-93) stays at count while
+	//       next_hint_present_count stays at 0 — exactly the identity break.
+	//   (c) reveal path bug where nextHint isn't cleared (builder.ts:711 removed
+	//       or bypassed). Under forward-deploy reveal-reachable regime, next_hint
+	//       count inflates past the rebuild-success baseline because reveal's
+	//       draft-updated emit carries the stale rebuild nextHint.
+	const draftNextHintPresentCount = draftUpdatedEvents.filter((e) => {
+		const nextHint = e.data?.draft?.nextHint;
+		return typeof nextHint === 'string' && nextHint.length > 0;
 	}).length;
 
 	// iter-75: draft refined html length distribution probe. iter-74 reduced
@@ -2250,6 +2339,7 @@ async function main() {
 			draft_updated_count: draftUpdatedCount,
 			draft_placeholder_count: draftPlaceholderCount,
 			draft_refined_count: draftRefinedCount,
+			draft_next_hint_present_count: draftNextHintPresentCount,
 			draft_refined_html_length_p50: draftRefinedHtmlLengthP50,
 			draft_refined_html_length_max: draftRefinedHtmlLengthMax,
 			draft_refined_html_length_min: draftRefinedHtmlLengthMin,
@@ -2321,6 +2411,7 @@ async function main() {
 			stream_2_draft_updated_count: stream2.draft_updated_count,
 			stream_2_draft_placeholder_count: stream2.draft_placeholder_count,
 			stream_2_draft_refined_count: stream2.draft_refined_count,
+			stream_2_draft_next_hint_present_count: stream2.draft_next_hint_present_count,
 			// iter-66: final three unprobed cells on stream_2 replay (iter-65
 			// explicitly named these as remaining harness-completeness gaps).
 			stream_2_facade_ready_count: stream2.facade_ready_count,
@@ -2428,7 +2519,7 @@ async function main() {
 	console.log(
 		`[validate] result=${artifact.result} reason=${reason} ` +
 		`${sessionSummary} facades=${facadeReadyCount} drafts=${draftUpdatedCount} ` +
-		`drafts_p/r=${draftPlaceholderCount}/${draftRefinedCount} ` +
+		`drafts_p/r=${draftPlaceholderCount}/${draftRefinedCount} draft_next_hint=${draftNextHintPresentCount} ` +
 		`drafts_r_len=${draftRefinedHtmlLengthP50 === null ? '-' : draftRefinedHtmlLengthP50 + 'c'}/min=${draftRefinedHtmlLengthMin === null ? '-' : draftRefinedHtmlLengthMin + 'c'}/max=${draftRefinedHtmlLengthMax === null ? '-' : draftRefinedHtmlLengthMax + 'c'} ` +
 		`drafts_r_src=s${draftRefinedScaffoldCount}/r${draftRefinedRebuildCount}/u${draftRefinedUnknownCount} ` +
 		`drafts_r_s_len=${draftRefinedScaffoldHtmlLengthP50 === null ? '-' : draftRefinedScaffoldHtmlLengthP50 + 'c'}/min=${draftRefinedScaffoldHtmlLengthMin === null ? '-' : draftRefinedScaffoldHtmlLengthMin + 'c'} ` +
@@ -2452,7 +2543,7 @@ async function main() {
 		`s2_roles=s${stream2.agent_status_scout_count}/o${stream2.agent_status_oracle_count}/b${stream2.agent_status_builder_count} ` +
 		`s2_stage_valid=${stream2.stage_valid_count} s2_err_src_valid=${stream2.error_source_valid_count} s2_err_code_valid=${stream2.error_code_valid_count} s2_err_msg=${stream2.error_message_present_count} ` +
 		`s2_agent_status_valid=${stream2.agent_status_valid_count} s2_agent_status_role_valid=${stream2.agent_status_role_valid_count} s2_stage_swipe_valid=${stream2.stage_changed_swipe_count_valid_count} ` +
-		`s2_drafts=${stream2.draft_updated_count} s2_drafts_p/r=${stream2.draft_placeholder_count}/${stream2.draft_refined_count} ` +
+		`s2_drafts=${stream2.draft_updated_count} s2_drafts_p/r=${stream2.draft_placeholder_count}/${stream2.draft_refined_count} s2_draft_next_hint=${stream2.draft_next_hint_present_count} ` +
 		`s2_facades=${stream2.facade_ready_count} s2_synth=${stream2.synthesis_updated_count} s2_evidence=${stream2.evidence_updated_count} ` +
 		`s2_facade_fmt_valid=${stream2.facade_format_valid_count} ` +
 		`s2_synth_axes=${stream2.synthesis_axes_count}/min=${stream2.synthesis_axes_min} s2_synth_axes_conf_valid=${stream2.synthesis_axes_valid_confidence_count} s2_synth_assigns=${stream2.synthesis_scout_assignments_count}/min=${stream2.synthesis_scout_assignments_min} s2_synth_assigns_scout_valid=${stream2.synthesis_scout_assignments_valid_scout_count} s2_synth_palette=${stream2.synthesis_palette_present_count} ` +

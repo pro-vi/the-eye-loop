@@ -106,6 +106,14 @@ function extractMetrics(artifact) {
 		draft_updated_count: m.draft_updated_count ?? 0,
 		draft_placeholder_count: m.draft_placeholder_count ?? 0,
 		draft_refined_count: m.draft_refined_count ?? 0,
+		// iter-95: forward-carry draft.nextHint presence-validity probe count
+		// from validate.mjs so aggregate rollups below can establish the SHOULD-
+		// BE-ZERO invariant (_sum=0/_min=0) under iter-61 healthy-auth 5-intent
+		// 12s-window baseline. Under rebuild-reachable forward-deploy regimes
+		// the primary count flips positive, paired with iter-93's builder_hint_
+		// count in lock-step via builder.ts:369-371's shared `if (output.nextHint)`
+		// gate.
+		draft_next_hint_present_count: m.draft_next_hint_present_count ?? 0,
 		draft_refined_html_length_p50: m.draft_refined_html_length_p50 ?? null,
 		draft_refined_html_length_max: m.draft_refined_html_length_max ?? null,
 		draft_refined_html_length_min: m.draft_refined_html_length_min ?? null,
@@ -172,6 +180,12 @@ function extractMetrics(artifact) {
 		stream_2_stage_changed_swipe_count_valid_count: m.stream_2_stage_changed_swipe_count_valid_count ?? 0,
 		stream_2_draft_updated_count: m.stream_2_draft_updated_count ?? 0,
 		stream_2_draft_placeholder_count: m.stream_2_draft_placeholder_count ?? 0,
+		// iter-95: forward-carry stream_2 counterpart of draft.nextHint presence-
+		// validity probe. Cross-stream SHOULD-BE-ZERO identity with primary
+		// iter-95 under healthy-auth baseline; forward-deploys under rebuild-
+		// reachable regime where /api/stream replay snapshot captures context.
+		// draft after rebuild has populated nextHint.
+		stream_2_draft_next_hint_present_count: m.stream_2_draft_next_hint_present_count ?? 0,
 		stream_2_draft_refined_count: m.stream_2_draft_refined_count ?? 0,
 		stream_2_facade_ready_count: m.stream_2_facade_ready_count ?? 0,
 		stream_2_synthesis_updated_count: m.stream_2_synthesis_updated_count ?? 0,
@@ -487,6 +501,66 @@ async function main() {
 			draft_refined_count_sum: sumMetric('draft_refined_count'),
 			draft_refined_count_min: perIntent.length
 				? Math.min(...perIntent.map((p) => p.metrics.draft_refined_count ?? 0))
+				: 0,
+			// iter-95: draft.nextHint presence-validity rollup on the primary bus.
+			// PrototypeDraft.nextHint (types.ts:52) is `string | undefined` and is
+			// populated by ONLY ONE emission path: rebuild() at builder.ts:319-323
+			// (placeholder/scaffold/reveal paths all leave it undefined or clear
+			// it). Under iter-61 healthy-auth 5-intent 12s-window baseline rebuild
+			// is unreachable (swipeCount<4 gate at oracle.ts:260-266 AND ~15s
+			// rebuild latency past the 12s window), so:
+			//   draft_next_hint_present_count_sum = 0
+			//   draft_next_hint_present_count_min = 0
+			// A SHOULD-BE-ZERO invariant in the current regime parallel to iter-93's
+			// facade_stale_count_sum / builder_hint_count_sum and iter-94's
+			// synthesis_palette_present_count_sum — all three are forward-deploy
+			// probes whose baseline=0 under the current window constraints but
+			// whose discriminative value emerges under widened-window / multi-
+			// swipe / rebuild-reachable regimes.
+			//
+			// Forward-deploy identity chain under rebuild-reachable regime:
+			//   draft_next_hint_present_count_sum
+			//     == builder_hint_count_sum
+			//     == (number of rebuild runs where output.nextHint was truthy)
+			// This identity emerges because emitBuilderHint at builder.ts:369-371
+			// is gated on `if (output.nextHint)` — the exact predicate that
+			// populates context.draft.nextHint three lines earlier. A regression
+			// that breaks the builder-hint emit without breaking the draft-updated
+			// emit (or vice versa) would split this identity — the probe pair
+			// provides two-sided coverage orthogonal to iter-93's single-sided
+			// builder-hint count.
+			//
+			// Regression classes this rollup catches that iter-64/65/75/76
+			// html-level rollups cannot:
+			//   (a) placeholder or scaffold accidentally populating nextHint (e.g.
+			//       someone adds a "warming up" hint string to the sync emit at
+			//       builder.ts:454-462). Count flips 0 → 5 under healthy-auth
+			//       baseline (one per intent), with iter-64's placeholder_count
+			//       unchanged (still 5 per intent) — exactly the field-level
+			//       regression that html-shape probes cannot see.
+			//   (b) rebuild path refactor that mutates context.draft.nextHint but
+			//       fails to emit draft-updated afterward. Under forward-deploy
+			//       rebuild-reachable regime, builder_hint_count_sum tracks the
+			//       rebuild completions (iter-93) while draft_next_hint_present_
+			//       count_sum stays at 0 — the identity break pinpoints the
+			//       missing emit.
+			//   (c) reveal path bug where nextHint isn't cleared (builder.ts:711
+			//       removed or bypassed). Under forward-deploy reveal-reachable
+			//       regime, count inflates past the rebuild-success baseline
+			//       because reveal's draft-updated emit carries the stale rebuild
+			//       nextHint instead of the expected cleared-to-undefined state.
+			//
+			// Paired with stream_2 counterpart rollup (iter-95 below) for cross-
+			// stream identity: under healthy-auth both _sum=0; under rebuild-
+			// reachable regime primary count matches stream_2 snapshot count IF
+			// context.draft.nextHint is still set at stream_2 open time (it is,
+			// until the next scaffold cycle clears it). A /api/stream replay block
+			// regression that drops nextHint from the snapshot payload while
+			// primary retains it would drop stream_2 count below primary under
+			// forward-deploy.
+			draft_next_hint_present_count_sum: sumMetric('draft_next_hint_present_count'),
+			draft_next_hint_present_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.draft_next_hint_present_count ?? 0))
 				: 0,
 			// iter-75 draft refined html length distribution rollups — iter-74
 			// reduced Haiku's scaffold output from ~5800-7300 chars (iter-71
@@ -1109,6 +1183,32 @@ async function main() {
 			stream_2_draft_refined_count_sum: sumMetric('stream_2_draft_refined_count'),
 			stream_2_draft_refined_count_min: perIntent.length
 				? Math.min(...perIntent.map((p) => p.metrics.stream_2_draft_refined_count ?? 0))
+				: 0,
+			// iter-95: stream_2 counterpart for iter-95's primary-bus draft.nextHint
+			// presence-validity rollup. /api/stream replay at +server.ts:27-29
+			// emits draft-updated when context.draft.html is set — the payload is
+			// context.draft by reference, so stream_2 carries whatever nextHint
+			// state is on context.draft at open time. Under iter-61 healthy-auth
+			// 5-intent 12s-window baseline rebuild is unreachable within the
+			// window, so context.draft.nextHint is never populated; the replay
+			// carries undefined on the wire, yielding:
+			//   stream_2_draft_next_hint_present_count_sum = 0
+			//   stream_2_draft_next_hint_present_count_min = 0
+			// Cross-stream SHOULD-BE-ZERO identity with primary iter-95 rollup.
+			// Forward-deploy transition under a rebuild-reachable regime: when
+			// rebuild completes before stream_2 opens, context.draft.nextHint is
+			// set; the replay emits a draft-updated with nextHint populated so
+			// stream_2 count rises to match the snapshot replay count (1 per
+			// intent — +server.ts:27 only fires once per stream_2 connect, gated
+			// on html non-empty). A /api/stream replay block regression that
+			// drops nextHint from the snapshot payload while primary retains it
+			// would drop stream_2 count below primary under forward-deploy — two-
+			// sided coverage that primary-only probes cannot provide.
+			stream_2_draft_next_hint_present_count_sum: sumMetric('stream_2_draft_next_hint_present_count'),
+			stream_2_draft_next_hint_present_count_min: perIntent.length
+				? Math.min(
+						...perIntent.map((p) => p.metrics.stream_2_draft_next_hint_present_count ?? 0)
+					)
 				: 0,
 			// iter-66: close the three remaining unprobed cells on /api/stream
 			// replay (iter-65 explicitly named these as future harness-completeness
