@@ -69,9 +69,19 @@ export interface EmergentAxis {
 	evidence_basis: string;
 }
 
+export interface Palette {
+	bg: string;
+	card: string;
+	accent: string;
+	text: string;
+	muted: string;
+	radius: string;
+}
+
 export interface TasteSynthesis {
 	axes: EmergentAxis[];
 	edge_case_flags: string[];
+	palette?: Palette;
 	scout_assignments: Array<{ scout: string; probe_axis: string; reason: string }>;
 	persona_anima_divergence: string | null;
 }
