@@ -8,7 +8,9 @@ import {
 	emitDraftUpdated,
 	emitBuilderHint,
 	emitEvidenceUpdated,
-	emitAgentStatus
+	emitAgentStatus,
+	emitError,
+	classifyErrorCode
 } from '$lib/server/bus';
 import type { AgentState, Facade, SwipeRecord } from '$lib/context/types';
 import { debugLog } from '$lib/server/debug-log';
@@ -40,6 +42,38 @@ const DraftUpdateSchema = z.object({
 	nextHint: z.string().nullable()
 });
 
+// iter-71: dedicated scaffold schema with only the three fields the scaffold
+// merge reads (title, summary, html). Under the full DraftUpdateSchema the
+// model was obligated to emit changeNote/acceptedPatterns/rejectedPatterns/
+// probeBriefs/nextHint even though SCAFFOLD_PROMPT tells it they must be
+// empty — those filler tokens and the nested probeBriefs tool-definition
+// burden contributed to the ~11.8s p50 scaffold latency (iter-70), which
+// put draft_refined_count at the 12s window's edge and flaked between 4/5
+// and 5/5. Rebuild still uses DraftUpdateSchema because its merge reads
+// probeBriefs / accepted / rejected / nextHint.
+const ScaffoldSchema = z.object({
+	title: z.string(),
+	summary: z.string(),
+	html: z.string()
+});
+
+// iter-77: dedicated reveal schema, applying iter-71's scaffold-trim pattern
+// to the reveal path. buildRevealDraft's merge only reads title/summary/html
+// (line ~664-667 explicitly sets nextHint = undefined and does not touch
+// changeNote, acceptedPatterns, rejectedPatterns, probeBriefs). The reveal
+// prompt was already instructing the model "probeBriefs = [], nextHint = null"
+// even though those were required by DraftUpdateSchema — filler output that
+// costs QUALITY_MODEL (Sonnet) tokens and tool-definition overhead on every
+// reveal build. Trimming to 3 fields matches iter-71's proven pattern and
+// reduces Sonnet latency on the reveal build, improving the V0 demo's
+// reveal-reachability row without regressing any scaffold/rebuild baseline
+// (rebuild still uses DraftUpdateSchema because its merge reads all 8 fields).
+const RevealSchema = z.object({
+	title: z.string(),
+	summary: z.string(),
+	html: z.string()
+});
+
 // ── Builder memory ──────────────────────────────────────────────────
 
 interface BuilderNote {
@@ -68,10 +102,9 @@ OUTPUT:
 - summary: 1-2 sentence description
 - html: basic HTML+CSS scaffold (mobile 375x667, inline styles, no scripts).
   Start with a CSS variable palette, then build 2-3 placeholder sections.
-- acceptedPatterns: [] (none yet)
-- rejectedPatterns: [] (none yet)
-- probeBriefs: [] (no evidence yet)
-- nextHint: null`;
+  Keep the scaffold CONCISE — aim for ~2000-3000 chars of html. This is a
+  starting point that will evolve through swipes, NOT the final polished
+  prototype. Three lean sections beat five verbose ones.`;
 
 const SWIPE_PROMPT = `You are the builder agent. You assemble a prototype from what users
 have shown through their choices — not from what they said.
@@ -193,6 +226,21 @@ async function rebuild(facade: Facade, record: SwipeRecord) {
 	const capturedId = context.sessionId;
 	setStatus('thinking', `analyzing ${record.decision} on "${facade.label}"`);
 
+	// Parallel to iter-24's builder.scaffold flag-and-branch: preserve the
+	// diagnostic focus on provider_auth_failure so the finally-block doesn't
+	// overwrite 'provider auth failed' with the generic 'watching for swipes'.
+	// Only matters post-healthy-auth (rebuild fires on every swipe, unreachable
+	// under broken auth because no facade arrives).
+	let authFailed = false;
+	// iter-46: cross-session staleness flag. The existing success-path guard at
+	// line ~252 returns early but finally still runs setStatus, overwriting the
+	// NEW session's builder focus with this stale run's state. Parallel family
+	// to iter-19 palette reset, iter-21 bus dedup clear, iter-42 conditional
+	// stage-changed, and iter-45 runColdStart catch guard — all close cross-
+	// session state leaks that arise when an async handler races a seedSession.
+	// Also guards the catch block's emitError so a stale rejection doesn't
+	// pollute the new session's bus.lastError (iter-26 replay source).
+	let stale = false;
 	try {
 		const antiStr = context.antiPatterns.length
 			? context.antiPatterns.map((p) => `  - ${p}`).join('\n')
@@ -242,6 +290,7 @@ async function rebuild(facade: Facade, record: SwipeRecord) {
 		});
 
 		if (context.sessionId !== capturedId) {
+			stale = true;
 			console.log('[builder] session changed during rebuild, discarding');
 			return;
 		}
@@ -328,9 +377,39 @@ async function rebuild(facade: Facade, record: SwipeRecord) {
 			});
 		}
 	} catch (err) {
+		// iter-46 staleness guard, symmetric to the success-path check above and
+		// parallel to iter-45's runColdStart catch. Under fire-and-forget rebuild
+		// timing a stale rejection would otherwise emitError (polluting the new
+		// session's bus.lastError) and fall through to finally's setStatus
+		// (overwriting the new session's builder focus).
+		if (context.sessionId !== capturedId) {
+			stale = true;
+			debugLog('Builder', 'rebuild-stale-error', {
+				captured: capturedId,
+				current: context.sessionId,
+				err: String(err)
+			});
+			return;
+		}
 		console.error('[builder] rebuild failed:', err);
+		const code = classifyErrorCode(err);
+		if (code === 'provider_auth_failure') authFailed = true;
+		emitError({
+			source: 'builder',
+			code,
+			agentId: BUILDER_ID,
+			message: err instanceof Error ? err.message : String(err)
+		});
 	} finally {
-		setStatus('idle', 'watching for swipes');
+		// iter-46: skip the setStatus write when the run was stale — the new
+		// session owns builder-01's agent state now, and this run's 'watching'
+		// or 'provider auth failed' would overwrite it. busy + drainPending
+		// still run because the module-level busy gate must be released for the
+		// new session's rebuild queue to drain (drainPending's own sessionId
+		// check at line ~176 already keeps it safe for session-scoped pending).
+		if (!stale) {
+			setStatus('idle', authFailed ? 'provider auth failed' : 'watching for swipes');
+		}
 		busy = false;
 		drainPending();
 	}
@@ -355,27 +434,138 @@ export function startBuilder(): void {
 			busy = true;
 			const capturedId = context.sessionId;
 			setStatus('thinking', 'generating initial scaffold');
+			let authFailed = false;
+			// iter-48: cross-session staleness flag, parallel family to iter-45
+			// runColdStart catch, iter-46 rebuild catch+finally, iter-47
+			// runSynthesis catch. Under fire-and-forget scaffold + slow
+			// generateText + tight multi-session timing, session N's rejection
+			// (or success) must not call emitError on N+1's bus.lastError nor
+			// overwrite N+1's builder-01 focus via the finally's setStatus.
+			let stale = false;
+
+			// iter-63: synchronous intent-derived placeholder draft so the
+			// prototype pane is never empty during the ~10s Haiku scaffold call.
+			// Fixes the V0 demo row "sees the draft update during the session".
+			// Pre-try-block placement means the emit is independent of
+			// generateText success or staleness — under broken auth the
+			// placeholder still lands before the 401 catch emits the error
+			// banner. iter-69: scaffold's success path now always overwrites
+			// this regardless of swipeCount (gate removed — see below).
+			const safeIntent = intent.replace(/[<&]/g, (c) => (c === '<' ? '&lt;' : '&amp;'));
+			context.draft.title = intent;
+			context.draft.summary = 'Drafting your prototype from the swipes…';
+			context.draft.html =
+				'<div style="padding:2rem;text-align:center;color:var(--muted,#8a7f78);opacity:0.75">' +
+				`<h2 style="margin:0 0 1rem;font-weight:400">${safeIntent}</h2>` +
+				'<p style="margin:0">Building your first draft…</p>' +
+				'</div>';
+			emitDraftUpdated({ draft: context.draft });
+
+			// iter-78: capture the placeholder html we just wrote so the merge
+			// below can detect if a rebuild (or anything else) mutated
+			// context.draft.html between scaffold start and scaffold end. Under
+			// single-session busy-gated timing, rebuild cannot run until
+			// scaffold's finally releases busy — so context.draft.html stays
+			// equal to this capture and scaffold merges unconditionally (iter-69
+			// frontier-anchor behavior preserved byte-equivalent). Under
+			// multi-session (iter-76 anchor: 1498c-vs-4222c collapsed-distribution
+			// anomaly), session 1's stale scaffold releases busy=false early,
+			// letting session 2's pending-swipe rebuild fire while session 2's
+			// scaffold is still running; when session 2's scaffold then completes,
+			// merging its (naive, swipe-unaware) output clobbers rebuild's
+			// swipe-aware draft. The capture-vs-current comparison catches that
+			// case cleanly: rebuild's merge mutates context.draft.html to
+			// non-placeholder content, the comparison fails, scaffold skips.
+			const capturedPlaceholderHtml = context.draft.html;
 
 			try {
 				const result = await generateText({
 					model: FAST_MODEL,
-					output: Output.object({ schema: DraftUpdateSchema }),
+					output: Output.object({ schema: ScaffoldSchema }),
 					temperature: 0,
 					system: SCAFFOLD_PROMPT.replace('{intent}', intent),
 					prompt: 'Generate the initial draft scaffold for this session.'
 				});
 
-				// Only merge if no swipe has beaten us AND session is still current
-				if (context.swipeCount === 0 && context.sessionId === capturedId && result.output) {
+				// iter-48: staleness check first — parallel to iter-46 rebuild
+				// success-path. A stale run must skip both the merge AND the
+				// finally's setStatus (the latter would clobber N+1's builder
+				// focus, which the new session's own onSessionReady just set to
+				// 'generating initial scaffold').
+				if (context.sessionId !== capturedId) {
+					stale = true;
+					return;
+				}
+
+				// iter-69: always merge on success (was gated on swipeCount === 0,
+				// which suppressed scaffold's result whenever a swipe landed during
+				// the ~10s Haiku call — under healthy-auth demo timing facade-ready
+				// arrives at ~3s and pendingSwipe queues while busy=true, so the
+				// gate triggered on essentially every run, leaving users watching
+				// iter-63's placeholder for ~20s (scaffold completed at ~10.5s but
+				// suppressed; rebuild started at 10.5s and needed another ~10s).
+				// Removing the gate: scaffold emits its real draft at ~10.5s AND
+				// rebuild inherits scaffold's richer HTML as current_draft_html
+				// (instead of the bare placeholder), matching SWIPE_PROMPT's "PATCH
+				// not rewrite" semantics. No race with rebuild because rebuild is
+				// gated on busy=false which is released in the finally AFTER this
+				// merge. Directly moves iter-64's frontier anchor draft_refined_count
+				// from 0 to >=1 per intent.
+				//
+				// iter-78: multi-session race guard — only merge when context.draft.html
+				// is still the placeholder we captured above. Under single-session
+				// timing this invariant holds (busy-gated rebuild cannot interleave),
+				// so the merge fires every intent (iter-74's 5/5 draft_refined_count_sum
+				// baseline preserved byte-equivalent). Under multi-session, a prior
+				// rebuild triggered by a stale-scaffold busy release can mutate the
+				// draft before this scaffold completes — the guard prevents that
+				// scaffold's (naive, swipe-unaware) output from clobbering rebuild's
+				// swipe-aware content.
+				if (result.output && context.draft.html === capturedPlaceholderHtml) {
 					context.draft.title = result.output.title;
 					context.draft.summary = result.output.summary;
 					context.draft.html = result.output.html;
 					emitDraftUpdated({ draft: context.draft });
 				}
 			} catch (err) {
+				// iter-48 staleness guard, symmetric to the success-path check
+				// above and parallel to iter-45 runColdStart catch / iter-46
+				// rebuild catch / iter-47 runSynthesis catch. A stale rejection
+				// would otherwise emitError (polluting N+1's bus.lastError,
+				// iter-26 replay source) and fall through to finally's setStatus
+				// (overwriting N+1's builder-01 focus).
+				if (context.sessionId !== capturedId) {
+					stale = true;
+					debugLog('Builder', 'scaffold-stale-error', {
+						captured: capturedId,
+						current: context.sessionId,
+						err: String(err)
+					});
+					return;
+				}
 				console.error('[builder] scaffold failed:', err);
+				const code = classifyErrorCode(err);
+				if (code === 'provider_auth_failure') authFailed = true;
+				emitError({
+					source: 'builder',
+					code,
+					agentId: BUILDER_ID,
+					message: err instanceof Error ? err.message : String(err)
+				});
 			} finally {
-				setStatus('idle', 'watching for swipes');
+				// iter-48: skip the setStatus write when the run was stale — the
+				// new session owns builder-01's agent state now. busy +
+				// drainPending still run because the module-level busy gate must
+				// be released for the new session's rebuild queue to drain
+				// (drainPending's own sessionId check at line ~176 already keeps
+				// it safe for session-scoped pending, iter-46 rationale).
+				// Parallel to iter-23's scout.ts auth-break path on the non-stale
+				// path: preserve the diagnostic focus on auth failure so the
+				// operator-facing final agent-status isn't overwritten with the
+				// generic 'watching'.
+				if (!stale) {
+					setStatus('idle', authFailed ? 'provider auth failed' : 'watching for swipes');
+				}
 				busy = false;
 				drainPending();
 			}
@@ -421,6 +611,26 @@ export async function buildRevealDraft(): Promise<void> {
 	const capturedId = context.sessionId;
 	setStatus('thinking', 'final prototype synthesis');
 
+	// Parallel to iter-24's builder.scaffold flag-and-branch: preserve the
+	// diagnostic focus on provider_auth_failure so the finally-block doesn't
+	// overwrite 'provider auth failed' with the generic 'reveal complete'.
+	// Only matters post-healthy-auth (buildRevealDraft fires once at stage=
+	// reveal, unreachable under broken auth because no swipes reach the
+	// REVEAL_THRESHOLD=15 evidence count).
+	let authFailed = false;
+	// iter-49: cross-session staleness flag, parallel family to iter-45
+	// runColdStart catch, iter-46 rebuild catch+finally, iter-47 runSynthesis
+	// catch, and iter-48 scaffold catch+finally. buildRevealDraft is invoked
+	// fire-and-forget via oracle.ts:432's buildRevealDraft().finally(...) so
+	// under tight multi-session timing (reveal-triggered slow QUALITY_MODEL
+	// generateText + mid-run new session) a stale rejection or success would
+	// otherwise emitError (polluting N+1's bus.lastError, iter-26 replay
+	// source) or setStatus via finally (overwriting N+1's builder-01 focus
+	// that the new session's onSessionReady just set to 'generating initial
+	// scaffold'). Two-site treatment (catch + finally) matches rebuild/scaffold
+	// topology; runSynthesis/runColdStart asymmetries don't apply here since
+	// buildRevealDraft's finally has no pre-existing gate like synthesisRunId.
+	let stale = false;
 	try {
 		const antiStr = context.antiPatterns.length
 			? context.antiPatterns.map((p) => `  - ${p}`).join('\n')
@@ -474,18 +684,26 @@ QUALITY BAR:
 
 ${HTML_QUALITY_RULES}
 
-OUTPUT: final title, summary, html (complete, polished, rich), changeNote, patterns, probeBriefs = [], nextHint = null`;
+OUTPUT: final title, summary, html (complete, polished, rich)`;
 
 		const result = await generateText({
 			model: QUALITY_MODEL,
-			output: Output.object({ schema: DraftUpdateSchema }),
+			output: Output.object({ schema: RevealSchema }),
 			temperature: 0,
 			system: finalPrompt,
 			prompt: 'Generate the final reveal prototype. Make it beautiful.',
 			maxOutputTokens: 16000
 		});
 
-		if (context.sessionId !== capturedId || !result.output) return;
+		// iter-49: staleness check first — parallel to iter-46 rebuild success
+		// path. A stale run must skip both the merge AND the finally's setStatus
+		// (the latter would clobber N+1's builder focus, which the new session's
+		// onSessionReady just set to 'generating initial scaffold').
+		if (context.sessionId !== capturedId) {
+			stale = true;
+			return;
+		}
+		if (!result.output) return;
 
 		context.draft.title = result.output.title;
 		context.draft.summary = result.output.summary;
@@ -500,8 +718,37 @@ OUTPUT: final title, summary, html (complete, polished, rich), changeNote, patte
 
 		console.log(`[builder] final reveal: "${result.output.title}" (${result.output.html.length} chars)`);
 	} catch (err) {
+		// iter-49 staleness guard, symmetric to the success-path check above
+		// and parallel to iter-45 runColdStart catch / iter-46 rebuild catch /
+		// iter-47 runSynthesis catch / iter-48 scaffold catch. A stale
+		// rejection would otherwise emitError (polluting N+1's bus.lastError)
+		// and fall through to finally's setStatus (overwriting N+1's builder
+		// focus).
+		if (context.sessionId !== capturedId) {
+			stale = true;
+			debugLog('Builder', 'reveal-stale-error', {
+				captured: capturedId,
+				current: context.sessionId,
+				err: String(err)
+			});
+			return;
+		}
 		console.error('[builder] final reveal build failed:', err);
+		const code = classifyErrorCode(err);
+		if (code === 'provider_auth_failure') authFailed = true;
+		emitError({
+			source: 'builder',
+			code,
+			agentId: BUILDER_ID,
+			message: err instanceof Error ? err.message : String(err)
+		});
 	} finally {
-		setStatus('idle', 'reveal complete');
+		// iter-49: skip the setStatus write when the run was stale — the new
+		// session owns builder-01's agent state now, and this run's 'reveal
+		// complete' or 'provider auth failed' would overwrite it. Parallel to
+		// iter-46 rebuild / iter-48 scaffold finally gating.
+		if (!stale) {
+			setStatus('idle', authFailed ? 'provider auth failed' : 'reveal complete');
+		}
 	}
 }

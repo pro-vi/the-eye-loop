@@ -132,6 +132,7 @@ class EyeLoopContext {
 		};
 		this.antiPatterns = [];
 		this.swipeLatencies = [];
+		this.palette = '';
 	}
 
 	// ── Evidence serializer for agent prompts ────────────────────────

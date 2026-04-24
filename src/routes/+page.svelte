@@ -21,6 +21,11 @@
 	let loading = $state(false);
 	let error = $state('');
 	let sessionId = $state<string | null>(null);
+	let sessionError = $state<{
+		code: 'provider_auth_failure' | 'provider_error' | 'generation_error';
+		source: 'scout' | 'oracle' | 'builder';
+		message: string;
+	} | null>(null);
 
 	// ── SSE-driven state ─────────────────────────────────────────────
 	let facades = $state<Facade[]>([]);
@@ -73,6 +78,7 @@
 		if (!intentText.trim() || loading) return;
 		loading = true;
 		error = '';
+		sessionError = null;
 		facades = [];
 		evidence = [];
 		synthesis = null;
@@ -164,7 +170,67 @@
 			if (data.stage === 'reveal') mode = 'reveal';
 		});
 
-		es.onerror = () => {
+		// Structured provider failures from scout/oracle/builder. Named 'error'
+		// collides with EventSource's native connection-error event, so gate on
+		// MessageEvent (SSE frames carry .data; native connection errors do not).
+		es.addEventListener('error', (e) => {
+			if (!(e instanceof MessageEvent) || typeof e.data !== 'string' || !e.data) return;
+			try {
+				const payload = JSON.parse(e.data);
+				if (typeof payload?.code === 'string' && typeof payload?.source === 'string') {
+					sessionError = {
+						code: payload.code,
+						source: payload.source,
+						message: typeof payload?.message === 'string' ? payload.message : ''
+					};
+				}
+			} catch {
+				// fall through — unparseable error frame
+			}
+		});
+
+		// Cross-session state clear for an already-connected stream. Parallels
+		// iter-21's server-side bus.lastError clear on session-ready and iter-42's
+		// conditional stage-changed emit for existing subscribers. startSession()
+		// already resets all of these fields in the same tab that initiated the
+		// fetch; this handler closes the analogous gap for a second tab (or any
+		// stream that held a connection across a session boundary it did not
+		// initiate), where session 1's facades / evidence / synthesis / draft /
+		// agents / stage / sessionError would otherwise persist in the UI
+		// indefinitely (under broken-auth where new-session events never land to
+		// overwrite) or until specific new events arrive piecemeal (under
+		// healthy-auth). iter-57 closed the sessionError half; this iteration
+		// extends to the full set of SSE-driven state clauses mirrored from
+		// startSession() so the non-initiating tab's view state matches the
+		// initiating tab's fresh-session view state.
+		es.addEventListener('session-ready', () => {
+			sessionError = null;
+			facades = [];
+			evidence = [];
+			synthesis = null;
+			antiPatterns = [];
+			agents = [];
+			draft = {
+				title: '',
+				summary: '',
+				html: '',
+				acceptedPatterns: [],
+				rejectedPatterns: []
+			};
+			stage = 'words';
+			// mode = 'swiping' returns a non-initiating tab stuck in 'reveal' (from
+			// a prior session that reached reveal) back to the active-session UI,
+			// matching startSession()'s post-fetch mode assignment. iter-42's
+			// conditional stage-changed emit will additionally fire stage='words'
+			// under healthy-auth multi-session flows where previousStage differed,
+			// but it does not force a mode transition — this does.
+			mode = 'swiping';
+		});
+
+		es.onerror = (e) => {
+			// SSE-typed 'error' messages also hit onerror in some runtimes;
+			// the MessageEvent variant is handled above.
+			if (e instanceof MessageEvent) return;
 			console.error('[sse] connection error');
 		};
 
@@ -354,6 +420,31 @@
 				</div>
 			</div>
 		</header>
+
+		{#if sessionError}
+			<div
+				class="mx-4 mt-3 rounded-lg px-4 py-3 shrink-0"
+				style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.28);"
+				role="alert"
+				data-testid="session-error-banner"
+			>
+				<p
+					class="text-[10px] uppercase tracking-[0.18em] font-semibold"
+					style="color: #f87171; font-family: var(--font-family-display);"
+				>
+					{sessionError.source} · {sessionError.code.replace(/_/g, ' ')}
+				</p>
+				<p class="text-sm mt-1 leading-relaxed" style="color: #fecaca;">
+					{#if sessionError.code === 'provider_auth_failure'}
+						The model rejected our credentials. Check <code class="text-xs" style="color: #fca5a5;">CLAUDE_CODE_OAUTH_TOKEN</code> and refresh to retry.
+					{:else if sessionError.code === 'provider_error'}
+						Provider is unreachable. {sessionError.message || 'Network or API issue.'}
+					{:else}
+						{sessionError.message || 'Generation failed.'}
+					{/if}
+				</p>
+			</div>
+		{/if}
 
 		<!-- Main grid -->
 		<div

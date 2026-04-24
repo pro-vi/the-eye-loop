@@ -6,6 +6,8 @@ import {
 	emitSessionReady,
 	emitStageChanged,
 	emitSynthesisUpdated,
+	emitError,
+	classifyErrorCode,
 	onSwipeResult
 } from '$lib/server/bus';
 import { stopAllScouts } from './scout';
@@ -47,7 +49,13 @@ const synthesisSchema = z.object({
 	palette: paletteSchema,  // derived from accepted evidence — consistent across all agent output
 	scout_assignments: z.array(
 		z.object({
-			scout: z.string(),
+			// Closed roster matches coldStartSchema below and SCOUTS in scout.ts:33-38.
+			// Prompt at line 90 already states the 6 names; enum makes the prompt
+			// contract structurally enforced at the Output.object layer rather than
+			// relying on the LLM to comply. scout.ts:191 does `a.scout === scoutName`
+			// against SCOUTS[].name — an off-roster scout would silently fall back
+			// to self-assignment, invisible to the cheap-channel validator.
+			scout: z.enum(['Iris', 'Prism', 'Lumen', 'Aura', 'Facet', 'Echo']),
 			probe_axis: z.string(),
 			reason: z.string()
 		})
@@ -177,6 +185,13 @@ async function runSynthesis() {
 
 	setOracleStatus('thinking', 'synthesizing evidence');
 
+	// Parallel to iter-24's builder.scaffold flag-and-branch: preserve the
+	// diagnostic focus on provider_auth_failure so the finally-block doesn't
+	// overwrite 'provider auth failed' with the generic 'monitoring'. Unlike
+	// the scout IIFE-return (iter-23), finally ALWAYS runs before any return
+	// inside try/catch, so a flag is required. Only matters post-healthy-auth
+	// (runSynthesis fires every 4 swipes, unreachable under broken auth).
+	let authFailed = false;
 	try {
 		const prompt = SYNTHESIS_PROMPT
 			.replace('{intent}', context.intent)
@@ -214,13 +229,37 @@ async function runSynthesis() {
 			});
 		}
 	} catch (err) {
+		// iter-47 session staleness guard, parallel to iter-45's runColdStart
+		// catch and iter-46's rebuild catch. runSynthesis is fire-and-forget on
+		// every 4th swipe, so an in-flight synthesis that rejects AFTER
+		// seedSession would otherwise emitError and pollute the new session's
+		// bus.lastError + /api/stream replay. The finally below is ALREADY
+		// gated by synthesisRunId === myRunId (which seedSession increments),
+		// so this guard closes only the catch-side leak — the setOracleStatus
+		// overwrite is already prevented by the finally's existing gate.
+		if (context.sessionId !== capturedSessionId) {
+			debugLog('Oracle', 'synthesis-stale-error', {
+				captured: capturedSessionId,
+				current: context.sessionId,
+				err: String(err)
+			});
+			return;
+		}
 		debugLog('Oracle', 'synthesis-error', { error: String(err) });
 		console.error('[oracle] synthesis failed:', err);
+		const code = classifyErrorCode(err);
+		if (code === 'provider_auth_failure') authFailed = true;
+		emitError({
+			source: 'oracle',
+			code,
+			agentId: ORACLE_AGENT_ID,
+			message: err instanceof Error ? err.message : String(err)
+		});
 	} finally {
 		// Only clear the gate if this run still owns it
 		if (synthesisRunId === myRunId) {
 			busy = false;
-			setOracleStatus('idle', 'monitoring');
+			setOracleStatus('idle', authFailed ? 'provider auth failed' : 'monitoring');
 			// Drain pending — catch up after burst of swipes
 			if (pendingSynthesis) {
 				pendingSynthesis = false;
@@ -234,6 +273,16 @@ async function runSynthesis() {
 
 export async function seedSession(intent: string): Promise<{ sessionId: string }> {
 	debugLog('Oracle', 'session-start', { intent: intent.trim() });
+	// Capture the stage BEFORE reset so a session following one that advanced
+	// past 'words' can announce the transition back to existing SSE subscribers.
+	// The /api/stream replay block (iter-27) handles NEW connections, but an
+	// already-connected client (e.g. a second tab that watched session 1 reach
+	// 'mockups' or 'reveal') never sees a stage-changed event when session 2
+	// resets context.stage to 'words' — leaving that tab's UI stuck in the old
+	// stage's mode. Parallel in spirit to iter-21's session-ready bus clear
+	// and iter-19's palette reset: both close cross-session state leaks that
+	// the replay block alone cannot see.
+	const previousStage = context.stage;
 	context.reset();
 	context.intent = intent;
 	context.sessionId = crypto.randomUUID();
@@ -246,10 +295,24 @@ export async function seedSession(intent: string): Promise<{ sessionId: string }
 
 	emitSessionReady({ intent });
 
-	// Await cold-start so scouts get axis assignments on their first iteration
-	await runColdStart(intent, context.sessionId);
+	// Only emit when the previous session's stage actually differed from the
+	// reset target — on the FIRST session of a process (and on any session
+	// whose predecessor ended at 'words') previousStage === context.stage, so
+	// this is a no-op and the broken-auth baseline stage_changed_event_count
+	// stays at its iter-34 value of 1 (the replay emit). The emit fires only
+	// on healthy-auth multi-session flows where session N reached 'mockups'
+	// or 'reveal' — exactly the scenario that stream_2 + the primary replay
+	// block cannot cover for already-connected clients.
+	if (previousStage !== context.stage) {
+		emitStageChanged({ stage: context.stage, swipeCount: context.swipeCount });
+	}
 
-	setOracleStatus('idle', 'monitoring');
+	// Fire-and-forget: awaiting the cold-start LLM call would block POST
+	// /api/session for ~2-3s under healthy auth. Scouts fall back to
+	// self-assignment via getAxisAssignment() until synthesis lands.
+	// runColdStart has its own sessionId staleness guards.
+	void runColdStart(intent, context.sessionId);
+
 	console.log(`[oracle] session created for "${intent}"`);
 	return { sessionId: context.sessionId };
 }
@@ -296,7 +359,38 @@ async function runColdStart(intent: string, capturedSessionId: string) {
 			});
 		}
 	} catch (err) {
+		// Session staleness guard, symmetric to the success-path check at
+		// context.sessionId !== capturedSessionId after generateText resolves.
+		// seedSession fires runColdStart fire-and-forget (iter-15), so an in-
+		// flight cold-start that rejects AFTER a new session started would
+		// otherwise emit a stale error event — polluting bus.lastError (iter-21
+		// session-ready clear only runs once per boundary, not per pending call)
+		// and writing a stale agent focus onto the new session's agents map.
+		// Parallel cross-session state-leak family to iter-19 palette reset,
+		// iter-21 lastErrorEmit clear, and iter-42 conditional stage-changed.
+		if (context.sessionId !== capturedSessionId) {
+			debugLog('Oracle', 'cold-start-stale-error', {
+				captured: capturedSessionId,
+				current: context.sessionId,
+				err: String(err)
+			});
+			return;
+		}
 		console.error('[oracle] cold-start failed, scouts will self-assign:', err);
+		const code = classifyErrorCode(err);
+		emitError({
+			source: 'oracle',
+			code,
+			agentId: ORACLE_AGENT_ID,
+			message: err instanceof Error ? err.message : String(err)
+		});
+		// Parallel to iter-23's scout.ts auth-break path: preserve the
+		// diagnostic focus instead of falling through to the trailing
+		// setOracleStatus('idle', 'monitoring') which would overwrite it.
+		if (code === 'provider_auth_failure') {
+			setOracleStatus('idle', 'provider auth failed');
+			return;
+		}
 	}
 	if (context.sessionId === capturedSessionId) {
 		setOracleStatus('idle', 'monitoring');
@@ -340,10 +434,46 @@ export function startOracle(): void {
 				setOracleStatus('thinking', 'building final prototype');
 				console.log(`[oracle] reveal at ${context.evidence.length} evidence — awaiting builder`);
 
-				// Builder does final synthesis FIRST, then we tell the client
+				// Builder does final synthesis FIRST, then we tell the client.
+				// iter-53: capture sessionId before the fire-and-forget dispatch so
+				// the .finally can skip cross-session emissions when seedSession
+				// starts a new session while buildRevealDraft is still pending.
+				// Parallel family to iter-45 runColdStart, iter-46 rebuild,
+				// iter-47 runSynthesis, iter-48 scaffold, iter-49 buildRevealDraft
+				// — but at the orchestrator level (reading builder's persisted
+				// focus per iter-33 across a session boundary would otherwise emit
+				// stage-changed('reveal') + setOracleStatus('reveal complete') on
+				// the NEW session's bus, polluting the client UI which is in
+				// 'words' stage. buildRevealDraft's own iter-49 guards suppress
+				// its emitError/setStatus but not this outer wrapper. Unreachable
+				// under broken-auth (REVEAL_THRESHOLD=15 never reached), forward-
+				// deploy defense identical to the rest of the family.
+				const revealCapturedSessionId = context.sessionId;
 				buildRevealDraft().finally(() => {
+					if (context.sessionId !== revealCapturedSessionId) {
+						debugLog('Oracle', 'reveal-finally-stale', {
+							captured: revealCapturedSessionId,
+							current: context.sessionId
+						});
+						return;
+					}
 					emitStageChanged({ stage: 'reveal', swipeCount: context.swipeCount });
-					setOracleStatus('idle', 'reveal complete');
+					// iter-33: mirror builder's auth-failure focus at the oracle-level
+					// wrapper. iter-32's flag-and-branch in buildRevealDraft's finally
+					// already sets the builder's status to 'provider auth failed' on
+					// provider_auth_failure, but this oracle orchestrator unconditionally
+					// overrode its own focus to 'reveal complete' — extending the
+					// focus-preservation family (iter-23/24/32) one level up so the
+					// roster-wide operator-facing diagnostic stays consistent across the
+					// reveal flow. Reading builder's persisted focus avoids coupling via
+					// a new return signature and preserves the .finally belt for any
+					// unexpected rejection inside buildRevealDraft itself.
+					const builderAgent = context.agents.get('builder-01');
+					const revealAuthFailed = builderAgent?.focus === 'provider auth failed';
+					setOracleStatus(
+						'idle',
+						revealAuthFailed ? 'provider auth failed' : 'reveal complete'
+					);
 					console.log('[oracle] reveal ready — client notified');
 				});
 

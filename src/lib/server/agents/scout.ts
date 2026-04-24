@@ -1,7 +1,13 @@
 import { generateText, Output } from 'ai';
 import { z } from 'zod';
 import { context } from '$lib/server/context';
-import { awaitFacadeSwipe, emitFacadeStale, emitAgentStatus } from '$lib/server/bus';
+import {
+	awaitFacadeSwipe,
+	emitFacadeStale,
+	emitAgentStatus,
+	emitError,
+	classifyErrorCode
+} from '$lib/server/bus';
 import type { Facade, AgentState } from '$lib/context/types';
 import { debugLog } from '$lib/server/debug-log';
 import { HTML_QUALITY_RULES } from '$lib/server/prompts';
@@ -12,6 +18,15 @@ import { FAST_MODEL } from '$lib/server/ai';
 // Visibility signal sent by client via POST /api/facade-visible.
 const SWIPE_TIMEOUT_MS = 30_000;
 const MAX_HISTORY = 8;
+// Retry strategy under provider failure:
+// - provider_auth_failure: zero retries (401 never recovers mid-session; a
+//   token rotation needs a server restart). Scout exits cleanly and the
+//   iter-8 client banner surfaces the env var to the user.
+// - provider_error / generation_error: exponential backoff 1s→2s→4s→8s→16s
+//   cap preserves first-retry latency for transient network/schema errors.
+const RETRY_BASE_MS = 1_000;
+const RETRY_MAX_MS = 16_000;
+const RETRY_EXP_CAP = 4; // shift cap: 2^4 = 16
 // ── Scout roster ────────────────────────────────────────────────────
 
 const SCOUT_ROSTER = [
@@ -32,13 +47,38 @@ const SCOUT_LENSES: Record<string, string> = {
 	Lumen: 'Your lens: VOICE AND PERSONALITY — friendly vs professional, playful vs serious, branded vs neutral.'
 };
 
-// ── Zod schema ──────────────────────────────────────────────────────
-
-const ScoutOutputSchema = z.object({
+// ── Zod schemas ─────────────────────────────────────────────────────
+// iter-79: split the single 7-field ScoutOutputSchema into floor-specific
+// schemas, applying iter-71/77's asymmetric-schema-per-callsite pattern to
+// the scout path. Two field-level redundancies motivated the split:
+//   (a) `format`: the consumer at line ~289 does
+//       `ALLOWED[floor].includes(output.format) ? output.format : floor`
+//       where ALLOWED.word = ['word'] and ALLOWED.mockup = ['mockup'] — so
+//       the ternary resolves to `floor` in every code path, making the
+//       emitted format field pure tool-definition + output overhead.
+//   (b) `content` (word-floor only): the consumer at line ~307 does
+//       `format === 'word' ? output.label : output.content`, so for the
+//       word floor the LLM emits a content string that is NEVER read
+//       (label is re-used as content). Under a 12s validator window every
+//       scout call runs at concretenessFloor = 'word' (evidence<4), so
+//       this redundancy fires on the critical time_to_first_facade path.
+// Mockup floor retains `content` because the consumer reads output.content
+// (and the mockup-HTML-rendering fallback at line ~317 also reads it).
+// Forward-deploy: preserves facade_format_valid_count union-membership
+// identity (iter-67) by construction — format is always set from `floor`
+// which is typed as Facade['format'] (∈ {word, mockup}).
+const ScoutOutputSchemaWord = z.object({
 	label: z.string(),
 	hypothesis: z.string(),
 	axis_targeted: z.string(),
-	format: z.enum(['word', 'mockup']),
+	accept_implies: z.string(),
+	reject_implies: z.string()
+});
+
+const ScoutOutputSchemaMockup = z.object({
+	label: z.string(),
+	hypothesis: z.string(),
+	axis_targeted: z.string(),
 	content: z.string(),
 	accept_implies: z.string(),
 	reject_implies: z.string()
@@ -207,6 +247,7 @@ function startScout(agentId: string, name: string): () => void {
 		context.stage !== 'reveal';
 
 	(async () => {
+		let consecutiveFailures = 0;
 		while (alive()) {
 			try {
 				if (context.queuePressure === 'full') {
@@ -250,26 +291,42 @@ function startScout(agentId: string, name: string): () => void {
 						.replace('{PROBE_BRIEF}', probeBrief)
 						.replace('{FORMAT_INSTRUCTION}', instruction);
 
+					// iter-79: schema chosen per floor; see ScoutOutputSchemaWord/
+					// Mockup at top of file. format is always set from `floor` below,
+					// so the LLM no longer emits a redundant format field.
+					const scoutSchema =
+						floor === 'word' ? ScoutOutputSchemaWord : ScoutOutputSchemaMockup;
 					const result = await generateText({
 						model: FAST_MODEL,
-						output: Output.object({ schema: ScoutOutputSchema }),
+						output: Output.object({ schema: scoutSchema }),
 						temperature: 1.0,
 						system,
 						prompt: 'Generate the next taste probe. Follow the format instruction.',
 						abortSignal: signal
 					});
+					consecutiveFailures = 0;
 
 					if (!alive()) break;
 
 					const output = result.output;
 					if (!output) continue;
 
-					// Enforce concreteness floor — LLM may ignore format instruction
-					const ALLOWED: Record<Facade['format'], Facade['format'][]> = {
-						word: ['word'],
-						mockup: ['mockup']
-					};
-					const format = ALLOWED[floor].includes(output.format) ? output.format : floor;
+					// iter-79: format is determined by floor (not by LLM output). The
+					// previous ALLOWED[floor].includes(output.format) ? output.format :
+					// floor expression always resolved to floor because ALLOWED.word =
+					// ['word'] and ALLOWED.mockup = ['mockup'] — a no-op that now
+					// collapses to the direct assignment with the redundant schema
+					// field removed.
+					const format: Facade['format'] = floor;
+
+					// iter-79: content narrowing. Mockup schema carries a `content`
+					// string; word schema drops it (unused when format === 'word' at
+					// the consumer). 'content' in output narrows the schema union to
+					// the mockup variant, giving type-safe access without a cast.
+					const mockupContent =
+						'content' in output && typeof output.content === 'string'
+							? output.content
+							: '';
 
 					// Dedup: skip if another scout already queued the same axis
 					const axisLower = output.axis_targeted.toLowerCase();
@@ -287,7 +344,7 @@ function startScout(agentId: string, name: string): () => void {
 						hypothesis: output.hypothesis,
 						axisTargeted: output.axis_targeted,
 						label: output.label,
-						content: format === 'word' ? output.label : output.content,
+						content: format === 'word' ? output.label : mockupContent,
 						format,
 						acceptImplies: output.accept_implies,
 						rejectImplies: output.reject_implies
@@ -297,7 +354,7 @@ function startScout(agentId: string, name: string): () => void {
 					// Ensure mockup content is renderable HTML. If the
 					// LLM returned a description, generate actual HTML.
 
-					if (format === 'mockup' && !/<div|<html|<section/i.test(output.content)) {
+					if (format === 'mockup' && !/<div|<html|<section/i.test(mockupContent)) {
 						setStatus(agent, 'thinking', `generating mockup HTML: "${facade.label}"`);
 						try {
 							const antiStr = context.antiPatterns.length
@@ -314,7 +371,7 @@ function startScout(agentId: string, name: string): () => void {
 The user will swipe accept/reject — they should tell what it tests by LOOKING at it.
 
 Hypothesis: ${output.hypothesis}
-Visual direction: ${output.content}
+Visual direction: ${mockupContent}
 Anti-patterns (NEVER use): ${antiStr}
 Accepted patterns (respect these): ${acceptedStr}
 
@@ -418,7 +475,31 @@ Mobile viewport 375x667. No scripts. No external resources.`;
 			} catch (err) {
 				if (!alive()) break;
 				console.error(`[scout:${agentId}]`, err);
-				await sleep(1000);
+				const code = classifyErrorCode(err);
+				emitError({
+					source: 'scout',
+					code,
+					agentId,
+					message: err instanceof Error ? err.message : String(err)
+				});
+				if (code === 'provider_auth_failure') {
+					// Return directly from the IIFE so the post-loop cleanup's
+					// setStatus('idle', '') cannot overwrite this diagnostic focus
+					// ~1ms later — without this, the UX agent rail loses the
+					// "provider auth failed" signal that iter-13 specifically
+					// added to tell operators which scouts died of auth.
+					setStatus(agent, 'idle', 'provider auth failed');
+					if (activeRuns.get(agentId) === stop) {
+						activeRuns.delete(agentId);
+					}
+					return;
+				}
+				consecutiveFailures++;
+				const backoffMs = Math.min(
+					RETRY_BASE_MS * 2 ** Math.min(consecutiveFailures - 1, RETRY_EXP_CAP),
+					RETRY_MAX_MS
+				);
+				await sleep(backoffMs);
 			}
 		}
 
@@ -431,21 +512,19 @@ Mobile viewport 375x667. No scripts. No external resources.`;
 	return stop;
 }
 
-const pendingTimers: ReturnType<typeof setTimeout>[] = [];
-
+// Scout starts are simultaneous. The historical 500ms inter-scout stagger
+// (specs/ANNOUNCEMENT-scout-dedup.md) assumed LLM-probe latency < 500ms so
+// scout-N's prompt would read scout-(N-1)'s just-pushed facade; that premise
+// no longer holds with Claude Haiku at ~1-2s per call. The real dedup is the
+// post-generateText axis-targeted isDuplicate check at line ~292, reinforced
+// by distinct SCOUT_LENSES biasing each scout toward a different probe axis.
+// Starting all 6 scouts at session-ready compresses scout-06's start by
+// ~2.5s, directly improving the V0 "first facades quickly" demo row.
 export function startAllScouts(): void {
-	SCOUT_ROSTER.forEach(({ id, name }, i) => {
-		if (i === 0) {
-			startScout(id, name);
-		} else {
-			pendingTimers.push(setTimeout(() => startScout(id, name), i * 500));
-		}
-	});
+	for (const { id, name } of SCOUT_ROSTER) startScout(id, name);
 }
 
 export function stopAllScouts() {
-	for (const t of pendingTimers) clearTimeout(t);
-	pendingTimers.length = 0;
 	for (const stop of activeRuns.values()) stop();
 	activeRuns.clear();
 }

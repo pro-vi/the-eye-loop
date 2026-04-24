@@ -59,7 +59,6 @@ Anything that does not improve one of those five outcomes is out of scope for V0
 - builder probe briefs (construction-grounded questions that drive scout priorities)
 - queue buffering so the user is rarely waiting
 - words stage
-- image stage (Nano Banana 2, pre-buffer during words stage)
 - HTML mockup stage
 - oracle evidence synthesis every 4 swipes
 - final reveal state
@@ -138,14 +137,13 @@ Loop:
 1. read evidence history + oracle synthesis (emergent axes, scout assignment, edge case flags) + queue contents for de-duplication + any builder probe brief
 2. generate one facade targeting the biggest gap in taste knowledge (LLM decides, not code)
    - format chosen by scout based on evidence depth, gated by oracle concreteness floor
-   - **words:** `google('gemini-3.1-flash-lite-preview')` with `Output.object()`
-   - **images:** `google('gemini-3.1-flash-image-preview')` with `Output.object()` + `responseModalities`
-   - **mockups:** `google('gemini-3.1-flash-lite-preview')` generating HTML
+   - **words:** `FAST_MODEL` (Claude Haiku 4.5) with `Output.object()`
+   - **mockups:** `FAST_MODEL` (Claude Haiku 4.5) generating HTML
 3. push it into the queue
 4. wait for its swipe result (EventEmitter subscription)
 5. update local history (last 3 hypotheses for diversity constraint) and continue
 
-Temperature: `1.0` for scouts (creative generation).
+Model bindings live in `src/lib/server/ai.ts`. Images are cut in the landed runtime — `Facade.format` is `'word' | 'mockup'` only. Temperature: `1.0` for scouts (creative generation).
 
 #### Builder
 
@@ -159,7 +157,7 @@ The builder never creates facades. Temperature: `0`. Two triggers:
 The oracle has two roles. `specs/4-akinator.md`, `specs/scope/v0/07-oracle.md`
 
 **Code (every swipe):**
-- Concreteness floor: `< 4 evidence = word, 4-7 = image, 8+ = mockup`
+- Concreteness floor: `< 4 evidence = word, >= 4 = mockup` (two-tier; images cut)
 - Reveal trigger: evidence >= 15 or all-axes-resolved
 - Queue pressure: `context.queuePressure` getter (hungry/healthy/full)
 
@@ -173,8 +171,10 @@ The oracle has two roles. `specs/4-akinator.md`, `specs/scope/v0/07-oracle.md`
 
 ## Data Contract
 
+Source of truth: `src/lib/context/types.ts`. The shapes below mirror the landed TypeScript types; when the code diverges, types.ts wins and this block gets re-aligned.
+
 ```ts
-type Stage = 'words' | 'images' | 'mockups' | 'reveal';
+type Stage = 'words' | 'mockups' | 'reveal';
 
 interface SwipeEvidence {
   facadeId: string;
@@ -182,16 +182,20 @@ interface SwipeEvidence {
   hypothesis: string;
   decision: 'accept' | 'reject';
   latencySignal: 'fast' | 'slow';
+  format: 'word' | 'mockup';
+  implication: string;  // design signal copied from facade.acceptImplies / rejectImplies
 }
 
 interface Facade {
   id: string;
   agentId: string;
   hypothesis: string;
+  axisTargeted?: string;    // label of the taste axis this probe targets — drives scout dedup
   label: string;
   content: string;
-  format: 'word' | 'image' | 'mockup';
-  imageDataUrl?: string;
+  format: 'word' | 'mockup';
+  acceptImplies?: string;   // design implication if user accepts
+  rejectImplies?: string;   // design implication if user rejects
 }
 
 interface SwipeRecord {
@@ -237,38 +241,69 @@ interface EmergentAxis {
   evidence_basis: string;
 }
 
+interface Palette {
+  bg: string;
+  card: string;
+  accent: string;
+  text: string;
+  muted: string;
+  radius: string;
+}
+
 interface TasteSynthesis {
   axes: EmergentAxis[];
   edge_case_flags: string[];
+  palette?: Palette;  // derived from accepted evidence on the runSynthesis path; cold-start omits
   scout_assignments: Array<{
-    scout: string;
+    scout: 'Iris' | 'Prism' | 'Lumen' | 'Aura' | 'Facet' | 'Echo';
     probe_axis: string;
     reason: string;
   }>;
   persona_anima_divergence: string | null;
 }
+
+// SSE wire union — everything pushed from bus to /api/stream clients.
+// Derived SSEEventMap + SSEEventType in types.ts keep bus helpers aligned.
+type SSEEvent =
+  | { type: 'facade-ready'; facade: Facade }
+  | { type: 'facade-stale'; facadeId: string }
+  | { type: 'swipe-result'; record: SwipeRecord }
+  | { type: 'evidence-updated'; evidence: SwipeEvidence[]; antiPatterns: string[] }
+  | { type: 'agent-status'; agent: AgentState }
+  | { type: 'draft-updated'; draft: PrototypeDraft }
+  | { type: 'builder-hint'; hint: string }
+  | { type: 'stage-changed'; stage: Stage; swipeCount: number }
+  | { type: 'synthesis-updated'; synthesis: TasteSynthesis }
+  | { type: 'session-ready'; intent: string }
+  | {
+      type: 'error';
+      source: 'scout' | 'oracle' | 'builder';
+      code: 'provider_auth_failure' | 'provider_error' | 'generation_error';
+      agentId?: string;
+      message: string;
+    };
 ```
 
 No `TasteAxis`. No `axisId`. No coded confidence scores. Axes are emergent — discovered by the oracle from evidence patterns. `specs/4-akinator.md`
+
+`Facade.axisTargeted` is a free-form label (e.g. `"look-and-feel"`) used only for scout-side dedup, not a typed identifier — it does not reintroduce the removed coded-axis model.
 
 ---
 
 ## Stage Rules
 
-Concreteness floor (oracle-gated), format chosen by scout:
+Concreteness floor (oracle-gated), format chosen by scout. See `context.concretenessFloor` in `src/lib/server/context.ts`:
 
 | Evidence Depth | Floor | Scout Can Choose |
 |---------------|-------|-----------------|
 | < 4 swipes | `word` | word only |
-| 4-7 swipes | `image` | image or mockup |
-| 8+ swipes | `mockup` | mockup only |
+| >= 4 swipes | `mockup` | mockup only |
 
 Format instruction injected into scout prompt:
 - "You have 2 swipes of evidence. This is early exploration — use a single evocative WORD."
-- "You have 6 swipes. Describe an IMAGE or moodboard."
-- "You have 10 swipes. Describe a concrete MOCKUP with layout details."
+- "You have 6 swipes. Describe a concrete MOCKUP with layout details."
 
-Finding from benchmarks: scout naturally skips image stage (word → mockup). Images are optional — generated when testing visual direction, not as a mandatory stage.
+Image facades were cut from V0 — benchmarks showed scouts naturally skip the image stage (word → mockup), and the landed runtime has no image-capable provider wired up.
 
 ---
 
@@ -308,10 +343,6 @@ Do not hide the system behind a single output pane.
 
 ## Failure Plan
 
-If image generation is unstable:
-- skip images, go straight from words to mockups
-- the demo works without images
-
 If mockup generation is unstable:
 - keep words stage working
 - generate simpler HTML cards instead of full-page mockups
@@ -328,35 +359,34 @@ If a scout hits content filters:
 - don't crash the loop
 
 If latency becomes a problem:
-- Flash Lite is already the fastest — no further model downgrade
+- Haiku 4.5 is the fast tier — no further model downgrade inside the Anthropic roster
 - pre-generate facade buffer before user sees first card
 
-If a preview model breaks:
-- Generator: `gemini-3.1-flash-lite-preview` → `gemini-2.5-flash`
-- Renderer: `gemini-3.1-flash-image-preview` → `gemini-2.5-flash-image`
-- One string change per fallback. See `specs/3-models.md`.
+If the fast tier misbehaves:
+- Swap `FAST_MODEL` in `src/lib/server/ai.ts` to another Claude SKU via `createAnthropic(...)` (e.g. `claude-sonnet-4-6`). One edit, everywhere.
+- Provider auth uses `CLAUDE_CODE_OAUTH_TOKEN` via the Claude Code OAuth headers (`x-api-key: ''`, `Authorization: Bearer <token>`, `anthropic-beta: claude-code-20250219,oauth-2025-04-20`). See `specs/3-models.md`.
 
 ---
 
 ## SDK Integration Notes
 
-Code-verified against actual npm packages. `.research/synthesis-sdk-verified`
+Code-verified against actual npm packages. See `package.json` for pinned versions.
 
 ```bash
-pnpm add ai@6.0.134 @ai-sdk/google@3.0.52 @ai-sdk/svelte@4.0.134 zod d3-hierarchy
+pnpm add ai@6.0.134 @ai-sdk/anthropic@^3.0.64 zod@^3.24.0
 ```
 
 | What | How | Reference |
 |------|-----|-----------|
-| Text facades | `generateText()` with `google('gemini-3.1-flash-lite-preview')` | `specs/3-models.md` |
-| Image facades | `generateText()` with `google('gemini-3.1-flash-image-preview')` + `Output.object()` + `responseModalities: ['TEXT', 'IMAGE']` | `specs/3-models.md` |
+| Text facades | `generateText()` with `FAST_MODEL` (Claude Haiku 4.5) from `$lib/server/ai` | `specs/3-models.md` |
+| HTML mockups | `generateText()` with `FAST_MODEL` (Claude Haiku 4.5), no `Output.object()` — free-form HTML parsing | `src/lib/server/agents/scout.ts` |
+| Quality reveal | `QUALITY_MODEL` (Claude Sonnet 4.6) for builder reveal; fast tier elsewhere | `src/lib/server/ai.ts` |
 | Structured output | `output: Output.object({ schema: z.object({...}) })` — avoid `z.union()` | `.research/synthesis-sdk-verified` |
 | SSE | Native `ReadableStream` + `text/event-stream` (custom bus, not AI SDK streaming) | `.research/synthesis-runtime` |
-| Image response | `result.files[]` → `GeneratedFile` with `.base64`, `.uint8Array`, `.mediaType` | `.research/synthesis-sdk-verified` |
-| Image editing | Stateless only — `type: 'file'` in fresh single-turn. Multi-turn FAILS. | `specs/3-models.md` |
+| Provider auth | Claude Code OAuth headers on `createAnthropic({ apiKey: 'x', headers: { Authorization: 'Bearer <token>', 'anthropic-beta': 'claude-code-20250219,oauth-2025-04-20', ... } })` | `src/lib/server/ai.ts` |
 
 ```
-GEMINI_API_KEY=   # aliased: process.env.GOOGLE_GENERATIVE_AI_API_KEY ??= process.env.GEMINI_API_KEY
+CLAUDE_CODE_OAUTH_TOKEN=   # required; provider call 401s without it
 ```
 
 ---

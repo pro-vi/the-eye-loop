@@ -1,4 +1,5 @@
 .prov/
+.gnhf/
 .env
 node_modules/
 .claude/
@@ -7,6 +8,17 @@ node_modules/
 
 # Research (cloned repos, syntheses, internal findings)
 .research/
-scripts/
+
+# scripts/ is ignored by default (local experiments, boss-run logs); keep the
+# live validator and search-set entrypoints tracked, but treat their generated
+# artifacts as local run outputs.
+scripts/*
+!scripts/validate.sh
+!scripts/validate.mjs
+!scripts/search-set.sh
+!scripts/search-set.mjs
+scripts/findings/
+
+benchmarks/runs/
+
 debug.jsonl
-scripts/boss-run/

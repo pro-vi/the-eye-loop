@@ -58,13 +58,15 @@ with eligibility: step size >= local JND; children enter only after parent locks
 
 ## Agent Roster
 
-**Oracle** -- Gemini 3.1 Pro. The brain. Manages agent lifecycle, routes swipe results, assigns probe briefs, monitors queue health, triggers compaction. Never generates facades.
+V0 runs on the Anthropic two-tier Claude runtime — FAST_MODEL (`claude-haiku-4-5-20251001`) and QUALITY_MODEL (`claude-sonnet-4-6`), reached through the Claude Code OAuth header path (`src/lib/server/ai.ts`, env var `CLAUDE_CODE_OAUTH_TOKEN`). The roles below name the tier each agent uses today; the original Gemini three-tier allocation is preserved in *Appendix: historical Gemini three-tier design* in the Tech Stack section for future image/motion work.
 
-**Builder** -- Gemini 3.1 Pro. The architect. Runs continuously from first surviving artifact. Maintains a living draft prototype. Identifies construction ambiguities and writes probe briefs. Has the best view of what the system doesn't yet know -- because it's the one trying to build with incomplete information. Never generates facades. Never swipe-facing.
+**Oracle** -- FAST_MODEL. The brain. Manages agent lifecycle, routes swipe results, assigns probe briefs, monitors queue health, triggers compaction. Never generates facades.
 
-**Scout (x3, expandable)** -- Gemini Flash for HTML, Nano Banana for images, Veo for interaction clips. The hands. Each runs a Ralph-style loop: generate -> push -> wait -> receive feedback -> decide -> loop. Pulls probe briefs from the builder first, self-assigns from Anima uncertainty if no briefs pending. Can request child agent spawning when fracting.
+**Builder** -- FAST_MODEL for incremental draft rebuilds, QUALITY_MODEL for the final reveal synthesis. The architect. Runs continuously from first surviving artifact. Maintains a living draft prototype. Identifies construction ambiguities and writes probe briefs. Has the best view of what the system doesn't yet know -- because it's the one trying to build with incomplete information. Never generates facades. Never swipe-facing.
 
-**Compactor** -- function within oracle, uses Gemini 3.1 Pro. Runs every 5 swipes or on contradiction detection. Merges convergent evidence, prunes dead branches, promotes contradictions to new probe briefs, keeps Anima within token budget.
+**Scout (x6 fixed roster: Iris, Prism, Lumen, Aura, Facet, Echo)** -- FAST_MODEL for both the word-probe generation pass and the optional mockup-HTML rendering pass. The hands. Each runs a Ralph-style loop: generate -> push -> wait -> receive feedback -> decide -> loop. Pulls probe briefs from the builder first, self-assigns from Anima uncertainty if no briefs pending. Fract-style child spawning is explicitly cut from V0 (see `specs/2-v0-spec.md`).
+
+**Compactor** -- function within oracle, reserved for V1. Explicitly cut from V0 per `specs/2-v0-spec.md`; oracle synthesis every 4 swipes (FAST_MODEL) covers the evidence-rollup role in the Akinator pivot. When the full compactor lands it would run every 5 swipes or on contradiction detection via FAST_MODEL, merging convergent evidence and promoting contradictions to new probe briefs.
 
 > Depth: `research/iec-fatigue.md` -- Approximately 30-40 binary decisions before fatigue. Oracle is 80% code, 20% LLM. Most oracle functions (queue health, freshness pruning, scout retirement, event routing) are pure code. LLM used only for compaction, fract detection, and stuck detection.
 
@@ -124,7 +126,7 @@ Agents never call each other directly. Three communication channels:
 
 **Probe queue** -- the builder's voice. Builder identifies construction ambiguities, writes detailed probe briefs, pushes to queue. Scouts pull briefs from this queue first (builder-driven, high priority). If empty, scouts self-assign from Anima uncertainty (exploration-driven). The oracle never tells a scout what to do -- scouts pull work.
 
-Tools go outward (agent -> Gemini). Events go sideways (agent <-> agent, mediated by bus). Shared state goes through the context (everyone reads, specific agents write).
+Tools go outward (agent -> Anthropic via Vercel AI SDK `generateText`). Events go sideways (agent <-> agent, mediated by bus). Shared state goes through the context (everyone reads, specific agents write).
 
 ---
 
@@ -169,7 +171,7 @@ The intelligence lives in the getters. `.mostUncertain` implements BALD. `.shoul
 loop:
   brief <- context.nextProbe OR self-assign from context.mostUncertain
 
-  facade <- generate(brief, context.anima)     // tool calls to Gemini
+  facade <- generate(brief, context.anima)     // generateText to FAST_MODEL
   optionally: critique and refine internally
 
   context.pushFacade(facade)
@@ -385,15 +387,18 @@ The slow cases are the most valuable for learning because they identify the indi
 
 ## Facade Stages
 
-**Words (1-6):** Single words, near-instant. Broadest partitioning.
+**V0 landed set** (per `src/lib/context/types.ts` `Stage = 'words' | 'mockups' | 'reveal'`): Words → HTML Mockups → Reveal. Images and Interactive Snippets were cut during the hackathon ramp and sit in the appendix below for future work.
 
-**Images (7-15):** Nano Banana ~1.5s. Moodboards, palettes, visual concepts. Fracting begins.
+**Words (1-6):** Single words, near-instant. Broadest partitioning. FAST_MODEL generates from intent + evidence + scout lens.
 
-**HTML Mockups (16-28):** Gemini Flash, sandboxed iframes. Full styled pages. Builder issuing probe briefs.
+**HTML Mockups (7-14):** FAST_MODEL generates both the probe-card prompt and the mockup HTML (sandboxed iframe render on the client). Builder issuing probe briefs. Concreteness floor lifts from `word` to `mockup` at 4 accumulated pieces of evidence (`context.concretenessFloor` in `src/lib/server/context.ts`).
 
-**Interactive Snippets (28-35):** Surviving sections promoted to interactive. Veo motion clips. Swipe informed by contact.
+**Reveal:** Information gain drops (triggered at 15 swipes in `src/lib/server/agents/oracle.ts`). Builder presents assembled prototype using QUALITY_MODEL for the final synthesis pass.
 
-**Reveal:** Information gain drops. Builder presents assembled prototype.
+> Appendix: Historical image + motion stages (cut from V0)
+>
+> - **Images (7-15):** Nano Banana ~1.5s. Moodboards, palettes, visual concepts. Fracting begins. → Dropped from V0; pattern knowledge preserved in `specs/3-models.md` appendix.
+> - **Interactive Snippets (28-35):** Surviving sections promoted to interactive. Veo motion clips. Swipe informed by contact. → Explicitly cut per `specs/2-v0-spec.md`.
 
 **Budget allocation `[convention]`:** ~10 breadth / ~15 depth / ~5 refine across ~30 swipes. Max 3 iterative image edits on the same reference before drift accumulates and the prompt must be rebuilt from scratch.
 
@@ -418,13 +423,19 @@ The builder doesn't assemble at the end. It grows the prototype behind every swi
 ## Tech Stack
 
 - **SvelteKit + Svelte 5** -- runes, reactive context class
-- **Vercel AI SDK** -- agent tool calling, structured output, `generateText` with `maxSteps`
-- **Gemini 3.1 Pro** -- oracle, builder, compaction
-- **Gemini Flash** -- scout HTML generation
-- **Nano Banana** -- scout image generation
-- **Veo** -- late-stage interaction clips
-- **SSE** -- server -> client event stream
-- **Vercel** -- zero-config deploy
+- **Vercel AI SDK 6** -- agent tool calling, structured output, `generateText` with `Output.object({ schema })` and Zod
+- **Anthropic Claude Haiku 4.5** (`FAST_MODEL`) -- scouts (probe + mockup HTML), builder incremental rebuilds, oracle cold-start + synthesis
+- **Anthropic Claude Sonnet 4.6** (`QUALITY_MODEL`) -- builder final reveal synthesis
+- **Claude Code OAuth** (`CLAUDE_CODE_OAUTH_TOKEN`) -- Anthropic auth path at `src/lib/server/ai.ts`; `createAnthropic` with `Authorization: Bearer` + `anthropic-beta: claude-code-20250219,oauth-2025-04-20`
+- **SSE** -- server -> client event stream (native `ReadableStream` + `text/event-stream`)
+- **Vercel Fluid Compute** -- adapter-vercel, Node.js runtime, `maxDuration: 300` on long-lived routes
+
+> Appendix: historical Gemini three-tier design (not landed; image + motion modalities deferred past V0)
+>
+> - **Gemini 3.1 Pro** -- oracle, builder, compaction (replaced by Anthropic Haiku 4.5 + Sonnet 4.6)
+> - **Gemini Flash** -- scout HTML generation (folded into FAST_MODEL)
+> - **Nano Banana** -- scout image generation (image stage cut from V0; reference-first renderer pattern preserved in `specs/3-models.md` appendix)
+> - **Veo** -- late-stage interaction clips (interactive snippet stage explicitly cut from V0 per `specs/2-v0-spec.md`)
 
 ---
 

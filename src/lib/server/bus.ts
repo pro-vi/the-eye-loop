@@ -54,6 +54,59 @@ export const emitSynthesisUpdated: (p: SSEEventMap['synthesis-updated']) => void
 export const emitSessionReady: (p: SSEEventMap['session-ready']) => void =
 	(p) => emit('session-ready', p);
 
+// Suppress repeat error spam: same (source, code, agentId) within the window
+// is dropped. 401 loops across 6 scouts would otherwise dominate the bus.
+// The map is cleared on every session-ready so a fresh session always emits
+// its own errors even when they are identical to the previous session's —
+// parallel class to context.ts:reset() clearing palette in iter-19.
+const ERROR_EMIT_DEDUP_MS = 5_000;
+const lastErrorEmit = new Map<string, number>();
+
+// Last structured error emitted on the bus — exposed via getLastError() so
+// /api/stream can replay it to late-connecting clients. EventSource auto-
+// reconnects (network blip, Vercel maxDuration=300s stream cutoff, tab
+// resume) re-run the replay loop on a fresh GET /api/stream; without this,
+// the iter-8 client banner disappears even though agent-status focus
+// "provider auth failed" (iter-23/24) still replays correctly. Cleared on
+// session-ready alongside lastErrorEmit so a fresh session does not replay
+// stale cross-session errors.
+let lastError: SSEEventMap['error'] | null = null;
+
+export function getLastError(): SSEEventMap['error'] | null {
+	return lastError;
+}
+
+export const emitError: (p: SSEEventMap['error']) => void = (p) => {
+	const key = `${p.source}:${p.code}:${p.agentId ?? ''}`;
+	const now = Date.now();
+	const last = lastErrorEmit.get(key) ?? 0;
+	if (now - last < ERROR_EMIT_DEDUP_MS) return;
+	lastErrorEmit.set(key, now);
+	lastError = p;
+	emit('error', p);
+};
+
+// Session-scoped dedup reset: session N+1 starts with a fresh map so
+// identical (source, code, agentId) failures surface even within the
+// ERROR_EMIT_DEDUP_MS window. Registered at module load so it runs before
+// any agent's session-ready subscriber — bus clears, then agents' async
+// generateText fires, then 401 emits land on an empty map.
+emitter.on('session-ready', () => {
+	lastErrorEmit.clear();
+	lastError = null;
+});
+
+export function classifyErrorCode(err: unknown): SSEEventMap['error']['code'] {
+	const s = err instanceof Error ? `${err.message}` : String(err);
+	if (/401|Invalid bearer|authentication_error|x-api-key/i.test(s)) {
+		return 'provider_auth_failure';
+	}
+	if (/AI_APICall|fetch failed|ECONNREFUSED|timeout/i.test(s)) {
+		return 'provider_error';
+	}
+	return 'generation_error';
+}
+
 // ── Listen helpers ────────────────────────────────────────────────────
 
 export const onSwipeResult = (cb: (p: SSEEventMap['swipe-result']) => void) =>
@@ -125,7 +178,8 @@ const SSE_EVENTS: SSEEventType[] = [
 	'stage-changed',
 	'draft-updated',
 	'synthesis-updated',
-	'session-ready'
+	'session-ready',
+	'error'
 ];
 
 export function onAny(cb: <K extends SSEEventType>(event: K, payload: SSEEventMap[K]) => void) {
