@@ -46,9 +46,9 @@ unless explicitly asked to implement the higher-ambition version.
 - No unnecessary dependencies.
 - Svelte 5 runes only.
 - Vercel AI SDK 6 + Anthropic Claude (Haiku 4.5 fast, Sonnet 4.6 quality) via `generateText`, reached through the Claude Code OAuth header path (`src/lib/server/ai.ts`, `CLAUDE_CODE_OAUTH_TOKEN`).
-- `EyeLoopContext` is the shared server-side state surface.
-- Scouts are manual async loops per swipe, not one long autonomous loop.
-- Evidence goes into prompts via `context.toEvidencePrompt()`. No axes, no YAML distributions.
+- `EyeLoopSession` is the shared server-side state surface for each session.
+- Scouts are stateless reservoir producers; the deck owns readiness and draw order.
+- Evidence goes into prompts via `session.toEvidencePrompt()`. No axes, no YAML distributions.
 - Anti-patterns from rejects are hard constraints.
 - No auth, database, caching, or tests unless asked.
 - Do not commit secrets; use env vars.

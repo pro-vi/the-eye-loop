@@ -74,9 +74,9 @@ V0 runs on a role-tiered Anthropic Claude runtime, reached through the Claude Co
 
 ## Architecture
 
-**Status note:** the codebase currently ships the singleton `EyeLoopContext` + global bus described below. That landed V0 is good enough to validate the loop, but it is not the best fit for the intended "short warmup, then 42 Tinder-fast swipes" experience. The next architecture should be a per-session orchestrator with a shared prefilled reservoir. That target design is specified here first so implementation can move without re-deciding the shape.
+**Status note:** the codebase now ships the per-session reservoir runtime. `EyeLoopSession` owns session state and a session-local event stream; `runtime.ts` owns bootstrap, refill, scout production, oracle synthesis, builder patching, and reveal prep.
 
-### Hot Session Target (next architecture, not landed)
+### Hot Session Runtime
 
 The user may wait through a brief loading / warmup screen. Once they enter the swipe loop, the next card should already be ready. That requires a session-owned pipeline, not scout-owned one-card blocking loops.
 
@@ -134,17 +134,14 @@ On each oracle update, prefer the newest cards, allow at most `1-2` taste versio
 
 The reveal threshold is therefore a presentation gate, not the moment heavy generation begins.
 
-**Migration order**
+**Landed files**
 
-1. Add `SessionRegistry` + `EyeLoopSession`
-2. Change `POST /api/session` to return a bootstrap snapshot after warmup
-3. Replace scout-owned blocking loops with a shared `Reservoir`
-4. Make swipe handling append-only and non-blocking
-5. Give the builder a real async queue instead of a single pending swipe
-6. Version taste snapshots and queued cards
-7. Add pre-threshold reveal preparation
-
-The sections below describe the currently landed V0 singleton design. They remain accurate for the codebase until the hot-session refactor lands.
+- `src/lib/server/session/registry.ts`: in-memory session map
+- `src/lib/server/session/eye-loop-session.ts`: session state, event replay, evidence serialization
+- `src/lib/server/session/runtime.ts`: reservoir refill, scout production, oracle synthesis, builder patching, reveal prep
+- `src/routes/api/session/+server.ts`: warm bootstrap response
+- `src/routes/api/stream/+server.ts`: session-scoped SSE replay
+- `src/routes/api/swipe/+server.ts`: append-only swipe hot path
 
 ### System Diagram
 
@@ -164,10 +161,10 @@ The sections below describe the currently landed V0 singleton design. They remai
                     +--------+---------+
                              |
                     +--------v---------+
-                    |     CONTEXT      |  <- single reactive state object
+                    |  EYELOOPSESSION  |  <- per-session state object
                     |                  |
-                    |    .anima        |  shared read for all agents
-                    |    .facades      |  queue, target buffer 3-5
+                    |    .synthesis    |  shared taste snapshot
+                    |    .facades      |  reservoir, target 16-24
                     |    .probes       |  builder-written, scout-consumed
                     |    .agents       |  registry of active agents
                     |    .draft        |  builder's living prototype
@@ -177,14 +174,14 @@ The sections below describe the currently landed V0 singleton design. They remai
               v              v              v
          +---------+   +---------+   +---------+
          | SCOUT A |   | SCOUT B |   | SCOUT C |
-         |  loop   |   |  loop   |   |  loop   |
+         |producer |   |producer |   |producer |
          +----+----+   +----+----+   +----+----+
               |              |              |
               +------+-------+-------+------+
                      |               |
               +------v------+  +-----v-------+
               |   BUILDER   |  | ORACLE|
-              |    loop     |  |   watches   |
+              | async queue |  | synthesis |
               +-------------+  +-------------+
 ```
 
@@ -192,46 +189,47 @@ The sections below describe the currently landed V0 singleton design. They remai
 
 Agents never call each other directly. Three communication channels:
 
-**Shared context** -- the Anima, facade queue, probe queue, draft prototype. All agents read from the same reactive state object. Writes go through context methods that maintain consistency.
+**Session state** -- the evidence list, synthesis, reservoir, probe queue, draft prototype, and reveal state live on `EyeLoopSession`. All generation work receives a session snapshot and writes back through session methods.
 
-**Event bus** -- fire-and-forget notifications. `facade-ready`, `swipe-result`, `probe-requested`, `spawn-requested`, `anima-updated`. Agents subscribe to events they care about. The bus also streams to the client via SSE for live visualization.
+**Session event stream** -- fire-and-forget notifications. `facade-ready`, `swipe-result`, `evidence-updated`, `synthesis-updated`, `draft-updated`, `queue-updated`, `reveal-prepared`, `stage-changed`, and `error`. `/api/stream?sessionId=...` replays current session state and then forwards live session events.
 
-**Probe queue** -- the builder's voice. Builder identifies construction ambiguities, writes detailed probe briefs, pushes to queue. Scouts pull briefs from this queue first (builder-driven, high priority). If empty, scouts self-assign from Anima uncertainty (exploration-driven). The oracle never tells a scout what to do -- scouts pull work.
+**Probe queue** -- the builder's voice. Builder identifies construction ambiguities, writes detailed probe briefs, pushes to the session queue. Scouts consume briefs while filling the reservoir; if no brief exists, they self-assign from synthesis and queue gaps.
 
-Tools go outward (agent -> Anthropic via Vercel AI SDK `generateText`). Events go sideways (agent <-> agent, mediated by bus). Shared state goes through the context (everyone reads, specific agents write).
+Tools go outward (runtime -> Anthropic via Vercel AI SDK `generateText`). Events go sideways through the session event stream. Shared state goes through `EyeLoopSession`.
 
 ---
 
-## The Context Class
+## The Session Class
 
-Single server-side reactive state object. SvelteKit runtime pattern -- context class with getters. All coordination logic encoded in derived state.
+Per-session server-side state object. The registry is process-local for V0; every HTTP/SSE route resolves the session by `sessionId`.
 
 ```
-EyeLoopContext
+EyeLoopSession
   State:
-    .anima            Anima tree (shared read)
-    .facades          facade queue (scouts push, client pulls)
+    .synthesis        current taste synthesis
+    .facades          ready reservoir
     .probes           probe brief queue (builder pushes, scouts pull)
     .agents           registry of active agent states
     .draft            builder's living prototype
+    .reveal           prepared/final reveal state
+    .tasteVersion     freshness version for queued facades
 
   Derived (getters):
     .nextProbe        shift from probe queue, or null
-    .mostUncertain    BALD over Anima tree -> highest entropy node
-    .queueHealthy     facades.length >= 3
-    .shouldSpawn      probes.length > active scouts, or queue thin
-    .shouldRetire     info gain dropping + queue full
+    .queueStats       ready/target/min/max/lowWater/pending/stale
+    .concretenessFloor word until 4 evidence, then mockup
+    .sessionMedianLatency RT bucket baseline
 
   Methods:
-    .addEvidence()    update Anima tree with swipe record
-    .pushFacade()     add to queue, emit facade-ready
-    .requestProbe()   builder adds brief, emit probe-requested
-    .integrate()      builder absorbs surviving artifact into draft
-    .compact()        merge evidence, prune, promote contradictions
-    .emit() / .on()   event bus
+    .addEvidence()    append swipe evidence and emit updates
+    .addFacade()      add to reservoir with freshness metadata
+    .consumeFacade()  remove ready card from the hot path
+    .clearReadyFacades() stale queued cards on reveal
+    .toEvidencePrompt() serialize evidence for prompts
+    .emit() / .on()   session-local event bus
 ```
 
-The intelligence lives in the getters. `.mostUncertain` implements BALD. `.shouldSpawn` encodes scaling logic. Agents are simple loops. The context is the brain.
+The hot path is deliberately small: route validation, evidence append, facade consumption, queue-stat emission, and async scheduling. LLM calls run outside the request path.
 
 ---
 
@@ -240,21 +238,14 @@ The intelligence lives in the getters. `.mostUncertain` implements BALD. `.shoul
 ### Scout Loop (Ralph-style)
 
 ```
-loop:
-  brief <- context.nextProbe OR self-assign from context.mostUncertain
-
-  facade <- generate(brief, context.anima)     // generateText to SCOUT_MODEL
-  optionally: critique and refine internally
-
-  context.pushFacade(facade)
-  result <- wait for swipe on this facade      // event bus subscription
-  context.addEvidence(result)
-
-  if parentLocked AND childAxesDiscovered:
-    emit 'spawn-requested' with candidate sub-axes
+refill:
+  brief <- session.nextProbe OR self-assign from synthesis + queue gaps
+  facade <- generate(brief, session snapshot)  // generateText to SCOUT_MODEL
+  session.addFacade(facade, reason)            // reservoir owns draw order
+  return
 ```
 
-The scout receives its own facade's result. It builds a local history -- not just a stateless worker. Over time, scouts develop specialization based on which axes they've probed.
+Scouts are producers. They do not wait for the swipe on the card they generated; swipe handling is session-owned so the user never waits for a scout between cards. Scout identity still matters through lens, assignment, and `agentId`, but readiness belongs to the reservoir.
 
 > Depth: `research/negative-selection.md`, `research/iec-fatigue.md` -- Ralph-style = clonal selection loop. Clone accepted artifacts, mutate at varying step sizes, preserve high-affinity lineages. The dual model (attraction + repulsion) updates on every decision: accepts refine the attraction model; rejects update the repulsion boundary and constrain generation to skip dead regions.
 
@@ -262,50 +253,48 @@ The scout receives its own facade's result. It builds a local history -- not jus
 
 ```
 on every swipe-result:
+  enqueue async draft patch
   if accept: integrate surviving artifact into draft
   if reject: add anti-pattern constraint to draft
 
   ambiguity <- identify what's blocking construction
   if ambiguity exists:
-    context.requestProbe(ambiguity)     // high-priority brief for scouts
+    session.probes.push(ambiguity)      // high-priority brief for scouts
 
-  for each incomplete section in draft:
-    if enough Anima context: extrapolate and fill
+starting around swipe 8:
+  prepare shadow reveal material
+
+around swipe 36:
+  force reveal-prep pass
 ```
 
-The builder never generates facades. It reads the results and builds. Its probe briefs are construction-grounded: not "color axis unresolved" but "I'm building the header and need to know: fixed position or scroll-away, given the resolved dark atmospheric layout with organic texture."
+The builder never generates facades. It reads results and builds asynchronously. Its probe briefs are construction-grounded: not "color axis unresolved" but "I'm building the header and need to know: fixed position or scroll-away, given the resolved dark atmospheric layout with organic texture."
 
 > Depth: `research/active-preference-learning.md` -- Construction-grounded uncertainty > abstract uncertainty. The builder's ambiguities are the system's best proxy for predictive information gain -- what knowledge would actually change the output artifact.
 
 ### Oracle Watch
 
 ```
-on any event:
-  if shouldSpawn: spawn scout -> enters scout loop
-  if shouldRetire: retire least-active scout
-  if swipeCount % 5 == 0: compact Anima
-
-  on 'spawn-requested':
-    check parent lock + depth budget + progressive widening
-    for each eligible sub-axis (up to agent limit):
-      spawn child scout with axis assignment
-
-  freshness check:
-    for each queued facade:
-      if hypothesis now redundant: drop, notify source scout
+on swipe:
+  if stage floor changed: emit stage-changed
+  if swipeCount % 4 == 0: synthesize evidence
+  if synthesis changes: bump tasteVersion
+  prune queued facades more than 1-2 taste versions behind
+  schedule reservoir refill
+  if swipeCount >= 42: enter reveal
 ```
 
-> Depth: `research/active-preference-learning.md` -- HOO/UCT node selection. The oracle's spawn/retire logic is the code-level implementation of the frontier score: surface and child nodes compete in one frontier, highest conditional predictive value wins.
+> Depth: `research/active-preference-learning.md` -- In V0 the LLM handles implicit taste navigation from evidence; coded BALD/fracting remains a future upgrade.
 
 ---
 
 ## Queue Equilibrium
 
-Swipe cadence: ~2-3 seconds. Generation cadence: 1-8 seconds depending on stage. Queue must always have facades waiting.
+Swipe cadence target: as fast as the user can flick. Generation cadence varies by model and stage, so the reservoir must always have facades waiting.
 
-**Buffer target:** 3-5 facades. Below 3 -> spawn scout or increase priority. Above 5 -> hold spawning, reduce critique loops.
+**Buffer target:** warm to at least 12 ready cards before entering swiping. Maintain 16-24 ready cards. Below 8 -> aggressive refill.
 
-**Freshness:** On Anima update, score queued facade hypotheses. Drop any whose axis just got resolved. Don't serve stale probes.
+**Freshness:** on synthesis update, bump `tasteVersion`. Keep cards within 1-2 versions of current taste when possible; demote or drop older cards unless the deck is near empty.
 
 **Stage blending:** No abrupt transitions. Late word-stage facades can carry small images. Early mockup-stage can be partial layouts. Transitions driven by Anima resolution density.
 

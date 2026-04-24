@@ -46,11 +46,9 @@ Open `http://localhost:5173` and enter an intent.
 
 ```
 src/lib/context/types.ts          — data contract (SwipeEvidence, Facade, TasteSynthesis)
-src/lib/server/context.ts         — EyeLoopContext singleton
-src/lib/server/bus.ts             — typed event bus (SSEEventMap-derived)
-src/lib/server/agents/scout.ts    — scout loop + rendering pipeline
-src/lib/server/agents/builder.ts  — builder reactive loop
-src/lib/server/agents/oracle.ts   — synthesis + concreteness floor + reveal
+src/lib/context/guards.ts         — client-safe runtime guards for API/SSE payloads
+src/lib/server/session/           — session registry, reservoir runtime, per-session state
+src/lib/server/provider-errors.ts — provider error classification for SSE
 src/routes/api/stream/+server.ts  — SSE endpoint with state replay
 src/routes/api/swipe/+server.ts   — swipe POST handler
 src/routes/api/session/+server.ts — session init

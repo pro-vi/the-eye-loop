@@ -9,7 +9,7 @@ import type {
 	TasteSynthesis
 } from '$lib/context/types';
 import { SCOUT_MODEL, ORACLE_MODEL, BUILDER_MODEL, REVEAL_MODEL } from '$lib/server/ai';
-import { classifyErrorCode } from '$lib/server/bus';
+import { classifyErrorCode } from '$lib/server/provider-errors';
 import { debugLog } from '$lib/server/debug-log';
 import { HTML_QUALITY_RULES } from '$lib/server/prompts';
 import {
@@ -335,10 +335,6 @@ function getProbeBrief(session: EyeLoopSession): string {
 	return `${probe.brief}\nContext: ${probe.context}`;
 }
 
-function shouldGenerateMore(session: EyeLoopSession): boolean {
-	return session.facades.length + session.pendingFacadeJobs < RESERVOIR_TARGET_READY;
-}
-
 function shouldAggressivelyRefill(session: EyeLoopSession): boolean {
 	return session.facades.length < RESERVOIR_LOW_WATER;
 }
@@ -416,19 +412,24 @@ async function generateScoutFacade(session: EyeLoopSession, scout: (typeof SCOUT
 	}
 }
 
-async function runRefill(session: EyeLoopSession, reason: string, minReady = RESERVOIR_LOW_WATER) {
+async function runRefill(
+	session: EyeLoopSession,
+	reason: string,
+	minReady = RESERVOIR_LOW_WATER,
+	targetReady = RESERVOIR_TARGET_READY
+) {
 	if (refillRuns.has(session)) return refillRuns.get(session);
 	const run = (async () => {
 		pruneStaleFacades(session);
 		while (
 			session.stage !== 'reveal' &&
-			(session.facades.length < minReady || shouldGenerateMore(session))
+			(session.facades.length < minReady || session.facades.length + session.pendingFacadeJobs < targetReady)
 		) {
 			const slots = Math.max(
 				0,
 				Math.min(
 					MAX_CONCURRENT_SCOUTS,
-					RESERVOIR_TARGET_READY - session.facades.length - session.pendingFacadeJobs
+					targetReady - session.facades.length - session.pendingFacadeJobs
 				)
 			);
 			if (slots === 0) break;
@@ -437,7 +438,7 @@ async function runRefill(session: EyeLoopSession, reason: string, minReady = RES
 				return generateScoutFacade(session, scout, reason);
 			});
 			await Promise.allSettled(scouts);
-			if (session.facades.length >= RESERVOIR_TARGET_READY) break;
+			if (session.facades.length >= targetReady) break;
 			if (slots < MAX_CONCURRENT_SCOUTS && session.facades.length >= minReady) break;
 		}
 	})();
@@ -779,13 +780,14 @@ export async function bootstrapSession(intent: string): Promise<SessionBootstrap
 
 	const scaffold = buildScaffold(session);
 	const coldStart = runColdStart(session);
-	const refill = runRefill(session, 'bootstrap', RESERVOIR_MIN_READY);
+	const refill = runRefill(session, 'bootstrap', RESERVOIR_MIN_READY, RESERVOIR_MIN_READY);
 	const deadline = Date.now() + WARMUP_TIMEOUT_MS;
 	while (session.facades.length < RESERVOIR_MIN_READY && Date.now() < deadline) {
 		await sleep(250);
 	}
 	await Promise.allSettled([scaffold, coldStart, refill]);
 	session.setState('ready');
+	scheduleRefill(session, 'post-bootstrap top-off');
 	return session.getBootstrapResponse();
 }
 

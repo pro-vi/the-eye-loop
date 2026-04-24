@@ -95,17 +95,17 @@ These are implementation cuts, not product cuts.
 
 ## Runtime Architecture
 
-This section describes the currently landed V0 runtime. The next-step architecture for a "short warmup, then 42 Tinder-fast swipes" session is a per-session reservoir design documented in `specs/0-spec.md` under `Hot Session Target (next architecture, not landed)`. Until that refactor ships, this file stays aligned to the singleton implementation.
+This section describes the landed V0 runtime: a per-session reservoir design for a short warmup followed by fast 42-swipe sessions. The full architecture rationale is in `specs/0-spec.md` under `Hot Session Runtime`.
 
 ### Deploy
 
-Vercel with Fluid Compute (adapter-vercel, Node.js runtime). Module-level singleton state. Set `maxDuration: 300` on long-lived routes. `.research/synthesis-runtime`
+Vercel with Fluid Compute (adapter-vercel, Node.js runtime). Module-level in-memory session registry. Set `maxDuration: 300` on long-lived routes. `.research/synthesis-runtime`
 
 ### Server
 
-`EyeLoopContext` singleton in `src/lib/server/context.ts`. Event bus via `EventEmitter` in `src/lib/server/bus.ts`. Bootstrap in `hooks.server.ts` `init()`.
+`EyeLoopSession` in `src/lib/server/session/eye-loop-session.ts` owns per-session state and a session-local `EventEmitter`. `src/lib/server/session/registry.ts` maps `sessionId -> EyeLoopSession`. `src/lib/server/session/runtime.ts` owns bootstrap, reservoir refill, scout production, synthesis, builder patching, and reveal prep.
 
-Context state:
+Session state:
 
 - `intent`
 - `swipeCount`
@@ -117,6 +117,9 @@ Context state:
 - `agents: Map<string, AgentState>`
 - `draft: PrototypeDraft`
 - `antiPatterns: string[]`
+- `tasteVersion`
+- `queueStats`
+- `reveal`
 
 ### Client
 
@@ -132,7 +135,7 @@ The main page renders:
 
 #### Scout
 
-Scouts are Akinator for taste. Each reads evidence + oracle synthesis (emergent axes + axis assignment + queue contents) and generates the most informative next probe. Manual async while loops. `specs/4-akinator.md`
+Scouts are Akinator for taste. Each reads evidence + oracle synthesis (emergent axes + axis assignment + queue contents) and generates informative probes into the shared reservoir. Scouts are producers; the reservoir owns readiness, draw order, and stale eviction. `specs/4-akinator.md`
 
 Loop:
 
@@ -141,9 +144,8 @@ Loop:
    - format chosen by scout based on evidence depth, gated by oracle concreteness floor
    - **words:** `SCOUT_MODEL` (default: Claude Haiku 4.5) with `Output.object()`
    - **mockups:** `SCOUT_MODEL` (default: Claude Haiku 4.5) generating HTML
-3. push it into the queue
-4. wait for its swipe result (EventEmitter subscription)
-5. update local history (last 3 hypotheses for diversity constraint) and continue
+3. push it into the session reservoir with `tasteVersion`, `createdAt`, and `generationReason`
+4. return; swipe handling is session-owned and never waits on a scout
 
 Model bindings live in `src/lib/server/ai.ts`. Images are cut in the landed runtime — `Facade.format` is `'word' | 'mockup'` only. Temperature: `1.0` for scouts (creative generation).
 
@@ -152,7 +154,8 @@ Model bindings live in `src/lib/server/ai.ts`. Images are cut in the landed runt
 The builder never creates facades. Temperature: `0`. Two triggers:
 
 1. **On session-created:** generate initial draft scaffold from intent (prototype pane never empty)
-2. **On swipe-result:** update draft from evidence. Accept = reinforce. Reject = add anti-pattern (PROHIBITIONS). Emit probe briefs when construction is blocked. Serialization gate: skip LLM when outstanding probes are unanswered.
+2. **On swipe-result:** update draft from evidence asynchronously. Accept = reinforce. Reject = add anti-pattern (PROHIBITIONS). Emit probe briefs when construction is blocked.
+3. **Before reveal:** prepare a shadow reveal starting around swipe 8 and force a prep pass near swipe 36 so swipe 42 is mostly a transition.
 
 #### Oracle
 
@@ -161,7 +164,7 @@ The oracle has two roles. `specs/4-akinator.md`, `specs/scope/v0/07-oracle.md`
 **Code (every swipe):**
 - Concreteness floor: `< 4 evidence = word, >= 4 = mockup` (two-tier; images cut)
 - Reveal trigger: evidence >= 42
-- Queue pressure: `context.queuePressure` getter (hungry/healthy/full)
+- Queue pressure: `session.queueStats` from the reservoir
 
 **LLM (every 4 swipes):**
 - Evidence synthesis via `generateText` at temperature 0

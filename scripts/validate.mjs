@@ -2294,7 +2294,7 @@ async function main() {
 	// iter-50: Stage 8 named metric — oracle_synthesis_latency plus cold-start
 	// and reveal-build companions. Derived from oracle agent-status entry/exit
 	// pairs (thinking[focus=TARGET] followed by the next idle). Focus strings
-	// are set in src/lib/server/agents/oracle.ts at setOracleStatus call sites:
+	// are set in src/lib/server/session/runtime.ts at setAgent call sites:
 	//   'cold-start analysis'      -> runColdStart (fires on session-ready)
 	//   'synthesizing evidence'    -> runSynthesis (every SYNTHESIS_CADENCE swipes)
 	//   'building final prototype' -> reveal flow (on REVEAL_THRESHOLD evidence)
@@ -3651,11 +3651,10 @@ async function main() {
 	// directly. Under the broken-auth baseline with multi-session mode, the
 	// new discriminative invariant is:
 	//   error_event_count ≈ session_ready_count * distinct_error_agent_count
-	// A regression where session 2 fails to trigger fresh agent runs (e.g.
-	// stopAllScouts + startAllScouts misbehave, or context.reset() leaks
-	// state that short-circuits a re-fire) would collapse the ratio toward 1,
-	// making it a direct machine-visible signal for the class of bugs iter-19
-	// fixed but the single-session-per-subprocess architecture could not see.
+	// A regression where session 2 reuses the first session's runtime state
+	// instead of creating a fresh EyeLoopSession would collapse the ratio
+	// toward 1, making it a direct machine-visible signal for the class of
+	// bugs iter-19 fixed but the old singleton architecture could not see.
 	const sessionReadyEvents = events.filter((e) => e.type === 'session-ready');
 	const sessionReadyCount = sessionReadyEvents.length;
 	const sessionReadyIntents = sessionReadyEvents
