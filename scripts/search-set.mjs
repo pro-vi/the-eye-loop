@@ -302,6 +302,19 @@ function extractMetrics(artifact) {
 		stream_2_evidence_items_valid_decision_count: m.stream_2_evidence_items_valid_decision_count ?? 0,
 		stream_2_evidence_items_valid_format_count: m.stream_2_evidence_items_valid_format_count ?? 0,
 		stream_2_evidence_items_valid_latency_signal_count: m.stream_2_evidence_items_valid_latency_signal_count ?? 0,
+		// iter-102: stream_2 counterparts for iter-102's primary-bus SwipeEvidence
+		// remaining-field presence-validity probes (facadeId, content, hypothesis,
+		// implication) — forward-carried so aggregate rollups can establish cross-
+		// stream identity with iter-102's primary values under the healthy-auth
+		// 5-intent baseline (each stream_2 metric = its primary-bus counterpart =
+		// 5/_min=1). Saturates the SwipeEvidence 7-way field-validity matrix on
+		// the /api/stream replay path alongside iter-89's array-shape + iter-90's
+		// typed-union probes — the evidence-updated counterpart to iter-99's
+		// facade-ready 6-way saturation on stream_2.
+		stream_2_evidence_items_facade_id_present_count: m.stream_2_evidence_items_facade_id_present_count ?? 0,
+		stream_2_evidence_items_content_present_count: m.stream_2_evidence_items_content_present_count ?? 0,
+		stream_2_evidence_items_hypothesis_present_count: m.stream_2_evidence_items_hypothesis_present_count ?? 0,
+		stream_2_evidence_items_implication_present_count: m.stream_2_evidence_items_implication_present_count ?? 0,
 		// iter-91: stream_2 counterparts for iter-83's primary-bus synthesis-updated.
 		// axes[].confidence typed-union probe AND iter-85's scout_assignments[].scout
 		// roster-membership probe — forward-carried so that the aggregate rollups below
@@ -341,6 +354,21 @@ function extractMetrics(artifact) {
 		evidence_items_valid_decision_count: m.evidence_items_valid_decision_count ?? 0,
 		evidence_items_valid_format_count: m.evidence_items_valid_format_count ?? 0,
 		evidence_items_valid_latency_signal_count: m.evidence_items_valid_latency_signal_count ?? 0,
+		// iter-102: SwipeEvidence remaining-field presence-validity probes on
+		// primary bus — forward-carried per-intent so aggregate rollups can
+		// establish the 7-way item-level identity (iter-66 evidence_updated_count
+		// = iter-81 evidence_array_valid = iter-82 items_valid_{decision,format,
+		// latency_signal} = iter-102 items_{facade_id,content,hypothesis,
+		// implication}_present = 1 per intent under healthy-auth 5-intent baseline;
+		// sum=5/_min=1 aggregate). Saturates the SwipeEvidence 7-way field-
+		// validity matrix on the primary bus alongside iter-97 SwipeRecord 5-way,
+		// iter-98 Facade 6-way, iter-100 PrototypeDraft 6-way, iter-101 AgentState
+		// 5-way matrix-saturation work — the evidence-updated counterpart in the
+		// POSITIVE-IDENTITY cluster iter-97 opened.
+		evidence_items_facade_id_present_count: m.evidence_items_facade_id_present_count ?? 0,
+		evidence_items_content_present_count: m.evidence_items_content_present_count ?? 0,
+		evidence_items_hypothesis_present_count: m.evidence_items_hypothesis_present_count ?? 0,
+		evidence_items_implication_present_count: m.evidence_items_implication_present_count ?? 0,
 		session_ready_intent_present_count: m.session_ready_intent_present_count ?? 0,
 		oracle_cold_start_latency_ms: m.oracle_cold_start_latency_ms ?? null,
 		oracle_synthesis_latency_ms: m.oracle_synthesis_latency_ms ?? null,
@@ -2344,6 +2372,75 @@ async function main() {
 			stream_2_evidence_items_valid_latency_signal_count_min: perIntent.length
 				? Math.min(...perIntent.map((p) => p.metrics.stream_2_evidence_items_valid_latency_signal_count ?? 0))
 				: 0,
+			// iter-102: stream_2 counterparts for iter-102's primary-bus SwipeEvidence
+			// remaining-field presence-validity rollups (facadeId, content, hypothesis,
+			// implication) — saturating the SwipeEvidence 7-way field-validity matrix
+			// on the /api/stream replay path alongside iter-89's array-shape + length
+			// probes and iter-90's typed-union probes. Closes the evidence-updated
+			// counterpart to iter-99's facade-ready 6-way stream_2 saturation.
+			//
+			// Under iter-61 healthy-auth 5-intent 12s-window baseline: +server.ts:30-32
+			// replays evidence-updated once per new client when context.evidence.length
+			// > 0; context.ts:93 addEvidence emits at ~4-5s (well before stream_2 opens
+			// at ~12s) and persists context.evidence with 1 item carrying all 4 string
+			// fields populated from the facade lookup (per iter-89 learnings). So the
+			// replay's 1-item array mirrors primary, and each stream_2 probe = its
+			// primary-bus counterpart = 1 per intent (sum=5/_min=1 aggregate).
+			//
+			// 7-way cross-stream POSITIVE-IDENTITY under healthy-auth baseline:
+			//   stream_2_evidence_updated_count_sum (iter-66)
+			//     = stream_2_evidence_array_valid_count_sum (iter-89)
+			//     = stream_2_evidence_items_valid_decision_count_sum (iter-90)
+			//     = stream_2_evidence_items_valid_format_count_sum (iter-90)
+			//     = stream_2_evidence_items_valid_latency_signal_count_sum (iter-90)
+			//     = stream_2_evidence_items_facade_id_present_count_sum (iter-102)
+			//     = stream_2_evidence_items_content_present_count_sum (iter-102)
+			//     = stream_2_evidence_items_hypothesis_present_count_sum (iter-102)
+			//     = stream_2_evidence_items_implication_present_count_sum (iter-102)
+			//     = 5 (sum) / 1 (min) across 5-intent search set, matching primary.
+			//
+			// Regression classes these rollups catch that iter-90 stream_2 typed-union
+			// probes alone cannot: a +server.ts:30-32 replay-block transform that
+			// preserves decision/format/latencySignal union-membership but corrupts
+			// a string field (e.g. a JSON-serialize pipeline that truncates non-ASCII
+			// chars in implication, a .map(e => ({...e, content: null})) test shim
+			// accidentally landed, a payload-shape change where replay emits evidence
+			// items with only the typed-union fields populated) — stream_2
+			// items_valid_decision stays at 5 while stream_2 items_{facade_id,content,
+			// hypothesis,implication}_present drops below 5, distinguishing union-
+			// membership corruption from string-field corruption on the replay path.
+			//
+			// Cross-stream divergence (stream_2 counts != primary counts under
+			// healthy-auth) pinpoints replay-block-only string-field bugs that iter-89
+			// whole-array probes, iter-90 stream_2 typed-union probes, and iter-102
+			// primary string-field probes cannot individually discriminate. A
+			// regression affecting BOTH live emission and replay paths shows both
+			// counts drop together; a regression affecting ONLY replay shows stream_2
+			// drop while primary holds — exactly the cross-stream discrimination
+			// pattern iter-88 established as the unique value of stream_2 counterparts.
+			//
+			// Baseline-regime-invariant: under broken-auth baseline both primary and
+			// stream_2 items_{facade_id,content,hypothesis,implication}_present _sum=0
+			// because no facade-ready → no swipe → no addEvidence → no evidence-
+			// updated emit on either stream — the cross-stream identity 0==0 is
+			// preserved without being discriminative on either side, matching
+			// iter-67/72/82/88/89/90/91 probe behavior across regimes.
+			stream_2_evidence_items_facade_id_present_count_sum: sumMetric('stream_2_evidence_items_facade_id_present_count'),
+			stream_2_evidence_items_facade_id_present_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.stream_2_evidence_items_facade_id_present_count ?? 0))
+				: 0,
+			stream_2_evidence_items_content_present_count_sum: sumMetric('stream_2_evidence_items_content_present_count'),
+			stream_2_evidence_items_content_present_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.stream_2_evidence_items_content_present_count ?? 0))
+				: 0,
+			stream_2_evidence_items_hypothesis_present_count_sum: sumMetric('stream_2_evidence_items_hypothesis_present_count'),
+			stream_2_evidence_items_hypothesis_present_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.stream_2_evidence_items_hypothesis_present_count ?? 0))
+				: 0,
+			stream_2_evidence_items_implication_present_count_sum: sumMetric('stream_2_evidence_items_implication_present_count'),
+			stream_2_evidence_items_implication_present_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.stream_2_evidence_items_implication_present_count ?? 0))
+				: 0,
 			// iter-91: stream_2 counterparts for iter-83's primary-bus synthesis-
 			// updated.axes[].confidence typed-union probe AND iter-85's scout_
 			// assignments[].scout roster-membership probe — closes the 3rd and 4th
@@ -2550,6 +2647,93 @@ async function main() {
 			evidence_items_valid_latency_signal_count_sum: sumMetric('evidence_items_valid_latency_signal_count'),
 			evidence_items_valid_latency_signal_count_min: perIntent.length
 				? Math.min(...perIntent.map((p) => p.metrics.evidence_items_valid_latency_signal_count ?? 0))
+				: 0,
+			// iter-102: SwipeEvidence remaining-field presence-validity rollups —
+			// saturate the SwipeEvidence 7-way field-validity matrix on the primary
+			// bus alongside iter-82's three typed-union fields (decision, format,
+			// latencySignal) and iter-81's array-shape probes (evidence_array_valid,
+			// anti_patterns_array_valid, evidence_length_cross_intent_min/max).
+			// Closes the SwipeEvidence counterpart to iter-97 SwipeRecord 5-way /
+			// iter-98 Facade 6-way / iter-100 PrototypeDraft 6-way / iter-101
+			// AgentState 5-way matrix saturation — completing the POSITIVE-IDENTITY
+			// cluster iter-97 opened.
+			//
+			// SwipeEvidence has 7 total fields per types.ts:7-15: 3 typed-union
+			// fields (decision, format, latencySignal — closed by iter-82) + 4
+			// required-string fields (facadeId, content, hypothesis, implication —
+			// closed by iter-102). Under iter-61 healthy-auth 5-intent 12s-window
+			// baseline with 1 accept-swipe per intent: context.ts:80-89 addEvidence
+			// populates all 4 string fields from the facade lookup (facade.label/
+			// hypothesis/acceptImplies are required z.string() in scout.ts:71-85 —
+			// LLM guarantees non-empty on every scout output) plus record.facadeId
+			// (always present since swipe POST requires it). Every emitted item
+			// carries non-empty strings for all 4 fields, so each probe equals
+			// evidence_items_valid_decision_count per intent = 1 (sum=5/_min=1
+			// across 5-intent search set).
+			//
+			// 7-way item-level POSITIVE-IDENTITY chain under healthy-auth baseline:
+			//   evidence_updated_count_sum (iter-66)
+			//     = evidence_array_valid_count_sum (iter-81)
+			//     = evidence_items_valid_decision_count_sum (iter-82)
+			//     = evidence_items_valid_format_count_sum (iter-82)
+			//     = evidence_items_valid_latency_signal_count_sum (iter-82)
+			//     = evidence_items_facade_id_present_count_sum (iter-102)
+			//     = evidence_items_content_present_count_sum (iter-102)
+			//     = evidence_items_hypothesis_present_count_sum (iter-102)
+			//     = evidence_items_implication_present_count_sum (iter-102)
+			//     = 5 (sum) / 1 (min) across 5-intent search set.
+			//
+			// Regression classes iter-102 probes catch that iter-82 cannot:
+			//   - addEvidence at context.ts:80-89 mutating one string field without
+			//     the others (a refactor that sets content='' when facade.label is
+			//     missing, or a null-coalesce chain that produces '' instead of a
+			//     fallback): evidence_items_valid_decision_count stays at 5 while
+			//     content_present drops to 0 — distinguishing field-level mutation
+			//     from event-level loss that iter-82 typed-union probes cannot see
+			//     because empty strings satisfy z.string() in the emit path.
+			//   - a context.ts refactor that drops one of the 4 string fields
+			//     entirely from the SwipeEvidence object literal (e.g. an object-
+			//     spread that omits implication): TypeScript catches this at
+			//     compile time but the zod-unvalidated emit at context.ts:93 would
+			//     slip runtime-null values through, and per-field probes flag
+			//     exactly which field dropped — orthogonal discriminative signal.
+			//   - facade lookup at context.ts:73-74 returning undefined (a race-
+			//     condition bug where consumedFacades mutates concurrently with
+			//     facades): content/hypothesis/implication all fall through to
+			//     their ?? '' fallback and ALL THREE probes drop together while
+			//     facadeId stays at identity — the three-way drop discriminates
+			//     facade-lookup failure from individual-field corruption.
+			//   - implication specifically: if facade.acceptImplies is schema-
+			//     optional in a future refactor (currently required z.string()
+			//     per scout.ts:74), implication could become '' silently —
+			//     implication_present drops to 0 while facadeId/content/hypothesis
+			//     stay at identity, pinpointing the schema-narrowing regression.
+			//
+			// Forward-deploy regimes: under multi-swipe validators, all 4 string
+			// probes scale with sum-of-array-lengths-across-events (cumulative
+			// running total in context.evidence per context.ts:89); 7-way identity
+			// holds under correct multi-swipe behavior. Under reject-swipe regime,
+			// implication = facade.rejectImplies instead of acceptImplies — both
+			// satisfy z.string() non-empty guarantees so the probe stays at
+			// identity. The 4 string probes are stage-invariant (word vs mockup),
+			// latency-regime-invariant (first-swipe slow vs multi-swipe fast/slow
+			// mix), and decision-regime-invariant (accept vs reject) — just like
+			// iter-82's typed-union probes.
+			evidence_items_facade_id_present_count_sum: sumMetric('evidence_items_facade_id_present_count'),
+			evidence_items_facade_id_present_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.evidence_items_facade_id_present_count ?? 0))
+				: 0,
+			evidence_items_content_present_count_sum: sumMetric('evidence_items_content_present_count'),
+			evidence_items_content_present_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.evidence_items_content_present_count ?? 0))
+				: 0,
+			evidence_items_hypothesis_present_count_sum: sumMetric('evidence_items_hypothesis_present_count'),
+			evidence_items_hypothesis_present_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.evidence_items_hypothesis_present_count ?? 0))
+				: 0,
+			evidence_items_implication_present_count_sum: sumMetric('evidence_items_implication_present_count'),
+			evidence_items_implication_present_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.evidence_items_implication_present_count ?? 0))
 				: 0,
 			time_to_first_stage_changed_ms_p50: percentile(
 				perIntent.map((p) => p.metrics.time_to_first_stage_changed_ms),

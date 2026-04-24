@@ -547,6 +547,43 @@ async function main() {
 		evidence_items_valid_decision_count: 0,
 		evidence_items_valid_format_count: 0,
 		evidence_items_valid_latency_signal_count: 0,
+		// iter-102: stream_2 counterparts for iter-102's primary-bus SwipeEvidence
+		// remaining-field presence-validity probes (facadeId, content, hypothesis,
+		// implication), saturating the SwipeEvidence 7-way field-validity matrix on
+		// the /api/stream replay path alongside iter-89's array-shape + length probes
+		// and iter-90's typed-union probes (decision, format, latencySignal). Closes
+		// the SwipeEvidence counterpart to iter-99's Facade 6-way / iter-100's
+		// PrototypeDraft 6-way / iter-101's AgentState 5-way matrix-saturation cluster.
+		// Under iter-61 healthy-auth 5-intent 12s-window baseline the replay carries
+		// the same 1-item evidence array as primary (per iter-89 learnings): addEvidence
+		// at context.ts:80-89 populates facadeId from record.facadeId (guaranteed
+		// non-empty since swipe POST requires it), content from facade.label fallback
+		// chain (facade.label is required z.string() in scout.ts:71, non-empty from
+		// LLM output), hypothesis from facade.hypothesis (required z.string() in
+		// scout.ts:72), implication from facade.acceptImplies on accept swipes (required
+		// z.string() in scout.ts:74). All four fields carry non-empty strings on every
+		// emitted item, so each probe equals stream_2_evidence_items_valid_decision_count
+		// per intent = 1, identity-matched with primary under the cross-stream POSITIVE-
+		// IDENTITY invariant class iter-99 established for facade fields.
+		//
+		// Regression classes catchable only by stream_2 counterparts (distinct from
+		// iter-90's stream_2 typed-union probes): a +server.ts:30-32 replay-block
+		// transform that preserves decision/format/latencySignal union-membership but
+		// corrupts a string field (e.g. a JSON-serialize pipeline that truncates
+		// non-ASCII chars in implication, a .map(e => ({...e, content: null})) test
+		// shim left in, a payload-shape change where replay emits evidence items with
+		// only typed-union fields populated) — stream_2 items_valid_decision stays at 5
+		// while stream_2 items_{facade_id,content,hypothesis,implication}_present drops
+		// below 5, distinguishing union-membership corruption from string-field
+		// corruption on the replay path without needing primary to also drop. Cross-
+		// stream divergence (stream_2 counts != primary counts under healthy-auth)
+		// pinpoints replay-block-only string-field bugs that iter-89's whole-array
+		// probes, iter-90's typed-union probes, and this iteration's primary string-
+		// field probes cannot individually discriminate.
+		evidence_items_facade_id_present_count: 0,
+		evidence_items_content_present_count: 0,
+		evidence_items_hypothesis_present_count: 0,
+		evidence_items_implication_present_count: 0,
 		// iter-91: stream_2 counterparts for iter-83's primary-bus synthesis-updated.
 		// axes[].confidence typed-union probe AND iter-85's scout_assignments[].scout
 		// roster-membership probe, closing the 3rd and 4th of iter-88's 5 explicitly-
@@ -1163,6 +1200,24 @@ async function main() {
 							stream2.evidence_items_valid_format_count++;
 						if (item && VALID_EVIDENCE_LATENCY_SIGNALS.has(item.latencySignal))
 							stream2.evidence_items_valid_latency_signal_count++;
+						// iter-102: stream_2 SwipeEvidence remaining-field presence-
+						// validity probes (facadeId, content, hypothesis, implication).
+						// See init-block commentary ~line 550 for full rationale. Under
+						// healthy-auth the replay's 1-item evidence mirrors primary, so
+						// each probe = stream_2_evidence_items_valid_decision_count = 1
+						// per intent (sum=5/_min=1). A replay-only string-field
+						// corruption (preserves union-membership, breaks one string)
+						// drops only the corresponding probe while union-membership
+						// probes stay at identity — item-level cross-stream divergence
+						// discrimination the 3-way iter-90 probe-set could not provide.
+						if (item && typeof item.facadeId === 'string' && item.facadeId.length > 0)
+							stream2.evidence_items_facade_id_present_count++;
+						if (item && typeof item.content === 'string' && item.content.length > 0)
+							stream2.evidence_items_content_present_count++;
+						if (item && typeof item.hypothesis === 'string' && item.hypothesis.length > 0)
+							stream2.evidence_items_hypothesis_present_count++;
+						if (item && typeof item.implication === 'string' && item.implication.length > 0)
+							stream2.evidence_items_implication_present_count++;
 					}
 				}
 				if (Array.isArray(antiArr)) stream2.anti_patterns_array_valid_count++;
@@ -2884,9 +2939,68 @@ async function main() {
 	// iter-90: VALID_EVIDENCE_* sets hoisted to module scope so the stream_2
 	// replay evaluation (which runs earlier in main()) can share the same
 	// typed-union definitions; see declaration near line 70.
+	// iter-102: SwipeEvidence remaining-field presence-validity probes (facadeId,
+	// content, hypothesis, implication), saturating the SwipeEvidence 7-way field-
+	// validity matrix on the primary bus alongside iter-81's array-shape probes
+	// (evidence_array_valid, anti_patterns_array_valid, length_min/max) and iter-
+	// 82's typed-union probes (decision, format, latencySignal). Closes the
+	// SwipeEvidence counterpart to iter-97's SwipeRecord 5-way, iter-98's Facade
+	// 6-way, iter-100's PrototypeDraft 6-way, iter-101's AgentState 5-way matrix
+	// saturation — completing the POSITIVE-IDENTITY cluster that began iter-97
+	// and shifted the intervention-diversity class from iter-93/94/95/96's
+	// SHOULD-BE-ZERO family.
+	//
+	// SwipeEvidence has 7 total fields per types.ts:7-15: 3 typed-union fields
+	// (decision, format, latencySignal — closed by iter-82) + 4 required-string
+	// fields (facadeId, content, hypothesis, implication — closed by iter-102).
+	// Under iter-61 healthy-auth 5-intent 12s-window baseline with 1 accept-swipe:
+	//   context.ts:80-89 addEvidence populates all 4 string fields from the facade
+	//   lookup (facade.label/hypothesis/acceptImplies required z.string() in
+	//   scout.ts:71-85 — LLM guarantees non-empty on every scout output) plus
+	//   record.facadeId (always present since swipe POST requires it). Every
+	//   emitted item carries non-empty strings for all 4 fields, so each probe
+	//   equals evidence_items_valid_decision_count per intent = 1 (sum=5/_min=1
+	//   across the 5-intent search set).
+	//
+	// POSITIVE-IDENTITY chain under the baseline: evidence_updated_count (iter-66) =
+	// evidence_array_valid_count (iter-81) = evidence_items_valid_{decision,format,
+	// latency_signal}_count (iter-82) = evidence_items_{facade_id,content,hypothesis,
+	// implication}_present_count (iter-102) = 1 per intent, sum=5/_min=1 aggregate.
+	// A 7-way item-level identity at the field-granularity layer.
+	//
+	// Regression classes these probes catch that iter-82's typed-union probes
+	// cannot: (1) addEvidence at context.ts:80-89 mutating one string field without
+	// the others (e.g. a refactor that sets content='' when facade.label is missing,
+	// or a null-coalesce chain that produces '' instead of a fallback value) —
+	// evidence_items_valid_decision stays at 5 while content_present drops to 0,
+	// distinguishing field-level mutations from event-level loss; (2) a context.ts
+	// refactor that drops one of the 4 fields entirely from the SwipeEvidence
+	// object literal (e.g. an intermediate object-spread that omits implication) —
+	// the TypeScript type checker catches this at compile time but the zod-
+	// unvalidated emit at context.ts:93 would slip runtime-null values through,
+	// and per-field probes would flag exactly which field dropped; (3) the facade
+	// lookup at context.ts:73-74 returning undefined (a bug where consumedFacades
+	// race with facades mutation) — content/hypothesis/implication all fall through
+	// to their ?? '' fallback and ALL THREE probes drop together while facadeId
+	// stays at identity — the pattern discriminates facade-lookup failure from
+	// individual-field corruption.
+	//
+	// Forward-deploy regimes: under multi-swipe validators, all 4 string probes
+	// scale with sum-of-array-lengths-across-events (cumulative running total in
+	// context.evidence per addEvidence at context.ts:89); 7-way identity holds
+	// under correct multi-swipe behavior. Under reject-swipe regime, implication
+	// = facade.rejectImplies instead of acceptImplies — both satisfy z.string()
+	// non-empty guarantees so the probe stays at identity. The 4 string probes
+	// are stage-invariant (word vs mockup), latency-regime-invariant (first-swipe
+	// slow vs multi-swipe fast/slow mix), and decision-regime-invariant (accept
+	// vs reject) — just like iter-82's typed-union probes.
 	let evidenceItemsValidDecisionCount = 0;
 	let evidenceItemsValidFormatCount = 0;
 	let evidenceItemsValidLatencySignalCount = 0;
+	let evidenceItemsFacadeIdPresentCount = 0;
+	let evidenceItemsContentPresentCount = 0;
+	let evidenceItemsHypothesisPresentCount = 0;
+	let evidenceItemsImplicationPresentCount = 0;
 	for (const ev of evidenceUpdatedEvents) {
 		const evidenceArr = ev.data?.evidence;
 		const antiArr = ev.data?.antiPatterns;
@@ -2898,6 +3012,14 @@ async function main() {
 				if (item && VALID_EVIDENCE_DECISIONS.has(item.decision)) evidenceItemsValidDecisionCount++;
 				if (item && VALID_EVIDENCE_FORMATS.has(item.format)) evidenceItemsValidFormatCount++;
 				if (item && VALID_EVIDENCE_LATENCY_SIGNALS.has(item.latencySignal)) evidenceItemsValidLatencySignalCount++;
+				if (item && typeof item.facadeId === 'string' && item.facadeId.length > 0)
+					evidenceItemsFacadeIdPresentCount++;
+				if (item && typeof item.content === 'string' && item.content.length > 0)
+					evidenceItemsContentPresentCount++;
+				if (item && typeof item.hypothesis === 'string' && item.hypothesis.length > 0)
+					evidenceItemsHypothesisPresentCount++;
+				if (item && typeof item.implication === 'string' && item.implication.length > 0)
+					evidenceItemsImplicationPresentCount++;
 			}
 		}
 		if (Array.isArray(antiArr)) antiPatternsArrayValidCount++;
@@ -3144,6 +3266,17 @@ async function main() {
 			stream_2_evidence_items_valid_decision_count: stream2.evidence_items_valid_decision_count,
 			stream_2_evidence_items_valid_format_count: stream2.evidence_items_valid_format_count,
 			stream_2_evidence_items_valid_latency_signal_count: stream2.evidence_items_valid_latency_signal_count,
+			// iter-102: stream_2 counterparts for iter-102's primary-bus SwipeEvidence
+			// remaining-field presence-validity probes (facadeId, content, hypothesis,
+			// implication). Cross-stream POSITIVE-IDENTITY with primary under healthy-
+			// auth 5-intent baseline: each probe = primary counterpart = 1 per intent,
+			// sum=5/_min=1 aggregate. Saturates the SwipeEvidence 7-way field-validity
+			// matrix on the /api/stream replay path — closing the evidence-updated
+			// counterpart to iter-99's facade-ready 6-way saturation on stream_2.
+			stream_2_evidence_items_facade_id_present_count: stream2.evidence_items_facade_id_present_count,
+			stream_2_evidence_items_content_present_count: stream2.evidence_items_content_present_count,
+			stream_2_evidence_items_hypothesis_present_count: stream2.evidence_items_hypothesis_present_count,
+			stream_2_evidence_items_implication_present_count: stream2.evidence_items_implication_present_count,
 			// iter-91: stream_2 counterparts for iter-83's primary-bus synthesis-
 			// updated.axes[].confidence typed-union probe AND iter-85's scout_
 			// assignments[].scout roster-membership probe — closes the 3rd and 4th
@@ -3204,6 +3337,10 @@ async function main() {
 			evidence_items_valid_decision_count: evidenceItemsValidDecisionCount,
 			evidence_items_valid_format_count: evidenceItemsValidFormatCount,
 			evidence_items_valid_latency_signal_count: evidenceItemsValidLatencySignalCount,
+			evidence_items_facade_id_present_count: evidenceItemsFacadeIdPresentCount,
+			evidence_items_content_present_count: evidenceItemsContentPresentCount,
+			evidence_items_hypothesis_present_count: evidenceItemsHypothesisPresentCount,
+			evidence_items_implication_present_count: evidenceItemsImplicationPresentCount,
 			oracle_cold_start_latency_ms: oracleColdStartLatencyMs,
 			oracle_synthesis_latency_ms: oracleSynthesisLatencyMs,
 			oracle_reveal_build_latency_ms: oracleRevealBuildLatencyMs,
@@ -3258,6 +3395,7 @@ async function main() {
 		`synth_axes=${synthesisAxesCount}/min=${synthesisAxesMin} synth_axes_conf_valid=${synthesisAxesValidConfidenceCount} synth_assigns=${synthesisScoutAssignmentsCount}/min=${synthesisScoutAssignmentsMin} synth_assigns_scout_valid=${synthesisScoutAssignmentsValidScoutCount} synth_palette=${synthesisPalettePresentCount} ` +
 		`evid_arr_valid=${evidenceArrayValidCount} anti_arr_valid=${antiPatternsArrayValidCount} evid_len_min/max=${evidenceLengthMin}/${evidenceLengthMax} ` +
 		`evid_items_dec_valid=${evidenceItemsValidDecisionCount} evid_items_fmt_valid=${evidenceItemsValidFormatCount} evid_items_lat_valid=${evidenceItemsValidLatencySignalCount} ` +
+		`evid_items_fid=${evidenceItemsFacadeIdPresentCount} evid_items_content=${evidenceItemsContentPresentCount} evid_items_hyp=${evidenceItemsHypothesisPresentCount} evid_items_impl=${evidenceItemsImplicationPresentCount} ` +
 		`s2_err=${stream2.error_event_count} s2_agents=${stream2.agent_status_count} s2_stage=${stream2.stage_changed_count} s2_diag=${stream2.diagnostic_preserved_count} s2_err_auth=${stream2.error_provider_auth_count} ` +
 		`s2_roles=s${stream2.agent_status_scout_count}/o${stream2.agent_status_oracle_count}/b${stream2.agent_status_builder_count} ` +
 		`s2_stage_valid=${stream2.stage_valid_count} s2_err_src_valid=${stream2.error_source_valid_count} s2_err_code_valid=${stream2.error_code_valid_count} s2_err_msg=${stream2.error_message_present_count} ` +
@@ -3268,6 +3406,7 @@ async function main() {
 		`s2_synth_axes=${stream2.synthesis_axes_count}/min=${stream2.synthesis_axes_min} s2_synth_axes_conf_valid=${stream2.synthesis_axes_valid_confidence_count} s2_synth_assigns=${stream2.synthesis_scout_assignments_count}/min=${stream2.synthesis_scout_assignments_min} s2_synth_assigns_scout_valid=${stream2.synthesis_scout_assignments_valid_scout_count} s2_synth_palette=${stream2.synthesis_palette_present_count} ` +
 		`s2_evid_arr_valid=${stream2.evidence_array_valid_count} s2_anti_arr_valid=${stream2.anti_patterns_array_valid_count} s2_evid_len_min/max=${stream2.evidence_length_min}/${stream2.evidence_length_max} ` +
 		`s2_evid_items_dec_valid=${stream2.evidence_items_valid_decision_count} s2_evid_items_fmt_valid=${stream2.evidence_items_valid_format_count} s2_evid_items_lat_valid=${stream2.evidence_items_valid_latency_signal_count} ` +
+		`s2_evid_items_fid=${stream2.evidence_items_facade_id_present_count} s2_evid_items_content=${stream2.evidence_items_content_present_count} s2_evid_items_hyp=${stream2.evidence_items_hypothesis_present_count} s2_evid_items_impl=${stream2.evidence_items_implication_present_count} ` +
 		`s2_first=${stream2.first_event_ms_after_open}ms s2_span=${stream2.replay_span_ms}ms ` +
 		`oracle_cs=${oracleColdStartLatencyMs === null ? '-' : oracleColdStartLatencyMs + 'ms'} ` +
 		`oracle_syn=${oracleSynthesisLatencyMs === null ? '-' : oracleSynthesisLatencyMs + 'ms'} ` +
