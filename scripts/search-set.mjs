@@ -180,6 +180,9 @@ function extractMetrics(artifact) {
 		anti_patterns_array_valid_count: m.anti_patterns_array_valid_count ?? 0,
 		evidence_length_min: m.evidence_length_min ?? 0,
 		evidence_length_max: m.evidence_length_max ?? 0,
+		evidence_items_valid_decision_count: m.evidence_items_valid_decision_count ?? 0,
+		evidence_items_valid_format_count: m.evidence_items_valid_format_count ?? 0,
+		evidence_items_valid_latency_signal_count: m.evidence_items_valid_latency_signal_count ?? 0,
 		session_ready_intent_present_count: m.session_ready_intent_present_count ?? 0,
 		oracle_cold_start_latency_ms: m.oracle_cold_start_latency_ms ?? null,
 		oracle_synthesis_latency_ms: m.oracle_synthesis_latency_ms ?? null,
@@ -1184,6 +1187,77 @@ async function main() {
 				: 0,
 			evidence_length_cross_intent_max: perIntent.length
 				? Math.max(...perIntent.map((p) => p.metrics.evidence_length_max ?? 0))
+				: 0,
+			// iter-82: evidence-updated array-element typed-union rollups —
+			// extends iter-81's array-shape probes (presence-validity + length
+			// distribution) to within-element field validation. Each SwipeEvidence
+			// entry in evidence[] has three typed-union fields (decision ∈
+			// {accept,reject}, format ∈ {word,mockup}, latencySignal ∈
+			// {fast,slow}) per types.ts:7-15. This is the 'array-element union-
+			// membership' follow-on iter-81's learning explicitly called out,
+			// and the first validator probes that test fine-grained element
+			// content rather than whole-array presence. Parallel to iter-67's
+			// Facade.format first-content-probe, iter-80's SwipeRecord.{decision,
+			// latencyBucket}, and iter-61's stage-changed.stage — all union-
+			// membership probes on typed-union fields, differing only in what
+			// carries the field (whole event payload vs item inside array).
+			//
+			// Under iter-69 healthy-auth baseline (12s window, 1 accept-swipe,
+			// 1 evidence-updated emission per intent, 1 item in evidence array):
+			//   evidence_items_valid_decision_count_sum = 5 / _min = 1
+			//     (each intent's 1 item carries decision='accept' — one of the
+			//     two valid union values)
+			//   evidence_items_valid_format_count_sum = 5 / _min = 1
+			//     (each intent's 1 item carries format='word' under stage=words)
+			//   evidence_items_valid_latency_signal_count_sum = 5 / _min = 1
+			//     (each intent's 1 item carries latencySignal='slow' because
+			//     first-swipe median is 0, context.ts:69 forces 'slow')
+			//
+			// Three-way item-level identity: under healthy baseline all three
+			// counts SHOULD equal evidence_array_valid_count_sum × evidence_
+			// length_cross_intent_max (= 5 × 1 = 5). A regression where one
+			// evidence item's 'decision' is null/undefined/typoed would drop
+			// ONLY decision_count below 5 while format_count and latency_signal_
+			// count stay at 5, pinpointing which field corrupted — stronger
+			// discrimination than iter-81's whole-array checks alone.
+			//
+			// Forward-deploy regimes:
+			//   - multi-swipe validators land: all three counts scale with
+			//     sum-over-events-of-array-length per intent (cumulative running
+			//     total); three-way identity still holds under correct behavior.
+			//   - stage transitions to 'mockups' (evidence.length >= 4 per iter-
+			//     context.ts:57 concretenessFloor): format='mockup' items start
+			//     appearing; both 'word' and 'mockup' values satisfy union, so
+			//     format_count stays at identity; the typed-union probe is
+			//     stage-invariant just like iter-67's facade format probe.
+			//   - latency distribution flips (second swipe with latencyMs<median):
+			//     latencySignal='fast' starts appearing; both 'fast' and 'slow'
+			//     values satisfy union, so latency_signal_count stays at identity;
+			//     the typed-union probe is latency-regime-invariant.
+			//
+			// Regression classes these probes catch that iter-81 alone cannot:
+			//   - evidence item decision field typo'd in context.ts addEvidence
+			//     (e.g. 'accepted' instead of 'accept'): evidence_array_valid
+			//     still =5 (array exists), evidence_length_max still =1 (shape
+			//     preserved), but evidence_items_valid_decision_count drops below 5
+			//   - evidence item format field stripped at emit-serialization
+			//     boundary: array_valid =5, length_max =1, decision_count =5,
+			//     latency_signal_count =5, but format_count drops — only the
+			//     format probe catches the field-level loss
+			//   - evidence item latencySignal set to undefined by a refactor
+			//     removing context.ts:69's median-compare: array_valid =5,
+			//     decision_count =5, format_count =5, latency_signal_count drops
+			evidence_items_valid_decision_count_sum: sumMetric('evidence_items_valid_decision_count'),
+			evidence_items_valid_decision_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.evidence_items_valid_decision_count ?? 0))
+				: 0,
+			evidence_items_valid_format_count_sum: sumMetric('evidence_items_valid_format_count'),
+			evidence_items_valid_format_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.evidence_items_valid_format_count ?? 0))
+				: 0,
+			evidence_items_valid_latency_signal_count_sum: sumMetric('evidence_items_valid_latency_signal_count'),
+			evidence_items_valid_latency_signal_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.evidence_items_valid_latency_signal_count ?? 0))
 				: 0,
 			time_to_first_stage_changed_ms_p50: percentile(
 				perIntent.map((p) => p.metrics.time_to_first_stage_changed_ms),

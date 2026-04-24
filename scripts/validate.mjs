@@ -1635,6 +1635,31 @@ async function main() {
 	let antiPatternsArrayValidCount = 0;
 	let evidenceLengthMin = evidenceUpdatedEvents.length > 0 ? Infinity : 0;
 	let evidenceLengthMax = 0;
+	// iter-82: array-element typed-union probes on evidence-updated — extend
+	// iter-81's array-shape probes (presence-validity + length distribution) to
+	// within-array-element field validation. Each SwipeEvidence entry in the
+	// evidence[] array has THREE typed-union fields (decision, format,
+	// latencySignal) per types.ts:7-15 — same union-membership pattern as iter-
+	// 67's Facade.format, iter-80's SwipeRecord.{decision,latencyBucket}, and
+	// iter-61's stage-changed.stage. iter-81's learning called this out as
+	// 'array-element union-membership' follow-on. Under the 12s window baseline
+	// with 1 addEvidence emission per intent carrying a 1-item array, each
+	// probe counts 1 valid item per intent (sum=5 at aggregate, _min=1).
+	// Identity invariant at item-level: all three counts should equal each
+	// other AND equal sum-of-evidence-array-lengths-across-all-events (since
+	// every item in a well-formed emission has all three fields valid). Under
+	// the current 1-swipe/1-event/1-item baseline, all three equal evidence_
+	// updated_count (=evidence_array_valid_count =1 per intent). Regression
+	// classes: a single corrupted evidence item (typo'd decision, null format,
+	// missing latencySignal) would drop exactly ONE of the three counts below
+	// evidence_updated_count while leaving the others at identity, discriminating
+	// field-level corruption from whole-event loss.
+	const VALID_EVIDENCE_DECISIONS = new Set(['accept', 'reject']);
+	const VALID_EVIDENCE_FORMATS = new Set(['word', 'mockup']);
+	const VALID_EVIDENCE_LATENCY_SIGNALS = new Set(['fast', 'slow']);
+	let evidenceItemsValidDecisionCount = 0;
+	let evidenceItemsValidFormatCount = 0;
+	let evidenceItemsValidLatencySignalCount = 0;
 	for (const ev of evidenceUpdatedEvents) {
 		const evidenceArr = ev.data?.evidence;
 		const antiArr = ev.data?.antiPatterns;
@@ -1642,6 +1667,11 @@ async function main() {
 			evidenceArrayValidCount++;
 			if (evidenceArr.length < evidenceLengthMin) evidenceLengthMin = evidenceArr.length;
 			if (evidenceArr.length > evidenceLengthMax) evidenceLengthMax = evidenceArr.length;
+			for (const item of evidenceArr) {
+				if (item && VALID_EVIDENCE_DECISIONS.has(item.decision)) evidenceItemsValidDecisionCount++;
+				if (item && VALID_EVIDENCE_FORMATS.has(item.format)) evidenceItemsValidFormatCount++;
+				if (item && VALID_EVIDENCE_LATENCY_SIGNALS.has(item.latencySignal)) evidenceItemsValidLatencySignalCount++;
+			}
 		}
 		if (Array.isArray(antiArr)) antiPatternsArrayValidCount++;
 	}
@@ -1833,6 +1863,9 @@ async function main() {
 			anti_patterns_array_valid_count: antiPatternsArrayValidCount,
 			evidence_length_min: evidenceLengthMin,
 			evidence_length_max: evidenceLengthMax,
+			evidence_items_valid_decision_count: evidenceItemsValidDecisionCount,
+			evidence_items_valid_format_count: evidenceItemsValidFormatCount,
+			evidence_items_valid_latency_signal_count: evidenceItemsValidLatencySignalCount,
 			oracle_cold_start_latency_ms: oracleColdStartLatencyMs,
 			oracle_synthesis_latency_ms: oracleSynthesisLatencyMs,
 			oracle_reveal_build_latency_ms: oracleRevealBuildLatencyMs,
@@ -1885,6 +1918,7 @@ async function main() {
 		`swipe_dec_valid=${swipeDecisionValidCount} swipe_bkt_valid=${swipeLatencyBucketValidCount} ` +
 		`synth_axes=${synthesisAxesCount}/min=${synthesisAxesMin} synth_assigns=${synthesisScoutAssignmentsCount}/min=${synthesisScoutAssignmentsMin} ` +
 		`evid_arr_valid=${evidenceArrayValidCount} anti_arr_valid=${antiPatternsArrayValidCount} evid_len_min/max=${evidenceLengthMin}/${evidenceLengthMax} ` +
+		`evid_items_dec_valid=${evidenceItemsValidDecisionCount} evid_items_fmt_valid=${evidenceItemsValidFormatCount} evid_items_lat_valid=${evidenceItemsValidLatencySignalCount} ` +
 		`s2_err=${stream2.error_event_count} s2_agents=${stream2.agent_status_count} s2_stage=${stream2.stage_changed_count} s2_diag=${stream2.diagnostic_preserved_count} s2_err_auth=${stream2.error_provider_auth_count} ` +
 		`s2_roles=s${stream2.agent_status_scout_count}/o${stream2.agent_status_oracle_count}/b${stream2.agent_status_builder_count} ` +
 		`s2_stage_valid=${stream2.stage_valid_count} s2_err_src_valid=${stream2.error_source_valid_count} s2_err_code_valid=${stream2.error_code_valid_count} s2_err_msg=${stream2.error_message_present_count} ` +
