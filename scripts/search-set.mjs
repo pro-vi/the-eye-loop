@@ -174,6 +174,7 @@ function extractMetrics(artifact) {
 		swipe_latency_bucket_valid_count: m.swipe_latency_bucket_valid_count ?? 0,
 		synthesis_axes_count: m.synthesis_axes_count ?? 0,
 		synthesis_axes_min: m.synthesis_axes_min ?? 0,
+		synthesis_axes_valid_confidence_count: m.synthesis_axes_valid_confidence_count ?? 0,
 		synthesis_scout_assignments_count: m.synthesis_scout_assignments_count ?? 0,
 		synthesis_scout_assignments_min: m.synthesis_scout_assignments_min ?? 0,
 		evidence_array_valid_count: m.evidence_array_valid_count ?? 0,
@@ -1131,6 +1132,40 @@ async function main() {
 			synthesis_axes_count_sum: sumMetric('synthesis_axes_count'),
 			synthesis_axes_count_min: perIntent.length
 				? Math.min(...perIntent.map((p) => p.metrics.synthesis_axes_min ?? 0))
+				: 0,
+			// iter-83: array-element typed-union rollup on synthesis-updated.
+			// axes[].confidence — extends iter-82's evidence-updated array-element
+			// pattern (decision/format/latencySignal) to a NEW event type and
+			// closes iter-82's explicitly-named follow-on. Confidence is the only
+			// typed-union field on EmergentAxis (types.ts:67) ∈ {'unprobed',
+			// 'exploring', 'leaning', 'resolved'}. Under iter-61 healthy-auth
+			// baseline, cold-start synthesis (oracle.ts:338) hard-codes
+			// confidence='unprobed' on every axis — so identity invariant under
+			// healthy-auth 5-intent baseline is _sum=30 (= synthesis_axes_count_
+			// sum) / _min=6 (= 6 axes per intent, all with valid confidence).
+			//
+			// Forward-deploy regimes:
+			//   - real evidence-synthesis (runSynthesis path, 4+ swipes) lands
+			//     within window: confidence values become a mix of 'exploring'/
+			//     'leaning'/'resolved' as evidence accumulates; all three values
+			//     satisfy union, so identity holds — the probe is synthesis-
+			//     regime-invariant just like iter-67's facade.format across
+			//     word/mockup stages.
+			//   - oracle.runSynthesis truncates an axis or returns confidence as
+			//     null/typo'd ('exploringg'): event_count_sum stays at 5,
+			//     synthesis_axes_count_sum stays at 30, but synthesis_axes_valid_
+			//     confidence_count_sum drops below 30 — pinpointing field-level
+			//     corruption invisible to iter-72's whole-array length probe.
+			//
+			// Three-way comparison at aggregate (iter-82 pattern extended): a
+			// regression dropping confidence on ONE axis would drop synthesis_
+			// axes_valid_confidence_count_sum to 29 while synthesis_axes_count_
+			// sum stays at 30 — the gap (synthesis_axes_count_sum - synthesis_
+			// axes_valid_confidence_count_sum) directly counts corrupted-confidence
+			// axes across the full search set.
+			synthesis_axes_valid_confidence_count_sum: sumMetric('synthesis_axes_valid_confidence_count'),
+			synthesis_axes_valid_confidence_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.synthesis_axes_valid_confidence_count ?? 0))
 				: 0,
 			synthesis_scout_assignments_count_sum: sumMetric('synthesis_scout_assignments_count'),
 			synthesis_scout_assignments_count_min: perIntent.length

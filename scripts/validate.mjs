@@ -1547,6 +1547,25 @@ async function main() {
 	let synthesisScoutAssignmentsCount = 0;
 	let synthesisAxesMin = synthesisEvents.length > 0 ? Infinity : 0;
 	let synthesisScoutAssignmentsMin = synthesisEvents.length > 0 ? Infinity : 0;
+	// iter-83: array-element typed-union probe on synthesis-updated.axes[].
+	// confidence — extends iter-82's evidence-updated array-element pattern
+	// to a NEW event type, closing iter-82's explicitly-named follow-on:
+	// 'Future array-typed payloads (e.g. synthesis.axes[].confidence,
+	// synthesis.scout_assignments[].scout) follow the same structural
+	// pattern.' EmergentAxis (types.ts:63-70) has confidence as the ONLY
+	// typed-union field ∈ {'unprobed', 'exploring', 'leaning', 'resolved'}.
+	// Under iter-61 healthy-auth baseline, cold-start synthesis (oracle.ts:
+	// 332-349) hard-codes confidence='unprobed' on every axis, so all 6
+	// axes per emit carry the valid value. Identity invariant (per intent):
+	//   synthesis_axes_valid_confidence_count = synthesis_axes_count = 6
+	// Aggregate (5 intents): _sum=30 (= synthesis_axes_count_sum), _min=6.
+	// Regression class: a typo'd or null confidence on a single axis from
+	// a degraded LLM call (under runSynthesis path, 4+ swipes) would drop
+	// this count below synthesis_axes_count while leaving axes_count
+	// itself at identity — pinpointing field-level corruption invisible to
+	// iter-72's whole-array length probe.
+	const VALID_AXIS_CONFIDENCES = new Set(['unprobed', 'exploring', 'leaning', 'resolved']);
+	let synthesisAxesValidConfidenceCount = 0;
 	for (const ev of synthesisEvents) {
 		const axes = ev.data?.synthesis?.axes;
 		const assignments = ev.data?.synthesis?.scout_assignments;
@@ -1556,6 +1575,11 @@ async function main() {
 		synthesisScoutAssignmentsCount += assignmentsLen;
 		if (axesLen < synthesisAxesMin) synthesisAxesMin = axesLen;
 		if (assignmentsLen < synthesisScoutAssignmentsMin) synthesisScoutAssignmentsMin = assignmentsLen;
+		if (Array.isArray(axes)) {
+			for (const axis of axes) {
+				if (axis && VALID_AXIS_CONFIDENCES.has(axis.confidence)) synthesisAxesValidConfidenceCount++;
+			}
+		}
 	}
 	if (synthesisAxesMin === Infinity) synthesisAxesMin = 0;
 	if (synthesisScoutAssignmentsMin === Infinity) synthesisScoutAssignmentsMin = 0;
@@ -1857,6 +1881,7 @@ async function main() {
 			swipe_latency_bucket_valid_count: swipeLatencyBucketValidCount,
 			synthesis_axes_count: synthesisAxesCount,
 			synthesis_axes_min: synthesisAxesMin,
+			synthesis_axes_valid_confidence_count: synthesisAxesValidConfidenceCount,
 			synthesis_scout_assignments_count: synthesisScoutAssignmentsCount,
 			synthesis_scout_assignments_min: synthesisScoutAssignmentsMin,
 			evidence_array_valid_count: evidenceArrayValidCount,
@@ -1916,7 +1941,7 @@ async function main() {
 		`agent_status_valid=${agentStatusValidCount} stage_swipe_valid=${stageChangedSwipeCountValidCount} ` +
 		`facade_fmt_valid=${facadeFormatValidCount} ` +
 		`swipe_dec_valid=${swipeDecisionValidCount} swipe_bkt_valid=${swipeLatencyBucketValidCount} ` +
-		`synth_axes=${synthesisAxesCount}/min=${synthesisAxesMin} synth_assigns=${synthesisScoutAssignmentsCount}/min=${synthesisScoutAssignmentsMin} ` +
+		`synth_axes=${synthesisAxesCount}/min=${synthesisAxesMin} synth_axes_conf_valid=${synthesisAxesValidConfidenceCount} synth_assigns=${synthesisScoutAssignmentsCount}/min=${synthesisScoutAssignmentsMin} ` +
 		`evid_arr_valid=${evidenceArrayValidCount} anti_arr_valid=${antiPatternsArrayValidCount} evid_len_min/max=${evidenceLengthMin}/${evidenceLengthMax} ` +
 		`evid_items_dec_valid=${evidenceItemsValidDecisionCount} evid_items_fmt_valid=${evidenceItemsValidFormatCount} evid_items_lat_valid=${evidenceItemsValidLatencySignalCount} ` +
 		`s2_err=${stream2.error_event_count} s2_agents=${stream2.agent_status_count} s2_stage=${stream2.stage_changed_count} s2_diag=${stream2.diagnostic_preserved_count} s2_err_auth=${stream2.error_provider_auth_count} ` +
