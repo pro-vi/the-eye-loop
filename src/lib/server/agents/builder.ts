@@ -57,6 +57,23 @@ const ScaffoldSchema = z.object({
 	html: z.string()
 });
 
+// iter-77: dedicated reveal schema, applying iter-71's scaffold-trim pattern
+// to the reveal path. buildRevealDraft's merge only reads title/summary/html
+// (line ~664-667 explicitly sets nextHint = undefined and does not touch
+// changeNote, acceptedPatterns, rejectedPatterns, probeBriefs). The reveal
+// prompt was already instructing the model "probeBriefs = [], nextHint = null"
+// even though those were required by DraftUpdateSchema — filler output that
+// costs QUALITY_MODEL (Sonnet) tokens and tool-definition overhead on every
+// reveal build. Trimming to 3 fields matches iter-71's proven pattern and
+// reduces Sonnet latency on the reveal build, improving the V0 demo's
+// reveal-reachability row without regressing any scaffold/rebuild baseline
+// (rebuild still uses DraftUpdateSchema because its merge reads all 8 fields).
+const RevealSchema = z.object({
+	title: z.string(),
+	summary: z.string(),
+	html: z.string()
+});
+
 // ── Builder memory ──────────────────────────────────────────────────
 
 interface BuilderNote {
@@ -640,11 +657,11 @@ QUALITY BAR:
 
 ${HTML_QUALITY_RULES}
 
-OUTPUT: final title, summary, html (complete, polished, rich), changeNote, patterns, probeBriefs = [], nextHint = null`;
+OUTPUT: final title, summary, html (complete, polished, rich)`;
 
 		const result = await generateText({
 			model: QUALITY_MODEL,
-			output: Output.object({ schema: DraftUpdateSchema }),
+			output: Output.object({ schema: RevealSchema }),
 			temperature: 0,
 			system: finalPrompt,
 			prompt: 'Generate the final reveal prototype. Make it beautiful.',
