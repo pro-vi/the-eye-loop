@@ -324,6 +324,14 @@ function extractMetrics(artifact) {
 		// within-item field validation, closing the 3rd and 4th of iter-88's 5
 		// explicitly-named unclosed stream_2 counterpart backlog items.
 		stream_2_synthesis_axes_valid_confidence_count: m.stream_2_synthesis_axes_valid_confidence_count ?? 0,
+		// iter-103: stream_2 EmergentAxis remaining-field presence-validity probes
+		// (label, poleA, poleB, evidence_basis) — saturates the EmergentAxis 5-way
+		// field-validity matrix on stream_2 alongside iter-91's confidence probe.
+		stream_2_synthesis_axes_label_present_count: m.stream_2_synthesis_axes_label_present_count ?? 0,
+		stream_2_synthesis_axes_pole_a_present_count: m.stream_2_synthesis_axes_pole_a_present_count ?? 0,
+		stream_2_synthesis_axes_pole_b_present_count: m.stream_2_synthesis_axes_pole_b_present_count ?? 0,
+		stream_2_synthesis_axes_evidence_basis_present_count:
+			m.stream_2_synthesis_axes_evidence_basis_present_count ?? 0,
 		stream_2_synthesis_scout_assignments_valid_scout_count: m.stream_2_synthesis_scout_assignments_valid_scout_count ?? 0,
 		// iter-94: stream_2 counterpart for iter-94's primary-bus synthesis
 		// palette-presence probe. Under iter-61 healthy-auth 5-intent 12s-window
@@ -343,6 +351,13 @@ function extractMetrics(artifact) {
 		synthesis_axes_count: m.synthesis_axes_count ?? 0,
 		synthesis_axes_min: m.synthesis_axes_min ?? 0,
 		synthesis_axes_valid_confidence_count: m.synthesis_axes_valid_confidence_count ?? 0,
+		// iter-103: EmergentAxis remaining-field presence-validity probes (label,
+		// poleA, poleB, evidence_basis) — saturates the 5-way axes matrix on the
+		// primary bus alongside iter-83 confidence and iter-72 length probes.
+		synthesis_axes_label_present_count: m.synthesis_axes_label_present_count ?? 0,
+		synthesis_axes_pole_a_present_count: m.synthesis_axes_pole_a_present_count ?? 0,
+		synthesis_axes_pole_b_present_count: m.synthesis_axes_pole_b_present_count ?? 0,
+		synthesis_axes_evidence_basis_present_count: m.synthesis_axes_evidence_basis_present_count ?? 0,
 		synthesis_scout_assignments_count: m.synthesis_scout_assignments_count ?? 0,
 		synthesis_scout_assignments_min: m.synthesis_scout_assignments_min ?? 0,
 		synthesis_scout_assignments_valid_scout_count: m.synthesis_scout_assignments_valid_scout_count ?? 0,
@@ -2099,6 +2114,98 @@ async function main() {
 			synthesis_axes_valid_confidence_count_min: perIntent.length
 				? Math.min(...perIntent.map((p) => p.metrics.synthesis_axes_valid_confidence_count ?? 0))
 				: 0,
+			// iter-103: EmergentAxis remaining-field presence-validity rollups —
+			// saturate the EmergentAxis 5-way field-validity matrix on the primary
+			// bus alongside iter-83's axes[].confidence typed-union rollup and
+			// iter-72's axes whole-array length rollups. Closes iter-101's
+			// explicitly-named follow-on candidate (a) on the primary bus. Parallel
+			// to iter-102's SwipeEvidence 7-way closure (4 string fields added
+			// alongside iter-82's 3 typed-union fields) — continues the POSITIVE-
+			// IDENTITY family from iter-97 SwipeRecord 5-way / iter-98 Facade 6-way
+			// / iter-100 PrototypeDraft 6-way / iter-101 AgentState 5-way / iter-102
+			// SwipeEvidence 7-way.
+			//
+			// EmergentAxis has 6 fields per types.ts:63-70: 1 typed-union (confidence,
+			// closed by iter-83) + 4 required-string (label, poleA, poleB,
+			// evidence_basis, closed by iter-103) + 1 nullable-string (leaning_toward,
+			// NOT a presence-validity probe candidate because null is in-regime
+			// under cold-start). Under iter-61 healthy-auth 5-intent 12s-window
+			// baseline with cold-start synthesis only (oracle.ts:339-347 fires once
+			// per session at ~3-5s, runSynthesis at oracle.ts:176 unreachable in
+			// 12s window): each of 6 axes per intent carries non-empty strings for
+			// all 4 fields:
+			//   label = h.hypothesis (non-empty, from coldStartSchema z.string())
+			//   poleA = h.word_probe (non-empty, from coldStartSchema z.string())
+			//   poleB = '(unknown)' (hardcoded non-empty literal)
+			//   evidence_basis = 'intent analysis (no evidence yet)' (hardcoded non-empty)
+			//
+			// 5-way item-level POSITIVE-IDENTITY chain at aggregate (iter-102 pattern
+			// extended to EmergentAxis):
+			//   synthesis_axes_count_sum (iter-72, 30)
+			//     = synthesis_axes_valid_confidence_count_sum (iter-83, 30)
+			//     = synthesis_axes_label_present_count_sum (iter-103, 30)
+			//     = synthesis_axes_pole_a_present_count_sum (iter-103, 30)
+			//     = synthesis_axes_pole_b_present_count_sum (iter-103, 30)
+			//     = synthesis_axes_evidence_basis_present_count_sum (iter-103, 30)
+			//     = 6 × synthesis_updated_count_sum (iter-66, 5)
+			//
+			// Regression classes these rollups catch that iter-72/83 cannot:
+			//   - runColdStart at oracle.ts:339-347 mutating one string field
+			//     without the others (a refactor that sets poleB='' when
+			//     h.word_probe is missing, or a null-coalesce chain producing ''
+			//     instead of a fallback): synthesis_axes_valid_confidence_count_sum
+			//     stays at 30 while pole_b_present_count_sum drops to 0 —
+			//     distinguishing field-level mutation from typed-union corruption.
+			//     iter-83 probes cannot see this because confidence is hard-coded
+			//     to 'unprobed' in cold-start and stays valid regardless of which
+			//     other fields are corrupted.
+			//   - a coldStartSchema refactor that relaxes z.string() to
+			//     z.string().optional() on hypothesis/word_probe (oracle.ts:103):
+			//     LLM could emit empty strings for one field; label_present or
+			//     pole_a_present drops independently while confidence_count stays
+			//     at 30 — orthogonal discriminative signal invisible to iter-83.
+			//   - runSynthesis path (oracle.ts:176, unreachable in 12s window but
+			//     forward-deploy reachable) returning an axis with evidence_basis
+			//     null/undefined from a degraded LLM output: under forward-deploy,
+			//     evidence_basis_present_count_sum drops below synthesis_axes_
+			//     count_sum while confidence_count_sum stays at identity — forward-
+			//     deploy-specific regression invisible to current-baseline probes.
+			//   - a TasteSynthesis refactor that drops poleB from the EmergentAxis
+			//     object literal in cold-start construction (types.ts widens to
+			//     `poleB?: string` or cold-start spreads a partial object):
+			//     TypeScript may still type-check but runtime carries undefined/'';
+			//     pole_b_present_count_sum drops to 0 across all intents while
+			//     axes_count_sum stays at 30, pinpointing the schema-widening regression.
+			//
+			// Forward-deploy regimes: under runSynthesis path (4+ swipes, currently
+			// unreachable) evidence_basis is populated by the LLM from prior swipe
+			// evidence; synthesisSchema (oracle.ts:34) requires z.string() so the
+			// probe stays at identity. Under reveal-reachable regime, axes may
+			// carry runSynthesis-fresh values for poleB ('muted' instead of
+			// '(unknown)'); both non-empty so probe at identity. The 4 string
+			// probes are cold-start-vs-runSynthesis path-invariant, synthesis-
+			// regime-invariant, and intent-invariant — just like iter-83's
+			// confidence probe.
+			synthesis_axes_label_present_count_sum: sumMetric('synthesis_axes_label_present_count'),
+			synthesis_axes_label_present_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.synthesis_axes_label_present_count ?? 0))
+				: 0,
+			synthesis_axes_pole_a_present_count_sum: sumMetric('synthesis_axes_pole_a_present_count'),
+			synthesis_axes_pole_a_present_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.synthesis_axes_pole_a_present_count ?? 0))
+				: 0,
+			synthesis_axes_pole_b_present_count_sum: sumMetric('synthesis_axes_pole_b_present_count'),
+			synthesis_axes_pole_b_present_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.synthesis_axes_pole_b_present_count ?? 0))
+				: 0,
+			synthesis_axes_evidence_basis_present_count_sum: sumMetric(
+				'synthesis_axes_evidence_basis_present_count'
+			),
+			synthesis_axes_evidence_basis_present_count_min: perIntent.length
+				? Math.min(
+						...perIntent.map((p) => p.metrics.synthesis_axes_evidence_basis_present_count ?? 0)
+					)
+				: 0,
 			synthesis_scout_assignments_count_sum: sumMetric('synthesis_scout_assignments_count'),
 			synthesis_scout_assignments_count_min: perIntent.length
 				? Math.min(...perIntent.map((p) => p.metrics.synthesis_scout_assignments_min ?? 0))
@@ -2504,6 +2611,95 @@ async function main() {
 			stream_2_synthesis_axes_valid_confidence_count_sum: sumMetric('stream_2_synthesis_axes_valid_confidence_count'),
 			stream_2_synthesis_axes_valid_confidence_count_min: perIntent.length
 				? Math.min(...perIntent.map((p) => p.metrics.stream_2_synthesis_axes_valid_confidence_count ?? 0))
+				: 0,
+			// iter-103: stream_2 counterparts for iter-103's primary-bus EmergentAxis
+			// remaining-field presence-validity rollups (label, poleA, poleB,
+			// evidence_basis) — saturating the EmergentAxis 5-way field-validity
+			// matrix on the /api/stream replay path alongside iter-91's stream_2
+			// axes.confidence typed-union rollup and iter-88's whole-array axes
+			// length rollup. Closes the synthesis-updated counterpart to iter-102's
+			// evidence-updated stream_2 saturation — continues the cross-stream
+			// POSITIVE-IDENTITY family across iter-99 (Facade stream_2) / iter-100
+			// (PrototypeDraft stream_2) / iter-101 (AgentState stream_2) / iter-102
+			// (SwipeEvidence stream_2).
+			//
+			// Under iter-61 healthy-auth 5-intent 12s-window baseline: +server.ts:
+			// 24-26 replays synthesis-updated via JSON.stringify on context.synthesis;
+			// cold-start synthesis fires by ~3-5s (oracle.ts:339-347) and persists
+			// on context, so the replay at ~12s carries 6 axes with all 4 string
+			// fields populated — matching the primary-bus iter-103 identity. Each
+			// stream_2 probe = primary counterpart = 6 per intent (sum=30/_min=6
+			// aggregate).
+			//
+			// 5-way cross-stream POSITIVE-IDENTITY chain at aggregate under healthy-auth:
+			//   stream_2_synthesis_axes_count_sum (iter-88, 30)
+			//     = stream_2_synthesis_axes_valid_confidence_count_sum (iter-91, 30)
+			//     = stream_2_synthesis_axes_label_present_count_sum (iter-103, 30)
+			//     = stream_2_synthesis_axes_pole_a_present_count_sum (iter-103, 30)
+			//     = stream_2_synthesis_axes_pole_b_present_count_sum (iter-103, 30)
+			//     = stream_2_synthesis_axes_evidence_basis_present_count_sum (iter-103, 30)
+			//     = 6 × stream_2_synthesis_updated_count_sum (iter-66, 5)
+			//     = primary synthesis_axes_*_present_count_sum (iter-103, 30)
+			//
+			// Regression classes these rollups catch that iter-91 stream_2 typed-
+			// union probes alone cannot: a +server.ts:24-26 replay-block transform
+			// that preserves axes array-shape and confidence union-membership but
+			// corrupts a string field (e.g. a .map(a => ({...a, poleB: null}))
+			// transform accidentally landed, a JSON-serialize pipeline that strips
+			// non-ASCII chars from evidence_basis, a payload-shape change where
+			// replay emits axes with only the typed-union fields populated) —
+			// stream_2 axes_valid_confidence stays at 30 while stream_2 axes_
+			// {label,pole_a,pole_b,evidence_basis}_present drops below 30,
+			// distinguishing union-membership corruption from string-field
+			// corruption on the replay path. Cross-stream divergence (stream_2
+			// counts != primary counts under healthy-auth) pinpoints replay-block-
+			// only string-field bugs that iter-91 stream_2 typed-union probes and
+			// iter-103 primary string-field probes cannot individually discriminate.
+			//
+			// A regression affecting BOTH live emission and replay paths shows both
+			// counts dropping together; a regression affecting ONLY the replay path
+			// shows stream_2 drop while primary holds — exactly the cross-stream
+			// discrimination pattern iter-88/90/91/99/100/101/102 established as
+			// the unique value of stream_2 counterparts.
+			//
+			// Baseline-regime-invariant: under broken-auth baseline both primary
+			// and stream_2 axes string-field probes _sum=0 because no cold-start
+			// fires on either stream — the cross-stream identity 0==0 is preserved
+			// without being discriminative on either side, matching iter-67/72/82/
+			// 88/89/90/91/102 probe behavior across regimes.
+			stream_2_synthesis_axes_label_present_count_sum: sumMetric(
+				'stream_2_synthesis_axes_label_present_count'
+			),
+			stream_2_synthesis_axes_label_present_count_min: perIntent.length
+				? Math.min(
+						...perIntent.map((p) => p.metrics.stream_2_synthesis_axes_label_present_count ?? 0)
+					)
+				: 0,
+			stream_2_synthesis_axes_pole_a_present_count_sum: sumMetric(
+				'stream_2_synthesis_axes_pole_a_present_count'
+			),
+			stream_2_synthesis_axes_pole_a_present_count_min: perIntent.length
+				? Math.min(
+						...perIntent.map((p) => p.metrics.stream_2_synthesis_axes_pole_a_present_count ?? 0)
+					)
+				: 0,
+			stream_2_synthesis_axes_pole_b_present_count_sum: sumMetric(
+				'stream_2_synthesis_axes_pole_b_present_count'
+			),
+			stream_2_synthesis_axes_pole_b_present_count_min: perIntent.length
+				? Math.min(
+						...perIntent.map((p) => p.metrics.stream_2_synthesis_axes_pole_b_present_count ?? 0)
+					)
+				: 0,
+			stream_2_synthesis_axes_evidence_basis_present_count_sum: sumMetric(
+				'stream_2_synthesis_axes_evidence_basis_present_count'
+			),
+			stream_2_synthesis_axes_evidence_basis_present_count_min: perIntent.length
+				? Math.min(
+						...perIntent.map(
+							(p) => p.metrics.stream_2_synthesis_axes_evidence_basis_present_count ?? 0
+						)
+					)
 				: 0,
 			stream_2_synthesis_scout_assignments_valid_scout_count_sum: sumMetric('stream_2_synthesis_scout_assignments_valid_scout_count'),
 			stream_2_synthesis_scout_assignments_valid_scout_count_min: perIntent.length
