@@ -241,11 +241,21 @@ interface EmergentAxis {
   evidence_basis: string;
 }
 
+interface Palette {
+  bg: string;
+  card: string;
+  accent: string;
+  text: string;
+  muted: string;
+  radius: string;
+}
+
 interface TasteSynthesis {
   axes: EmergentAxis[];
   edge_case_flags: string[];
+  palette?: Palette;  // derived from accepted evidence on the runSynthesis path; cold-start omits
   scout_assignments: Array<{
-    scout: string;
+    scout: 'Iris' | 'Prism' | 'Lumen' | 'Aura' | 'Facet' | 'Echo';
     probe_axis: string;
     reason: string;
   }>;
