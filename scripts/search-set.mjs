@@ -159,7 +159,9 @@ function extractMetrics(artifact) {
 		error_source_valid_count: m.error_source_valid_count ?? 0,
 		error_code_valid_count: m.error_code_valid_count ?? 0,
 		agent_status_valid_count: m.agent_status_valid_count ?? 0,
+		agent_status_role_valid_count: m.agent_status_role_valid_count ?? 0,
 		stream_2_agent_status_valid_count: m.stream_2_agent_status_valid_count ?? 0,
+		stream_2_agent_status_role_valid_count: m.stream_2_agent_status_role_valid_count ?? 0,
 		stage_changed_swipe_count_valid_count: m.stage_changed_swipe_count_valid_count ?? 0,
 		stream_2_stage_changed_swipe_count_valid_count: m.stream_2_stage_changed_swipe_count_valid_count ?? 0,
 		stream_2_draft_updated_count: m.stream_2_draft_updated_count ?? 0,
@@ -891,6 +893,74 @@ async function main() {
 			stream_2_agent_status_valid_count_sum: sumMetric('stream_2_agent_status_valid_count'),
 			stream_2_agent_status_valid_count_min: perIntent.length
 				? Math.min(...perIntent.map((p) => p.metrics.stream_2_agent_status_valid_count ?? 0))
+				: 0,
+			// iter-86 agent.role union-membership rollups (primary + stream_2).
+			// Companion to iter-58's agent.status rollups, closing the 2nd
+			// typed-union field on AgentState payload (agent.role ∈ {'scout',
+			// 'builder','oracle'} per types.ts:40). The iter-40/52 per-role
+			// counts (scout/oracle/builder) classify by role equality but fall
+			// through silently on any unknown role value, so their sum CAN drop
+			// below agent_status_event_count without any probe firing — a gap
+			// iter-58's status probe cannot see (status field is role-independent).
+			//
+			// Cross-references:
+			//   types.ts:40 AgentState.role: 'scout' | 'builder' | 'oracle'
+			//   scout.ts:32-39 SCOUT_ROSTER (6 agents, role='scout')
+			//   oracle.ts:135 ORACLE_AGENT (role='oracle')
+			//   builder.ts:BUILDER_AGENT (role='builder')
+			//
+			// Under iter-74 healthy-auth 5-intent 12s-window baseline:
+			//   agent_status_role_valid_count_sum ≈ 105 _min ≈ 21 (matches the
+			//     iter-31 agent_status_event_count_sum=105, identity invariant:
+			//     every primary-stream agent-status emit carries a valid role)
+			//   stream_2_agent_status_role_valid_count_sum = 40 _min = 8
+			//     (matches stream_2_agent_status_count_sum=40 across 5 intents)
+			//
+			// Under broken-auth baseline:
+			//   agent_status_role_valid_count_sum=90 _min=18 (per-intent 2 replay
+			//     idle + 8 scout thinking + 8 scout post-failure idle with
+			//     provider-auth-failed focus, all valid 'scout' role from
+			//     SCOUT_ROSTER[].role constant)
+			//   stream_2_agent_status_role_valid_count_sum=40 _min=8 (6 scouts
+			//     + 1 oracle + 1 builder in the /api/stream replay block with
+			//     valid roles)
+			//
+			// Three-way identity at aggregate:
+			//   agent_status_role_valid_count_sum ==
+			//     agent_status_scout_count_sum +
+			//     agent_status_oracle_count_sum +
+			//     agent_status_builder_count_sum ==
+			//     agent_status_event_count_sum
+			// A regression where the sum of per-role counts drops below
+			// agent_status_event_count (e.g., a future role-union extension
+			// leaking 'critic' through an uncaught branch) would also drop
+			// role_valid_count below agent_status_event_count, pinpointing the
+			// off-union emission without needing 3 separate count alerts.
+			//
+			// Orthogonal regression classes this probe uniquely catches:
+			//   - a future role-union extension ('critic','synth','moderator')
+			//     leaking onto the wire from a new AgentState construction site
+			//     that iter-40/52 per-role counters would silently uncategorize
+			//   - a typo/refactor setting agent.role to undefined/null/empty
+			//     string — invisible to iter-31 (total count), iter-58 (status
+			//     probe — filters on status field), iter-50/51 (latency
+			//     derivation — filters on role === 'scout'/'oracle'/'builder'
+			//     via agentId prefix, independent of role field)
+			//   - cross-session state leak where a scout agent's role gets
+			//     mutated to 'oracle' mid-session — would keep all iter-40/52
+			//     per-role counters ABOVE baseline (double-counting) but drop
+			//     this probe below event_count if the mutation is 'unknown'
+			//
+			// Pairs with iter-58's agent.status probe to establish complete
+			// typed-union coverage on AgentState payload fields across both
+			// streams — the 2nd and final typed-union field on this event type.
+			agent_status_role_valid_count_sum: sumMetric('agent_status_role_valid_count'),
+			agent_status_role_valid_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.agent_status_role_valid_count ?? 0))
+				: 0,
+			stream_2_agent_status_role_valid_count_sum: sumMetric('stream_2_agent_status_role_valid_count'),
+			stream_2_agent_status_role_valid_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.stream_2_agent_status_role_valid_count ?? 0))
 				: 0,
 			// iter-60 session-ready.intent content-presence rollup. Closes the
 			// last unprobed content field across all SSE event types — iter-20

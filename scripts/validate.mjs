@@ -410,6 +410,7 @@ async function main() {
 		error_code_valid_count: 0,
 		error_message_present_count: 0,
 		agent_status_valid_count: 0,
+		agent_status_role_valid_count: 0,
 		stage_changed_swipe_count_valid_count: 0,
 		// iter-67: facade.format union-membership probe — first content probe
 		// on facade-ready (iter-66 added the count; no content probe existed
@@ -611,6 +612,23 @@ async function main() {
 		const VALID_AGENT_STATUSES = ['idle', 'thinking', 'queued', 'waiting'];
 		stream2.agent_status_valid_count = stream2.events.filter(
 			(e) => e.type === 'agent-status' && VALID_AGENT_STATUSES.includes(e.data?.agent?.status)
+		).length;
+		// iter-86: agent.role union-membership probe (stream_2) — companion to
+		// iter-58's agent.status probe, closing the 2nd typed-union field on the
+		// AgentState payload (agent.role ∈ {'scout','builder','oracle'} per
+		// types.ts:40). The existing iter-40 per-role counts (scout/oracle/builder)
+		// classify by role equality but fall through silently on any unknown
+		// role value, so their sum can drop below stream_2_agent_status_count
+		// without any probe firing. This explicit membership probe closes that
+		// gap: a future role-union extension leaking 'critic' / 'synth' / ''
+		// would keep stream_2_agent_status_count at baseline while dropping
+		// agent_status_role_valid_count below it. Under broken-auth baseline
+		// stream_2 replays 8 agents (scouts 6 + oracle 1 + builder 1) all with
+		// valid roles, so the invariant is stream_2_agent_status_role_valid_count
+		// = stream_2_agent_status_count = 8 per intent.
+		const VALID_AGENT_ROLES = ['scout', 'builder', 'oracle'];
+		stream2.agent_status_role_valid_count = stream2.events.filter(
+			(e) => e.type === 'agent-status' && VALID_AGENT_ROLES.includes(e.data?.agent?.role)
 		).length;
 		// iter-61: stage-changed.swipeCount integer-validity probe (stream_2)
 		// — sibling to the primary-stream stageChangedSwipeCountValidCount
@@ -1408,6 +1426,30 @@ async function main() {
 	const agentStatusValidCount = events.filter(
 		(e) => e.type === 'agent-status' && VALID_AGENT_STATUSES.has(e.data?.agent?.status)
 	).length;
+	// iter-86: agent.role union-membership probe (primary stream) — symmetric
+	// to stream2.agent_status_role_valid_count above. Companion to iter-58's
+	// agent.status probe, extending typed-union coverage to the 2nd union
+	// field on AgentState (agent.role ∈ {'scout','builder','oracle'} per
+	// types.ts:40). Iter-52's agentStatusScoutCount/OracleCount/BuilderCount
+	// classify by role equality and silently fall through on any unknown role
+	// value — their sum can drop below agent_status_event_count without any
+	// probe firing. This explicit membership probe closes that gap:
+	//   - under broken-auth baseline the invariant is agent_status_role_valid_
+	//     count = agent_status_event_count = 18 per intent (2 replay idle + 8
+	//     thinking + 8 idle/provider-auth-failed, all with valid roles from
+	//     SCOUT_ROSTER / builder / oracle constants).
+	//   - under healthy-auth baseline both climb to ~21 per intent but identity
+	//     holds across regime shifts.
+	// Orthogonal regression: a future role-union extension leaking 'critic' /
+	// 'synth' / undefined from a typo or refactor would be invisible to iter-31
+	// (total count), iter-52 (per-role count — would just go uncategorized),
+	// iter-58 (status probe — role-independent), but drop this probe below
+	// agent_status_event_count. Pairs with iter-58 to establish full typed-
+	// union coverage on AgentState payload across both streams.
+	const VALID_AGENT_ROLES = new Set(['scout', 'builder', 'oracle']);
+	const agentStatusRoleValidCount = events.filter(
+		(e) => e.type === 'agent-status' && VALID_AGENT_ROLES.has(e.data?.agent?.role)
+	).length;
 	// iter-61: stage-changed.swipeCount integer-validity probe (primary stream) —
 	// closes the last unprobed field on the iter-3 'stage-changed' SSEEvent after
 	// iter-41/55 (stage union-membership) filled the stage field on both streams.
@@ -1903,6 +1945,7 @@ async function main() {
 			stream_2_error_code_valid_count: stream2.error_code_valid_count,
 			stream_2_error_message_present_count: stream2.error_message_present_count,
 			stream_2_agent_status_valid_count: stream2.agent_status_valid_count,
+			stream_2_agent_status_role_valid_count: stream2.agent_status_role_valid_count,
 			stream_2_stage_changed_swipe_count_valid_count: stream2.stage_changed_swipe_count_valid_count,
 			stream_2_draft_updated_count: stream2.draft_updated_count,
 			stream_2_draft_placeholder_count: stream2.draft_placeholder_count,
@@ -1922,6 +1965,7 @@ async function main() {
 			error_source_valid_count: errorSourceValidCount,
 			error_code_valid_count: errorCodeValidCount,
 			agent_status_valid_count: agentStatusValidCount,
+			agent_status_role_valid_count: agentStatusRoleValidCount,
 			stage_changed_swipe_count_valid_count: stageChangedSwipeCountValidCount,
 			facade_format_valid_count: facadeFormatValidCount,
 			swipe_decision_valid_count: swipeDecisionValidCount,
@@ -1986,7 +2030,7 @@ async function main() {
 		`agent_status_roles=s${agentStatusScoutCount}/o${agentStatusOracleCount}/b${agentStatusBuilderCount} ` +
 		`stage_changed=${stageChangedEventCount} stage_before_ready=${stageChangedBeforeSessionReady} ` +
 		`stage_valid=${stageValidCount} err_src_valid=${errorSourceValidCount} err_code_valid=${errorCodeValidCount} ` +
-		`agent_status_valid=${agentStatusValidCount} stage_swipe_valid=${stageChangedSwipeCountValidCount} ` +
+		`agent_status_valid=${agentStatusValidCount} agent_status_role_valid=${agentStatusRoleValidCount} stage_swipe_valid=${stageChangedSwipeCountValidCount} ` +
 		`facade_fmt_valid=${facadeFormatValidCount} ` +
 		`swipe_dec_valid=${swipeDecisionValidCount} swipe_bkt_valid=${swipeLatencyBucketValidCount} ` +
 		`synth_axes=${synthesisAxesCount}/min=${synthesisAxesMin} synth_axes_conf_valid=${synthesisAxesValidConfidenceCount} synth_assigns=${synthesisScoutAssignmentsCount}/min=${synthesisScoutAssignmentsMin} synth_assigns_scout_valid=${synthesisScoutAssignmentsValidScoutCount} ` +
@@ -1995,7 +2039,7 @@ async function main() {
 		`s2_err=${stream2.error_event_count} s2_agents=${stream2.agent_status_count} s2_stage=${stream2.stage_changed_count} s2_diag=${stream2.diagnostic_preserved_count} s2_err_auth=${stream2.error_provider_auth_count} ` +
 		`s2_roles=s${stream2.agent_status_scout_count}/o${stream2.agent_status_oracle_count}/b${stream2.agent_status_builder_count} ` +
 		`s2_stage_valid=${stream2.stage_valid_count} s2_err_src_valid=${stream2.error_source_valid_count} s2_err_code_valid=${stream2.error_code_valid_count} s2_err_msg=${stream2.error_message_present_count} ` +
-		`s2_agent_status_valid=${stream2.agent_status_valid_count} s2_stage_swipe_valid=${stream2.stage_changed_swipe_count_valid_count} ` +
+		`s2_agent_status_valid=${stream2.agent_status_valid_count} s2_agent_status_role_valid=${stream2.agent_status_role_valid_count} s2_stage_swipe_valid=${stream2.stage_changed_swipe_count_valid_count} ` +
 		`s2_drafts=${stream2.draft_updated_count} s2_drafts_p/r=${stream2.draft_placeholder_count}/${stream2.draft_refined_count} ` +
 		`s2_facades=${stream2.facade_ready_count} s2_synth=${stream2.synthesis_updated_count} s2_evidence=${stream2.evidence_updated_count} ` +
 		`s2_facade_fmt_valid=${stream2.facade_format_valid_count} ` +
