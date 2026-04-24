@@ -31,6 +31,7 @@ const REVEAL_PREP_START = 8;
 const REVEAL_FORCE_PREP_AT = Math.max(1, AUTO_REVEAL_SWIPE_THRESHOLD - 6);
 const WARMUP_TIMEOUT_MS = 45_000;
 const MAX_CONCURRENT_SCOUTS = 6;
+const MAX_REFILL_BATCHES_WITHOUT_PROGRESS = 2;
 
 const SCOUT_ROSTER = [
 	{ id: 'scout-01', name: 'Iris' },
@@ -255,6 +256,7 @@ interface BuilderQueue {
 const builderQueues = new WeakMap<EyeLoopSession, BuilderQueue>();
 const refillRuns = new WeakMap<EyeLoopSession, Promise<void>>();
 const synthesisRuns = new WeakMap<EyeLoopSession, Promise<void>>();
+const revealRuns = new WeakMap<EyeLoopSession, Promise<void>>();
 
 function sleep(ms: number) {
 	return new Promise((resolve) => setTimeout(resolve, ms));
@@ -339,6 +341,10 @@ function shouldAggressivelyRefill(session: EyeLoopSession): boolean {
 	return session.facades.length < RESERVOIR_LOW_WATER;
 }
 
+function isRevealStage(session: EyeLoopSession): boolean {
+	return session.stage === 'reveal';
+}
+
 function pruneStaleFacades(session: EyeLoopSession) {
 	if (session.facades.length <= RESERVOIR_LOW_WATER) return;
 	for (const facade of [...session.facades]) {
@@ -351,6 +357,7 @@ async function generateScoutFacade(session: EyeLoopSession, scout: (typeof SCOUT
 	session.pendingFacadeJobs++;
 	session.emit('queue-updated', { queueStats: session.queueStats });
 	setAgent(session, scout.id, scout.name, 'scout', 'thinking', reason);
+	let idleFocus = 'waiting';
 	try {
 		const format = session.concretenessFloor;
 		const schema = format === 'word' ? ScoutOutputSchemaWord : ScoutOutputSchemaMockup;
@@ -373,7 +380,14 @@ async function generateScoutFacade(session: EyeLoopSession, scout: (typeof SCOUT
 			prompt: 'Generate one next taste probe.'
 		});
 		const output = result.output;
-		if (!output) return;
+		if (!output) {
+			idleFocus = 'no usable facade';
+			return;
+		}
+		if (session.stage === 'reveal') {
+			idleFocus = 'session already revealed';
+			return;
+		}
 
 		const axisLower = output.axis_targeted.toLowerCase();
 		const labelLower = output.label.toLowerCase();
@@ -382,7 +396,10 @@ async function generateScoutFacade(session: EyeLoopSession, scout: (typeof SCOUT
 				f.axisTargeted?.toLowerCase() === axisLower ||
 				f.label.toLowerCase() === labelLower
 		);
-		if (duplicate) return;
+		if (duplicate) {
+			idleFocus = 'duplicate skipped';
+			return;
+		}
 
 		const content =
 			'content' in output && typeof output.content === 'string'
@@ -402,12 +419,13 @@ async function generateScoutFacade(session: EyeLoopSession, scout: (typeof SCOUT
 			},
 			reason
 		);
-		setAgent(session, scout.id, scout.name, 'scout', 'idle', `"${output.label}" ready`);
+		idleFocus = `"${output.label}" ready`;
 	} catch (err) {
 		emitError(session, 'scout', err, scout.id);
-		setAgent(session, scout.id, scout.name, 'scout', 'idle', 'provider call failed');
+		idleFocus = 'provider call failed';
 	} finally {
 		session.pendingFacadeJobs--;
+		setAgent(session, scout.id, scout.name, 'scout', 'idle', idleFocus);
 		session.emit('queue-updated', { queueStats: session.queueStats });
 	}
 }
@@ -421,10 +439,12 @@ async function runRefill(
 	if (refillRuns.has(session)) return refillRuns.get(session);
 	const run = (async () => {
 		pruneStaleFacades(session);
+		let noProgressBatches = 0;
 		while (
-			session.stage !== 'reveal' &&
+			!isRevealStage(session) &&
 			(session.facades.length < minReady || session.facades.length + session.pendingFacadeJobs < targetReady)
 		) {
+			const readyBefore = session.facades.length;
 			const slots = Math.max(
 				0,
 				Math.min(
@@ -438,6 +458,13 @@ async function runRefill(
 				return generateScoutFacade(session, scout, reason);
 			});
 			await Promise.allSettled(scouts);
+			if (isRevealStage(session)) break;
+			if (session.facades.length <= readyBefore) {
+				noProgressBatches++;
+				if (noProgressBatches >= MAX_REFILL_BATCHES_WITHOUT_PROGRESS) break;
+			} else {
+				noProgressBatches = 0;
+			}
 			if (session.facades.length >= targetReady) break;
 			if (slots < MAX_CONCURRENT_SCOUTS && session.facades.length >= minReady) break;
 		}
@@ -663,20 +690,27 @@ function isRateLimitError(err: unknown): boolean {
 async function buildReveal(session: EyeLoopSession, final: boolean) {
 	const queue = getBuilderQueue(session);
 	if (!final && queue.revealPrepStartedFor === session.swipeCount) return;
+	const existingRun = revealRuns.get(session);
+	if (existingRun) {
+		if (!final) return;
+		await existingRun;
+		if (session.reveal.draft) return;
+	}
 	if (!final) queue.revealPrepStartedFor = session.swipeCount;
-	if (session.reveal.preparing || session.reveal.finalizing) return;
-	session.reveal.preparing = !final;
-	session.reveal.finalizing = final;
-	setAgent(
-		session,
-		'builder-01',
-		'Meridian',
-		'builder',
-		'thinking',
-		final ? 'final prototype synthesis' : 'preparing reveal'
-	);
-	try {
-		const finalPrompt = `You are the Builder. Produce the ${final ? 'final' : 'prepared'} reveal prototype.
+
+	const run = (async () => {
+		session.reveal.preparing = !final;
+		session.reveal.finalizing = final;
+		setAgent(
+			session,
+			'builder-01',
+			'Meridian',
+			'builder',
+			'thinking',
+			final ? 'final prototype synthesis' : 'preparing reveal'
+		);
+		try {
+			const finalPrompt = `You are the Builder. Produce the ${final ? 'final' : 'prepared'} reveal prototype.
 
 Intent: "${session.intent}"
 
@@ -699,55 +733,65 @@ ${HTML_QUALITY_RULES}
 
 Output title, summary, and complete mobile HTML.`;
 
-		const run = async (model: typeof REVEAL_MODEL) =>
-			generateText({
-				model,
-				output: Output.object({ schema: DraftCoreSchema }),
-				temperature: 0,
-				system: finalPrompt,
-				prompt: final ? 'Generate the final reveal.' : 'Prepare the reveal draft.',
-				maxOutputTokens: REVEAL_MAX_OUTPUT_TOKENS
-			});
-		let result;
-		try {
-			result = await run(final ? REVEAL_MODEL : BUILDER_MODEL);
-		} catch (err) {
-			if (final && isRateLimitError(err) && REVEAL_MODEL_ID !== BUILDER_MODEL_ID) {
-				result = await run(BUILDER_MODEL);
-			} else {
-				throw err;
+			const runModel = async (model: typeof REVEAL_MODEL) =>
+				generateText({
+					model,
+					output: Output.object({ schema: DraftCoreSchema }),
+					temperature: 0,
+					system: finalPrompt,
+					prompt: final ? 'Generate the final reveal.' : 'Prepare the reveal draft.',
+					maxOutputTokens: REVEAL_MAX_OUTPUT_TOKENS
+				});
+			let result;
+			try {
+				result = await runModel(final ? REVEAL_MODEL : BUILDER_MODEL);
+			} catch (err) {
+				if (final && isRateLimitError(err) && REVEAL_MODEL_ID !== BUILDER_MODEL_ID) {
+					result = await runModel(BUILDER_MODEL);
+				} else {
+					throw err;
+				}
 			}
+			if (!result.output) return;
+			const draft: PrototypeDraft = {
+				...session.draft,
+				title: result.output.title,
+				summary: result.output.summary,
+				html: result.output.html,
+				nextHint: undefined
+			};
+			session.markRevealPrepared(final ? 'final' : 'shadow', draft);
+			debugLog('Builder', final ? 'reveal-final' : 'reveal-prep', {
+				sessionId: session.sessionId,
+				swipe: session.swipeCount,
+				model: final ? REVEAL_MODEL_ID : BUILDER_MODEL_ID
+			});
+		} catch (err) {
+			emitError(session, 'builder', err, 'builder-01');
+		} finally {
+			session.reveal.preparing = false;
+			session.reveal.finalizing = false;
+			setAgent(session, 'builder-01', 'Meridian', 'builder', 'idle', 'watching for swipes');
 		}
-		if (!result.output) return;
-		const draft: PrototypeDraft = {
-			...session.draft,
-			title: result.output.title,
-			summary: result.output.summary,
-			html: result.output.html,
-			nextHint: undefined
-		};
-		session.markRevealPrepared(final ? 'final' : 'shadow', draft);
-		if (final) {
-			session.draft = draft;
-			session.emit('draft-updated', { draft: session.draft });
-		}
-		debugLog('Builder', final ? 'reveal-final' : 'reveal-prep', {
-			sessionId: session.sessionId,
-			swipe: session.swipeCount,
-			model: final ? REVEAL_MODEL_ID : BUILDER_MODEL_ID
-		});
-	} catch (err) {
-		emitError(session, 'builder', err, 'builder-01');
+	})();
+	revealRuns.set(session, run);
+	try {
+		await run;
 	} finally {
-		session.reveal.preparing = false;
-		session.reveal.finalizing = false;
-		setAgent(session, 'builder-01', 'Meridian', 'builder', 'idle', 'watching for swipes');
+		if (revealRuns.get(session) === run) revealRuns.delete(session);
 	}
+}
+
+function applyRevealDraft(session: EyeLoopSession): boolean {
+	if (!session.reveal.draft) return false;
+	session.draft = session.reveal.draft;
+	session.emit('draft-updated', { draft: session.draft });
+	return true;
 }
 
 function maybePrepareReveal(session: EyeLoopSession) {
 	if (session.swipeCount < REVEAL_PREP_START) return;
-	if (session.reveal.preparing || session.reveal.finalizing) return;
+	if (revealRuns.has(session)) return;
 	if (session.swipeCount >= REVEAL_FORCE_PREP_AT || session.swipeCount % SYNTHESIS_CADENCE === 0) {
 		void buildReveal(session, false);
 	}
@@ -756,12 +800,10 @@ function maybePrepareReveal(session: EyeLoopSession) {
 async function enterReveal(session: EyeLoopSession) {
 	if (session.stage === 'reveal') return;
 	session.setState('revealing');
-	if (session.reveal.draft) {
-		session.draft = session.reveal.draft;
-		session.emit('draft-updated', { draft: session.draft });
-	} else {
+	if (!session.reveal.draft) {
 		await buildReveal(session, true);
 	}
+	applyRevealDraft(session);
 	session.stage = 'reveal';
 	session.clearReadyFacades();
 	session.emit('stage-changed', { stage: 'reveal', swipeCount: session.swipeCount });
@@ -771,7 +813,7 @@ async function enterReveal(session: EyeLoopSession) {
 export async function bootstrapSession(intent: string): Promise<SessionBootstrapResponse> {
 	const session = createSession(intent);
 	session.setState('warming');
-	session.emit('session-ready', { intent });
+	session.emit('session-ready', { intent, revealThreshold: AUTO_REVEAL_SWIPE_THRESHOLD });
 	setAgent(session, 'oracle', 'Oracle', 'oracle', 'idle', 'monitoring');
 	setAgent(session, 'builder-01', 'Meridian', 'builder', 'idle', 'waiting for session');
 	for (const scout of SCOUT_ROSTER) {
@@ -788,7 +830,7 @@ export async function bootstrapSession(intent: string): Promise<SessionBootstrap
 	await Promise.allSettled([scaffold, coldStart, refill]);
 	session.setState('ready');
 	scheduleRefill(session, 'post-bootstrap top-off');
-	return session.getBootstrapResponse();
+	return session.getBootstrapResponse(AUTO_REVEAL_SWIPE_THRESHOLD);
 }
 
 export async function handleSessionSwipe(session: EyeLoopSession, record: SwipeRecord) {

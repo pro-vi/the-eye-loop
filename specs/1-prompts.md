@@ -37,7 +37,7 @@ anti_patterns:
 - `(hesitant)` tag = slow latency = near decision boundary = most informative
 - Anti-patterns are accumulated from rejections by the builder — hard constraints for all agents
 - Between swipes: just push to evidence array (no distribution math, no axis updates)
-- Context keeps `toEvidencePrompt()` for serialization (see `src/lib/server/context.ts`)
+- Session state keeps `toEvidencePrompt()` for serialization (see `src/lib/server/session/eye-loop-session.ts`)
 
 ---
 
@@ -98,7 +98,7 @@ Scout prompts receive five injections:
 - `< 4 swipes`: "This is early exploration — use a single evocative WORD or short phrase."
 - `>= 4 swipes`: "Describe a concrete MOCKUP with layout, typography, and interaction details."
 
-The floor is 2-tier, matching `context.concretenessFloor` in `src/lib/server/context.ts` (returns `'word'` when evidence < 4, `'mockup'` otherwise) and `Facade.format` in `src/lib/context/types.ts` (`'word' | 'mockup'`). The scout CHOOSES format but the oracle sets a minimum floor. Floor prevents regression (can't go back to words at swipe 10) but doesn't force escalation.
+The floor is 2-tier, matching `EyeLoopSession.concretenessFloor` in `src/lib/server/session/eye-loop-session.ts` (returns `'word'` when evidence < 4, `'mockup'` otherwise) and `Facade.format` in `src/lib/context/types.ts` (`'word' | 'mockup'`). The session runtime sets the minimum floor; scouts emit the corresponding format.
 
 ### Stage Progression Example
 
@@ -121,7 +121,7 @@ Inject last 3 probe hypotheses into the prompt. Without this, scouts fall into h
 <details>
 <summary>Appendix: historical image-format scout (cut from V0)</summary>
 
-The V0 Akinator pattern collapsed scout formats to a 2-tier progression (`word` → `mockup`). The image-format scout below was the Gemini-era middle tier; it is preserved here as research/pattern context for any future image-capable tier, but it is NOT part of the current Anthropic runtime. `Facade.format` in `src/lib/context/types.ts` is `'word' | 'mockup'` and `context.concretenessFloor` is 2-tier.
+The V0 Akinator pattern collapsed scout formats to a 2-tier progression (`word` → `mockup`). The image-format scout below was the Gemini-era middle tier; it is preserved here as research/pattern context for any future image-capable tier, but it is NOT part of the current Anthropic runtime. `Facade.format` in `src/lib/context/types.ts` is `'word' | 'mockup'` and `EyeLoopSession.concretenessFloor` is 2-tier.
 
 ### IMAGE SCHEMA (for image-format facades — NOT in V0)
 
@@ -282,8 +282,8 @@ interface TasteSynthesis {
 
 ## Oracle Code Functions (no LLM)
 
-- **Queue health:** `context.queuePressure` getter (hungry/healthy/full)
-- **Concreteness floor:** `context.concretenessFloor` getter (word/image/mockup)
+- **Queue health:** `session.queueStats` exposes ready/pending/min/target/max/stale reservoir counts
+- **Concreteness floor:** `EyeLoopSession.concretenessFloor` getter (`word` before 4 pieces of evidence, then `mockup`)
 - **Reveal trigger:** evidence >= 42
 - **Freshness pruning:** age-based — facades older than N swipes dropped on stage change
 

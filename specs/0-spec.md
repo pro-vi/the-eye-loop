@@ -452,9 +452,9 @@ The slow cases are the most valuable for learning because they identify the indi
 
 **Words (1-6):** Single words, near-instant. Broadest partitioning. `SCOUT_MODEL` generates from intent + evidence + scout lens.
 
-**HTML Mockups (7-14):** `SCOUT_MODEL` generates both the probe-card prompt and the mockup HTML (sandboxed iframe render on the client). Builder issuing probe briefs. Concreteness floor lifts from `word` to `mockup` at 4 accumulated pieces of evidence (`context.concretenessFloor` in `src/lib/server/context.ts`).
+**HTML Mockups (7-42):** `SCOUT_MODEL` generates both the probe-card prompt and the mockup HTML (sandboxed iframe render on the client). Builder issuing probe briefs. Concreteness floor lifts from `word` to `mockup` at 4 accumulated pieces of evidence (`EyeLoopSession.concretenessFloor` in `src/lib/server/session/eye-loop-session.ts`).
 
-**Reveal:** Information gain drops (triggered at 42 swipes in `src/lib/server/agents/oracle.ts`). Builder presents assembled prototype using `REVEAL_MODEL` for the final synthesis pass.
+**Reveal:** Information gain drops at the configured reveal threshold (default 42 swipes via `AUTO_REVEAL_SWIPE_THRESHOLD`). The session runtime prepares a shadow reveal before the threshold and falls back to `REVEAL_MODEL` final synthesis when needed.
 
 > Appendix: Historical image + motion stages (cut from V0)
 >

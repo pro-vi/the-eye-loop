@@ -1,15 +1,12 @@
 import { json } from '@sveltejs/kit';
+import { readJsonRecord } from '$lib/server/request-json';
 import { bootstrapSession } from '$lib/server/session/runtime';
 
 export const config = { runtime: 'nodejs22.x', maxDuration: 300 };
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-	return typeof value === 'object' && value !== null;
-}
-
 export async function POST({ request }: { request: Request }) {
-	const body: unknown = await request.json();
-	const intent = isRecord(body) ? body.intent : undefined;
+	const body = await readJsonRecord(request);
+	const intent = body?.intent;
 
 	if (typeof intent !== 'string' || intent.trim().length === 0) {
 		return json({ error: 'intent is required' }, { status: 400 });

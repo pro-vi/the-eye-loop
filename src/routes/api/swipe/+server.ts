@@ -1,16 +1,13 @@
 import { json } from '@sveltejs/kit';
+import { readJsonRecord } from '$lib/server/request-json';
 import { findSession, handleSessionSwipe } from '$lib/server/session/runtime';
 import type { SwipeRecord } from '$lib/context/types';
 
 export const config = { runtime: 'nodejs22.x', maxDuration: 300 };
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-	return typeof value === 'object' && value !== null;
-}
-
 export async function POST({ request }: { request: Request }) {
-	const body: unknown = await request.json();
-	if (!isRecord(body)) {
+	const body = await readJsonRecord(request);
+	if (!body) {
 		return json({ error: 'Missing facadeId, decision, or latencyMs' }, { status: 400 });
 	}
 
@@ -20,7 +17,9 @@ export async function POST({ request }: { request: Request }) {
 		typeof sessionId !== 'string' ||
 		typeof facadeId !== 'string' ||
 		!decision ||
-		typeof latencyMs !== 'number'
+		typeof latencyMs !== 'number' ||
+		!Number.isFinite(latencyMs) ||
+		latencyMs < 0
 	) {
 		return json({ error: 'Missing sessionId, facadeId, decision, or latencyMs' }, { status: 400 });
 	}

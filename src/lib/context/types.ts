@@ -106,6 +106,7 @@ export interface QueueStats {
 export interface SessionBootstrapResponse {
 	intent: string;
 	sessionId: string;
+	revealThreshold: number;
 	facades: Facade[];
 	evidence: SwipeEvidence[];
 	antiPatterns: string[];
@@ -127,7 +128,7 @@ export type SSEEvent =
 	| { type: 'builder-hint'; hint: string }
 	| { type: 'stage-changed'; stage: Stage; swipeCount: number }
 	| { type: 'synthesis-updated'; synthesis: TasteSynthesis }
-	| { type: 'session-ready'; intent: string }
+	| { type: 'session-ready'; intent: string; revealThreshold: number }
 	| { type: 'queue-updated'; queueStats: QueueStats }
 	| { type: 'reveal-prepared'; ready: boolean }
 	| {

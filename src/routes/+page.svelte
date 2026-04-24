@@ -34,6 +34,7 @@
 	let loading = $state(false);
 	let error = $state('');
 	let sessionId = $state<string | null>(null);
+	let revealThreshold = $state(42);
 	let queueStats = $state<QueueStats | null>(null);
 	let revealPrepared = $state(false);
 	let sessionError = $state<{
@@ -48,14 +49,32 @@
 	let synthesis = $state<TasteSynthesis | null>(null);
 	let antiPatterns = $state<string[]>([]);
 	let agents = $state<AgentState[]>([]);
-	let draft = $state<PrototypeDraft>({
-		title: '',
-		summary: '',
-		html: '',
-		acceptedPatterns: [],
-		rejectedPatterns: []
-	});
+	let draft = $state<PrototypeDraft>(emptyDraft());
 	let stage = $state<Stage>('words');
+
+	function emptyDraft(): PrototypeDraft {
+		return {
+			title: '',
+			summary: '',
+			html: '',
+			acceptedPatterns: [],
+			rejectedPatterns: []
+		};
+	}
+
+	function resetSessionViewState(nextRevealThreshold = 42) {
+		sessionError = null;
+		facades = [];
+		evidence = [];
+		synthesis = null;
+		antiPatterns = [];
+		agents = [];
+		queueStats = null;
+		revealThreshold = nextRevealThreshold;
+		revealPrepared = false;
+		draft = emptyDraft();
+		stage = 'words';
+	}
 
 	const stageLabels: Record<Stage, string> = {
 		words: 'Concepts',
@@ -63,13 +82,15 @@
 		reveal: 'Reveal'
 	};
 
-	const STAGE_WINDOWS: Record<Exclude<Stage, 'reveal'>, { start: number; span: number }> = {
-		words: { start: 0, span: 4 },
-		mockups: { start: 4, span: 11 }
-	};
+	const WORD_STAGE_SWIPES = 4;
 
 	const stageWindow = $derived(
-		stage === 'reveal' ? STAGE_WINDOWS.mockups : STAGE_WINDOWS[stage]
+		stage === 'words'
+			? { start: 0, span: WORD_STAGE_SWIPES }
+			: {
+					start: WORD_STAGE_SWIPES,
+					span: Math.max(1, revealThreshold - WORD_STAGE_SWIPES)
+				}
 	);
 
 	const stageProgress = $derived(
@@ -102,22 +123,7 @@
 		if (!intentText.trim() || loading) return;
 		loading = true;
 		error = '';
-		sessionError = null;
-		facades = [];
-		evidence = [];
-		synthesis = null;
-		antiPatterns = [];
-		agents = [];
-		queueStats = null;
-		revealPrepared = false;
-		draft = {
-			title: '',
-			summary: '',
-			html: '',
-			acceptedPatterns: [],
-			rejectedPatterns: []
-		};
-		stage = 'words';
+		resetSessionViewState();
 
 		try {
 			const res = await fetch('/api/session', {
@@ -136,6 +142,7 @@
 				throw new Error('Session returned an invalid bootstrap payload');
 			}
 			sessionId = data.sessionId;
+			revealThreshold = data.revealThreshold;
 			facades = data.facades;
 			evidence = data.evidence;
 			antiPatterns = data.antiPatterns;
@@ -276,23 +283,9 @@
 		// extends to the full set of SSE-driven state clauses mirrored from
 		// startSession() so the non-initiating tab's view state matches the
 		// initiating tab's fresh-session view state.
-		es.addEventListener('session-ready', () => {
-			sessionError = null;
-			facades = [];
-			evidence = [];
-			synthesis = null;
-			antiPatterns = [];
-			agents = [];
-			queueStats = null;
-			revealPrepared = false;
-			draft = {
-				title: '',
-				summary: '',
-				html: '',
-				acceptedPatterns: [],
-				rejectedPatterns: []
-			};
-			stage = 'words';
+		es.addEventListener('session-ready', (e) => {
+			const data = e instanceof MessageEvent ? parseSseData(e) : null;
+			resetSessionViewState(typeof data?.revealThreshold === 'number' ? data.revealThreshold : 42);
 			// mode = 'swiping' returns a non-initiating tab stuck in 'reveal' (from
 			// a prior session that reached reveal) back to the active-session UI,
 			// matching startSession()'s post-fetch mode assignment. iter-42's
@@ -483,7 +476,7 @@
 						class="text-[10px] uppercase tracking-wider"
 						style="color: var(--color-outline-variant);"
 					>
-						{evidence.length} swipes
+						{evidence.length}/{revealThreshold} swipes
 					</span>
 					<span class="text-[10px] uppercase tracking-wider" style="color: var(--color-outline-variant);">
 						deck {queueStats?.ready ?? facades.length}

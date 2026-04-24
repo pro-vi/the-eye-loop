@@ -133,6 +133,7 @@ export function isSessionBootstrapResponse(value: unknown): value is SessionBoot
 		isRecord(value) &&
 		typeof value.intent === 'string' &&
 		typeof value.sessionId === 'string' &&
+		typeof value.revealThreshold === 'number' &&
 		Array.isArray(value.facades) &&
 		value.facades.every(isFacade) &&
 		Array.isArray(value.evidence) &&

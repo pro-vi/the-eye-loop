@@ -283,10 +283,11 @@ export class EyeLoopSession {
 		return this.tasteVersion - facade.tasteVersion > RESERVOIR_STALE_VERSION_LAG;
 	}
 
-	getBootstrapResponse(): SessionBootstrapResponse {
+	getBootstrapResponse(revealThreshold: number): SessionBootstrapResponse {
 		return {
 			intent: this.intent,
 			sessionId: this.sessionId,
+			revealThreshold,
 			facades: [...this.facades],
 			evidence: [...this.evidence],
 			antiPatterns: [...this.antiPatterns],

@@ -297,7 +297,7 @@ No `TasteAxis`. No `axisId`. No coded confidence scores. Axes are emergent — d
 
 ## Stage Rules
 
-Concreteness floor (oracle-gated), format chosen by scout. See `context.concretenessFloor` in `src/lib/server/context.ts`:
+Concreteness floor is session-owned. See `EyeLoopSession.concretenessFloor` in `src/lib/server/session/eye-loop-session.ts`:
 
 | Evidence Depth | Floor | Scout Can Choose |
 |---------------|-------|-----------------|
@@ -322,10 +322,11 @@ No axis seeding. No coded confidence scores. No YAML distributions. The evidence
 
 ## Queue Rules
 
-- target queue size: `3-5`
-- `context.queuePressure` getter: scouts check at loop top
-- age-based staleness: facades older than N swipes dropped on stage change
-- diversity: reject scout output overlapping >70% with last 3 facades (stretch)
+- warm start: block until at least `12` ready facades or warmup timeout
+- target queue size: top off toward `20`, cap at `24`, treat `< 8` as low water
+- `session.queueStats`: UI-visible ready/pending/min/target/max/stale reservoir counts
+- staleness: facades older than the taste-version lag are pruned when synthesis updates
+- diversity: skip duplicate queued labels or targeted axes
 
 ---
 
@@ -384,9 +385,9 @@ pnpm add ai@6.0.134 @ai-sdk/anthropic@^3.0.64 zod@^3.24.0
 | What | How | Reference |
 |------|-----|-----------|
 | Text facades | `generateText()` with `SCOUT_MODEL` (default: Claude Haiku 4.5) from `$lib/server/ai` | `specs/3-models.md` |
-| HTML mockups | `generateText()` with `SCOUT_MODEL` (default: Claude Haiku 4.5), no `Output.object()` — free-form HTML parsing | `src/lib/server/agents/scout.ts` |
-| Builder scaffold / rebuild | `generateText()` with `BUILDER_MODEL` (default: Claude Haiku 4.5) | `src/lib/server/agents/builder.ts` |
-| Oracle cold-start / synthesis | `generateText()` with `ORACLE_MODEL` (default: Claude Haiku 4.5) | `src/lib/server/agents/oracle.ts` |
+| HTML mockups | `generateText()` with `SCOUT_MODEL` (default: Claude Haiku 4.5) through structured scout schemas | `src/lib/server/session/runtime.ts` |
+| Builder scaffold / rebuild | `generateText()` with `BUILDER_MODEL` (default: Claude Haiku 4.5) | `src/lib/server/session/runtime.ts` |
+| Oracle cold-start / synthesis | `generateText()` with `ORACLE_MODEL` (default: Claude Haiku 4.5) | `src/lib/server/session/runtime.ts` |
 | Quality reveal | `REVEAL_MODEL` (default: Claude Sonnet 4.6) for builder reveal | `src/lib/server/ai.ts` |
 | Structured output | `output: Output.object({ schema: z.object({...}) })` — avoid `z.union()` | `.research/synthesis-sdk-verified` |
 | SSE | Native `ReadableStream` + `text/event-stream` (custom bus, not AI SDK streaming) | `.research/synthesis-runtime` |

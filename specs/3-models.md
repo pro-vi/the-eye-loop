@@ -13,7 +13,7 @@ Landed runtime: **Anthropic Claude**, role-tiered. Defaults keep a two-tier late
 | `BUILDER_MODEL` | `claude-haiku-4-5-20251001` | Haiku 4.5 | Builder scaffold + rebuild |
 | `REVEAL_MODEL` | `claude-sonnet-4-6` | Sonnet 4.6 | Builder reveal |
 
-Configured by env vars `SCOUT_MODEL_ID`, `ORACLE_MODEL_ID`, `BUILDER_MODEL_ID`, and `REVEAL_MODEL_ID`, then exported from `src/lib/server/ai.ts`. Call sites live in `src/lib/server/agents/{scout,builder,oracle}.ts`.
+Configured by env vars `SCOUT_MODEL_ID`, `ORACLE_MODEL_ID`, `BUILDER_MODEL_ID`, and `REVEAL_MODEL_ID`, then exported from `src/lib/server/ai.ts`. Landed call sites live in the session runtime at `src/lib/server/session/runtime.ts`.
 
 ## Tier Responsibilities
 
@@ -21,7 +21,7 @@ Configured by env vars `SCOUT_MODEL_ID`, `ORACLE_MODEL_ID`, `BUILDER_MODEL_ID`, 
 
 Every swipe-cycle path. Must feel responsive.
 
-- **Scout word facade** — single evocative word or 2-3 word phrase via `Output.object()` + Zod schema (`ScoutOutputSchema` in `scout.ts`)
+- **Scout word facade** — single evocative word or 2-3 word phrase via `Output.object()` + Zod schema in the session runtime
 - **Scout HTML mockup** — free-form HTML+CSS generation when the scout metadata returns `format: 'mockup'`, parsed out of the text response
 - **Oracle synthesis** — every 4 swipes, emits `TasteSynthesis` (emergent axes + scout assignments + divergence)
 - **Builder scaffold** — initial draft on session-created, maintains `PrototypeDraft`
@@ -61,13 +61,13 @@ export const BUILDER_MODEL = anthropic(env.BUILDER_MODEL_ID ?? 'claude-haiku-4-5
 export const REVEAL_MODEL = anthropic(env.REVEAL_MODEL_ID ?? 'claude-sonnet-4-6');
 ```
 
-Missing/invalid token surfaces as `401 Invalid bearer token` at the first provider call and is classified as `provider_auth_failure` on the bus (`src/lib/server/bus.ts:classifyErrorCode`).
+Missing/invalid token surfaces as `401 Invalid bearer token` at the first provider call and is classified as `provider_auth_failure` by `src/lib/server/provider-errors.ts`.
 
 ---
 
 ## Temperature Discipline
 
-Matches landed call sites in `src/lib/server/agents/{scout,builder,oracle}.ts`:
+Matches landed call sites in `src/lib/server/session/runtime.ts`:
 
 | Call site | Temperature | Why |
 |-----------|------------|-----|
