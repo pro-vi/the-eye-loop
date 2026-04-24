@@ -60,6 +60,17 @@ const ERROR_SIGNAL_RE = /401|Invalid bearer|authentication_error|AI_APICall|x-ap
 // (iter-65) and the primary-stream derivation (iter-64) share one source.
 const DRAFT_PLACEHOLDER_SIGNATURE = 'Building your first draft…';
 
+// iter-82 typed-union sets for SwipeEvidence item validation (types.ts:7-15).
+// Hoisted to module scope so both the iter-82 primary-bus evaluation and the
+// iter-90 stream_2 replay evaluation share one source — the stream_2 block
+// runs earlier in the main() body than the primary-bus block does, so inlining
+// these consts only at the primary-bus site would leave them undeclared when
+// the stream_2 loop references them. Module-scope aligns with DRAFT_PLACEHOLDER_
+// SIGNATURE's precedent for cross-block constant sharing.
+const VALID_EVIDENCE_DECISIONS = new Set(['accept', 'reject']);
+const VALID_EVIDENCE_FORMATS = new Set(['word', 'mockup']);
+const VALID_EVIDENCE_LATENCY_SIGNALS = new Set(['fast', 'slow']);
+
 function nowIso() { return new Date().toISOString(); }
 function fileStamp() { return nowIso().replace(/[:.]/g, '-'); }
 function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
@@ -451,6 +462,29 @@ async function main() {
 		anti_patterns_array_valid_count: 0,
 		evidence_length_min: 0,
 		evidence_length_max: 0,
+		// iter-90: stream_2 counterparts for iter-82's primary-bus evidence-updated
+		// array-element typed-union probes (decision/format/latencySignal), closing
+		// the 2nd of iter-88's 5 explicitly-named unclosed stream_2 counterpart
+		// backlog items (iter-89 closed the 1st — evidence array-shape). Extends
+		// iter-89's whole-array presence-validity probes to within-item field
+		// validation on the /api/stream replay payload. +server.ts:30-32 replays
+		// evidence-updated via JSON.stringify(context.evidence) spread, so a replay
+		// bug that preserves array-ness but corrupts per-item fields (e.g. a
+		// .map(e => ({...e, decision: 'unknown'})) transform inserted into the
+		// replay block, a serialization that strips typed-union fields, or a
+		// payload-shape divergence from the primary bus) would pass iter-89's
+		// presence-validity probes while the primary-bus iter-82 probes stay at
+		// identity — exactly the cross-stream divergence discrimination iter-88's
+		// learning highlighted as the unique value of stream_2 counterparts. Under
+		// iter-61 healthy-auth 5-intent 12s-window baseline: the replay carries the
+		// same 1-item evidence array as primary (decision='accept', format='word',
+		// latencySignal='slow') so all three identity-with-primary invariants hold:
+		//   stream_2_evidence_items_valid_decision_count = 1/intent (sum=5/_min=1)
+		//   stream_2_evidence_items_valid_format_count = 1/intent (sum=5/_min=1)
+		//   stream_2_evidence_items_valid_latency_signal_count = 1/intent (sum=5/_min=1)
+		evidence_items_valid_decision_count: 0,
+		evidence_items_valid_format_count: 0,
+		evidence_items_valid_latency_signal_count: 0,
 		first_event_ms_after_open: null,
 		last_event_ms_after_open: null,
 		replay_span_ms: null,
@@ -785,6 +819,15 @@ async function main() {
 		// to 0 while primary holds at 1); replay stripping antiPatterns field
 		// (anti_patterns_array_valid drops to 0 while evidence_array_valid holds,
 		// discriminating the two sides of the payload).
+		// iter-90: array-element typed-union probes on stream_2 evidence-updated —
+		// extends iter-89's whole-array presence-validity to within-item field
+		// validation, mirroring iter-82's primary-bus pattern onto the /api/stream
+		// replay path. Uses the same VALID_EVIDENCE_{DECISIONS,FORMATS,LATENCY_
+		// SIGNALS} sets as the primary-bus evaluation below (initialized there,
+		// referenced here via closure) — types.ts:7-15 unions shared between
+		// primary live-emission and stream_2 replay. Under healthy-auth the
+		// replay's 1-item evidence array mirrors primary (accept/word/slow), so
+		// all three item-level counts match iter-82's primary identity.
 		{
 			const stream2EvidenceEvents = stream2.events.filter(
 				(e) => e.type === 'evidence-updated'
@@ -798,6 +841,14 @@ async function main() {
 					stream2.evidence_array_valid_count++;
 					if (evidenceArr.length < s2EvidenceLengthMin) s2EvidenceLengthMin = evidenceArr.length;
 					if (evidenceArr.length > s2EvidenceLengthMax) s2EvidenceLengthMax = evidenceArr.length;
+					for (const item of evidenceArr) {
+						if (item && VALID_EVIDENCE_DECISIONS.has(item.decision))
+							stream2.evidence_items_valid_decision_count++;
+						if (item && VALID_EVIDENCE_FORMATS.has(item.format))
+							stream2.evidence_items_valid_format_count++;
+						if (item && VALID_EVIDENCE_LATENCY_SIGNALS.has(item.latencySignal))
+							stream2.evidence_items_valid_latency_signal_count++;
+					}
 				}
 				if (Array.isArray(antiArr)) stream2.anti_patterns_array_valid_count++;
 			}
@@ -1896,9 +1947,9 @@ async function main() {
 	// missing latencySignal) would drop exactly ONE of the three counts below
 	// evidence_updated_count while leaving the others at identity, discriminating
 	// field-level corruption from whole-event loss.
-	const VALID_EVIDENCE_DECISIONS = new Set(['accept', 'reject']);
-	const VALID_EVIDENCE_FORMATS = new Set(['word', 'mockup']);
-	const VALID_EVIDENCE_LATENCY_SIGNALS = new Set(['fast', 'slow']);
+	// iter-90: VALID_EVIDENCE_* sets hoisted to module scope so the stream_2
+	// replay evaluation (which runs earlier in main()) can share the same
+	// typed-union definitions; see declaration near line 70.
 	let evidenceItemsValidDecisionCount = 0;
 	let evidenceItemsValidFormatCount = 0;
 	let evidenceItemsValidLatencySignalCount = 0;
@@ -2103,6 +2154,14 @@ async function main() {
 			stream_2_anti_patterns_array_valid_count: stream2.anti_patterns_array_valid_count,
 			stream_2_evidence_length_min: stream2.evidence_length_min,
 			stream_2_evidence_length_max: stream2.evidence_length_max,
+			// iter-90: stream_2 counterparts for iter-82's primary-bus evidence-
+			// updated array-element typed-union probes — mirrors the item-level
+			// decision/format/latencySignal union-membership from primary onto the
+			// /api/stream replay payload, closing the 2nd of iter-88's 5 named
+			// backlog items. Identity holds with iter-82 primary under healthy-auth.
+			stream_2_evidence_items_valid_decision_count: stream2.evidence_items_valid_decision_count,
+			stream_2_evidence_items_valid_format_count: stream2.evidence_items_valid_format_count,
+			stream_2_evidence_items_valid_latency_signal_count: stream2.evidence_items_valid_latency_signal_count,
 			stream_2_first_event_ms_after_open: stream2.first_event_ms_after_open,
 			stream_2_replay_span_ms: stream2.replay_span_ms,
 			stage_changed_event_count: stageChangedEventCount,
@@ -2192,6 +2251,7 @@ async function main() {
 		`s2_facade_fmt_valid=${stream2.facade_format_valid_count} ` +
 		`s2_synth_axes=${stream2.synthesis_axes_count}/min=${stream2.synthesis_axes_min} s2_synth_assigns=${stream2.synthesis_scout_assignments_count}/min=${stream2.synthesis_scout_assignments_min} ` +
 		`s2_evid_arr_valid=${stream2.evidence_array_valid_count} s2_anti_arr_valid=${stream2.anti_patterns_array_valid_count} s2_evid_len_min/max=${stream2.evidence_length_min}/${stream2.evidence_length_max} ` +
+		`s2_evid_items_dec_valid=${stream2.evidence_items_valid_decision_count} s2_evid_items_fmt_valid=${stream2.evidence_items_valid_format_count} s2_evid_items_lat_valid=${stream2.evidence_items_valid_latency_signal_count} ` +
 		`s2_first=${stream2.first_event_ms_after_open}ms s2_span=${stream2.replay_span_ms}ms ` +
 		`oracle_cs=${oracleColdStartLatencyMs === null ? '-' : oracleColdStartLatencyMs + 'ms'} ` +
 		`oracle_syn=${oracleSynthesisLatencyMs === null ? '-' : oracleSynthesisLatencyMs + 'ms'} ` +

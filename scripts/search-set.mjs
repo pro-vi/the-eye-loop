@@ -190,6 +190,14 @@ function extractMetrics(artifact) {
 		stream_2_anti_patterns_array_valid_count: m.stream_2_anti_patterns_array_valid_count ?? 0,
 		stream_2_evidence_length_min: m.stream_2_evidence_length_min ?? 0,
 		stream_2_evidence_length_max: m.stream_2_evidence_length_max ?? 0,
+		// iter-90: stream_2 counterparts for iter-82's primary-bus evidence-updated
+		// array-element typed-union probes (item-level decision/format/latency_signal)
+		// — forward-carried so that the aggregate rollups below can establish
+		// cross-stream identity with iter-82's primary values under healthy-auth
+		// 5-intent baseline (each stream_2 metric = its primary-bus counterpart = 5/_min=1).
+		stream_2_evidence_items_valid_decision_count: m.stream_2_evidence_items_valid_decision_count ?? 0,
+		stream_2_evidence_items_valid_format_count: m.stream_2_evidence_items_valid_format_count ?? 0,
+		stream_2_evidence_items_valid_latency_signal_count: m.stream_2_evidence_items_valid_latency_signal_count ?? 0,
 		swipe_decision_valid_count: m.swipe_decision_valid_count ?? 0,
 		swipe_latency_bucket_valid_count: m.swipe_latency_bucket_valid_count ?? 0,
 		synthesis_axes_count: m.synthesis_axes_count ?? 0,
@@ -1412,6 +1420,63 @@ async function main() {
 				: 0,
 			stream_2_evidence_length_cross_intent_max: perIntent.length
 				? Math.max(...perIntent.map((p) => p.metrics.stream_2_evidence_length_max ?? 0))
+				: 0,
+			// iter-90: stream_2 counterparts for iter-82's primary-bus evidence-
+			// updated array-element typed-union rollups — closing the 2nd of iter-
+			// 88's 5 explicitly-named unclosed stream_2 counterpart backlog items
+			// (iter-89 closed the 1st: evidence array-shape; iter-90 closes the
+			// 2nd: evidence items typed-union). Extends iter-89's whole-array
+			// presence-validity stream_2 mirror to within-item field validation,
+			// establishing a deeper cross-stream identity layer. Under iter-61
+			// healthy-auth 5-intent 12s-window baseline the replay carries the
+			// same 1-item evidence array as the primary bus (decision='accept',
+			// format='word', latencySignal='slow'), so all three item-level counts
+			// match iter-82's primary identity:
+			//   stream_2_evidence_items_valid_decision_count_sum = 5
+			//     = evidence_items_valid_decision_count_sum (iter-82, primary bus)
+			//     = stream_2_evidence_array_valid_count_sum (iter-89)
+			//     × stream_2_evidence_length_cross_intent_max (iter-89)
+			//   stream_2_evidence_items_valid_decision_count_min = 1 (per intent)
+			//   stream_2_evidence_items_valid_format_count_sum = 5 / _min = 1
+			//   stream_2_evidence_items_valid_latency_signal_count_sum = 5 / _min = 1
+			//
+			// Regression classes these rollups catch that iter-89's whole-array
+			// probes alone cannot: a replay-block transform that preserves array-
+			// shape but corrupts per-item fields (e.g. +server.ts:30-32 adds a
+			// .map(e => ({...e, decision: 'unknown'})) — stream_2 array_valid stays
+			// at 5 but stream_2 items_valid_decision_count drops to 0 while primary
+			// stays at 5); a serialization that strips typed-union fields from
+			// replay-only payloads (stream_2 items_valid drops while primary holds);
+			// a payload-shape divergence where replay synthesizes evidence items
+			// with default-value fields rather than the real context.evidence
+			// entries (stream_2 items_valid may hold by accident if defaults match
+			// union values, but a multi-swipe baseline would expose the
+			// cumulative-state loss — forward-deploy discriminative).
+			//
+			// Cross-stream divergence (stream_2 items_valid != primary items_valid
+			// under healthy-auth) pinpoints replay-block item-corruption bugs
+			// invisible to iter-89's whole-array probes and iter-82's primary-
+			// only item probes. A regression affecting BOTH the live emission
+			// path and the replay path would show both counts dropping together;
+			// a regression affecting ONLY the replay path shows stream_2 drop
+			// while primary holds.
+			//
+			// Under broken-auth baseline: both primary and stream_2 items_valid
+			// _sum=0 because no facade-ready → no swipe → no addEvidence → no
+			// evidence-updated emit on either stream — the cross-stream identity
+			// 0==0 is preserved without being discriminative on either side.
+			// Baseline-regime-invariant just like iter-67/72/82/88/89 probes.
+			stream_2_evidence_items_valid_decision_count_sum: sumMetric('stream_2_evidence_items_valid_decision_count'),
+			stream_2_evidence_items_valid_decision_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.stream_2_evidence_items_valid_decision_count ?? 0))
+				: 0,
+			stream_2_evidence_items_valid_format_count_sum: sumMetric('stream_2_evidence_items_valid_format_count'),
+			stream_2_evidence_items_valid_format_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.stream_2_evidence_items_valid_format_count ?? 0))
+				: 0,
+			stream_2_evidence_items_valid_latency_signal_count_sum: sumMetric('stream_2_evidence_items_valid_latency_signal_count'),
+			stream_2_evidence_items_valid_latency_signal_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.stream_2_evidence_items_valid_latency_signal_count ?? 0))
 				: 0,
 			// iter-81: evidence-updated content-validation rollups — first
 			// content-probe aggregates on the evidence-updated event after 80
