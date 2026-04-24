@@ -177,6 +177,7 @@ function extractMetrics(artifact) {
 		synthesis_axes_valid_confidence_count: m.synthesis_axes_valid_confidence_count ?? 0,
 		synthesis_scout_assignments_count: m.synthesis_scout_assignments_count ?? 0,
 		synthesis_scout_assignments_min: m.synthesis_scout_assignments_min ?? 0,
+		synthesis_scout_assignments_valid_scout_count: m.synthesis_scout_assignments_valid_scout_count ?? 0,
 		evidence_array_valid_count: m.evidence_array_valid_count ?? 0,
 		anti_patterns_array_valid_count: m.anti_patterns_array_valid_count ?? 0,
 		evidence_length_min: m.evidence_length_min ?? 0,
@@ -1170,6 +1171,51 @@ async function main() {
 			synthesis_scout_assignments_count_sum: sumMetric('synthesis_scout_assignments_count'),
 			synthesis_scout_assignments_count_min: perIntent.length
 				? Math.min(...perIntent.map((p) => p.metrics.synthesis_scout_assignments_min ?? 0))
+				: 0,
+			// iter-85: scout-roster-membership rollup on synthesis-updated.scout_
+			// assignments[].scout — closes iter-83's explicitly-named follow-on
+			// ('scout-roster-membership probe on scout_assignments[].scout') and
+			// pairs with iter-84's oracle.ts:58 schema tightening as the wire-level
+			// observe-side complement to iter-84's Output.object-layer prevent-
+			// side enforcement. Canonical roster {Iris, Prism, Lumen, Aura, Facet,
+			// Echo} matches oracle.ts:58 synthesisSchema enum, oracle.ts:103
+			// coldStartSchema enum, SYNTHESIS_PROMPT line 96 explicit name list,
+			// and scout.ts:33-38 SCOUTS[].name consumer constant.
+			//
+			// Under iter-61 healthy-auth 5-intent 12s-window baseline (cold-start
+			// synthesis fires once per intent with 6 roster-valid scouts):
+			//   synthesis_scout_assignments_valid_scout_count_sum = 30
+			//     = synthesis_scout_assignments_count_sum (6 * 5)
+			//   synthesis_scout_assignments_valid_scout_count_min = 6 (per-intent)
+			// Under broken-auth baseline: 0 = synthesis_scout_assignments_count_sum
+			// (= 0, no cold-start emission reaches the wire).
+			//
+			// Three-way identity at aggregate (iter-82/83 pattern continued):
+			//   synthesis_scout_assignments_valid_scout_count_sum == synthesis_
+			//   scout_assignments_count_sum == 6 * synthesis_updated_count_sum
+			// A regression that (a) relaxes iter-84's z.enum back to z.string()
+			// AND (b) the LLM hallucinates an off-roster name ('Nova', 'Flux'),
+			// would leave scout_assignments_count at 30 and iter-83's axes_valid_
+			// confidence_count at 30 but drop this probe below 30 — pinpointing
+			// the exact failure class iter-84 learned about (scout.ts:191 silent-
+			// fallback to 'No assignment yet — self-assign' invisible to SSE).
+			//
+			// Forward-deploy regimes:
+			//   - runSynthesis path fires within window (4+ swipes land before
+			//     window close): scout_assignments carries 6 runSynthesis-assigned
+			//     roster values; identity holds (all 6 roster names still valid).
+			//   - schema-layer regression where z.enum is removed and LLM picks
+			//     off-roster: count_sum stays at 30, valid_scout_count_sum drops,
+			//     the gap directly counts off-roster entries across the search set.
+			//
+			// Orthogonal to iter-83's axes.confidence probe: that one catches
+			// corrupted confidence on EmergentAxis elements; this one catches
+			// off-roster scout on scout_assignments elements. Together they
+			// form the complete within-element typed-union coverage on synthesis-
+			// updated (2 arrays, 1 typed-union field per element = 2 probes).
+			synthesis_scout_assignments_valid_scout_count_sum: sumMetric('synthesis_scout_assignments_valid_scout_count'),
+			synthesis_scout_assignments_valid_scout_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.synthesis_scout_assignments_valid_scout_count ?? 0))
 				: 0,
 			// iter-81: evidence-updated content-validation rollups — first
 			// content-probe aggregates on the evidence-updated event after 80

@@ -1565,7 +1565,47 @@ async function main() {
 	// itself at identity — pinpointing field-level corruption invisible to
 	// iter-72's whole-array length probe.
 	const VALID_AXIS_CONFIDENCES = new Set(['unprobed', 'exploring', 'leaning', 'resolved']);
+	// iter-85: scout-roster-membership probe on synthesis-updated.scout_
+	// assignments[].scout — closes iter-83's explicitly-named follow-on
+	// ('A future iteration could add scout-roster-membership probe on
+	// scout_assignments[].scout, treating the 6 known scout names as a union
+	// — orthogonal pattern from iter-83's typed-union on confidence') and
+	// pairs with iter-84's schema tightening (oracle.ts:58 z.enum on scout)
+	// as the wire-level observe-side complement to iter-84's prevent-side
+	// Output.object validation. Parallel pattern-alternation to iter-73→74
+	// (spec-coherence→product), iter-79→80 (spec-coherence→probe), and now
+	// iter-84→85 (spec-coherence→probe).
+	//
+	// The roster {Iris, Prism, Lumen, Aura, Facet, Echo} is the cross-file
+	// canonical set established by: oracle.ts:58 synthesisSchema.scout_
+	// assignments[].scout z.enum (iter-84), oracle.ts:103 coldStartSchema.scout
+	// z.enum, oracle.ts:96 SYNTHESIS_PROMPT name list, and scout.ts:33-38
+	// SCOUTS[].name consumer constant. types.ts:85 declares scout as open
+	// string — so the TypeScript signal is widened at the interface boundary,
+	// making the wire-level probe the only layer that enforces roster identity
+	// across the chain (schema → emit → consumer). Under iter-61 healthy-auth
+	// baseline with cold-start synthesis, all 6 assignments per intent carry
+	// valid roster names (cold-start output is iter-79's z.enum-constrained
+	// coldStartSchema that maps 1:1 into scout_assignments — h.scout is
+	// already roster-constrained at source).
+	//
+	// Identity invariant (per intent):
+	//   synthesis_scout_assignments_valid_scout_count = synthesis_scout_
+	//     assignments_count = 6
+	// Aggregate (5 intents): _sum=30 (= synthesis_scout_assignments_count_sum
+	//   = 6 * synthesis_updated_count_sum), _min=6.
+	//
+	// Regression class this probe catches that iter-72's whole-array length
+	// probe cannot: a future refactor that relaxes iter-84's z.enum back to
+	// z.string(), plus an LLM hallucinating an off-roster name ('Nova',
+	// 'Flux', ...), would leave synthesis_scout_assignments_count at 30 but
+	// drop synthesis_scout_assignments_valid_scout_count below 30 — a direct
+	// signal that scout.ts:191's `a.scout === scoutName` silent-fallback path
+	// is being exercised. This is the iter-84-named silent-fallback class
+	// (validator-level observation pairing with schema-level enforcement).
+	const VALID_SCOUT_ROSTER = new Set(['Iris', 'Prism', 'Lumen', 'Aura', 'Facet', 'Echo']);
 	let synthesisAxesValidConfidenceCount = 0;
+	let synthesisScoutAssignmentsValidScoutCount = 0;
 	for (const ev of synthesisEvents) {
 		const axes = ev.data?.synthesis?.axes;
 		const assignments = ev.data?.synthesis?.scout_assignments;
@@ -1578,6 +1618,13 @@ async function main() {
 		if (Array.isArray(axes)) {
 			for (const axis of axes) {
 				if (axis && VALID_AXIS_CONFIDENCES.has(axis.confidence)) synthesisAxesValidConfidenceCount++;
+			}
+		}
+		if (Array.isArray(assignments)) {
+			for (const assignment of assignments) {
+				if (assignment && VALID_SCOUT_ROSTER.has(assignment.scout)) {
+					synthesisScoutAssignmentsValidScoutCount++;
+				}
 			}
 		}
 	}
@@ -1884,6 +1931,7 @@ async function main() {
 			synthesis_axes_valid_confidence_count: synthesisAxesValidConfidenceCount,
 			synthesis_scout_assignments_count: synthesisScoutAssignmentsCount,
 			synthesis_scout_assignments_min: synthesisScoutAssignmentsMin,
+			synthesis_scout_assignments_valid_scout_count: synthesisScoutAssignmentsValidScoutCount,
 			evidence_array_valid_count: evidenceArrayValidCount,
 			anti_patterns_array_valid_count: antiPatternsArrayValidCount,
 			evidence_length_min: evidenceLengthMin,
@@ -1941,7 +1989,7 @@ async function main() {
 		`agent_status_valid=${agentStatusValidCount} stage_swipe_valid=${stageChangedSwipeCountValidCount} ` +
 		`facade_fmt_valid=${facadeFormatValidCount} ` +
 		`swipe_dec_valid=${swipeDecisionValidCount} swipe_bkt_valid=${swipeLatencyBucketValidCount} ` +
-		`synth_axes=${synthesisAxesCount}/min=${synthesisAxesMin} synth_axes_conf_valid=${synthesisAxesValidConfidenceCount} synth_assigns=${synthesisScoutAssignmentsCount}/min=${synthesisScoutAssignmentsMin} ` +
+		`synth_axes=${synthesisAxesCount}/min=${synthesisAxesMin} synth_axes_conf_valid=${synthesisAxesValidConfidenceCount} synth_assigns=${synthesisScoutAssignmentsCount}/min=${synthesisScoutAssignmentsMin} synth_assigns_scout_valid=${synthesisScoutAssignmentsValidScoutCount} ` +
 		`evid_arr_valid=${evidenceArrayValidCount} anti_arr_valid=${antiPatternsArrayValidCount} evid_len_min/max=${evidenceLengthMin}/${evidenceLengthMax} ` +
 		`evid_items_dec_valid=${evidenceItemsValidDecisionCount} evid_items_fmt_valid=${evidenceItemsValidFormatCount} evid_items_lat_valid=${evidenceItemsValidLatencySignalCount} ` +
 		`s2_err=${stream2.error_event_count} s2_agents=${stream2.agent_status_count} s2_stage=${stream2.stage_changed_count} s2_diag=${stream2.diagnostic_preserved_count} s2_err_auth=${stream2.error_provider_auth_count} ` +
