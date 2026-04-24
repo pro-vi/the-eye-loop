@@ -358,6 +358,18 @@ function extractMetrics(artifact) {
 			m.stream_2_synthesis_edge_case_flags_array_valid_count ?? 0,
 		stream_2_synthesis_persona_anima_divergence_valid_count:
 			m.stream_2_synthesis_persona_anima_divergence_valid_count ?? 0,
+		// iter-106: stream_2 counterpart for iter-106's primary-bus EmergentAxis
+		// axes[].leaning_toward null-or-non-empty-string union-valid probe.
+		// Forward-carries the stream_2 per-intent count so the aggregate rollup
+		// below can establish cross-stream POSITIVE-IDENTITY: each = stream_2_
+		// synthesis_axes_count = 30/_min=6 under healthy-auth 5-intent baseline
+		// (cold-start leaning_toward=null for every axis, replay preserves it).
+		// Saturates the EmergentAxis 6-way field-validity matrix on the /api/
+		// stream replay path alongside iter-91 (confidence typed-union), iter-
+		// 103 (label/poleA/poleB/evidence_basis presence-validity), and iter-88
+		// (axes length).
+		stream_2_synthesis_axes_leaning_toward_valid_count:
+			m.stream_2_synthesis_axes_leaning_toward_valid_count ?? 0,
 		swipe_decision_valid_count: m.swipe_decision_valid_count ?? 0,
 		swipe_latency_bucket_valid_count: m.swipe_latency_bucket_valid_count ?? 0,
 		// iter-97: SwipeRecord remaining-field presence-validity probes (primary).
@@ -377,6 +389,18 @@ function extractMetrics(artifact) {
 		synthesis_axes_pole_a_present_count: m.synthesis_axes_pole_a_present_count ?? 0,
 		synthesis_axes_pole_b_present_count: m.synthesis_axes_pole_b_present_count ?? 0,
 		synthesis_axes_evidence_basis_present_count: m.synthesis_axes_evidence_basis_present_count ?? 0,
+		// iter-106: axes[].leaning_toward null-or-non-empty-string union-valid
+		// probe on primary bus — saturates the EmergentAxis 6-way field-validity
+		// matrix alongside iter-83 confidence typed-union, iter-103 4-string
+		// presence-validity, and iter-72 axes length probes. Closes iter-105's
+		// explicitly-named follow-on candidate (the LAST unprobed EmergentAxis
+		// field). Forward-carried per-intent so aggregate rollups below can
+		// establish POSITIVE-IDENTITY: count = synthesis_axes_count = 30/_min=6
+		// under healthy-auth 5-intent baseline via null branch (cold-start
+		// leaning_toward=null for every axis). Extends the null-or-non-empty-
+		// string union-valid predicate family (introduced by iter-105 for top-
+		// level persona_anima_divergence) to within-item array-element coverage.
+		synthesis_axes_leaning_toward_valid_count: m.synthesis_axes_leaning_toward_valid_count ?? 0,
 		synthesis_scout_assignments_count: m.synthesis_scout_assignments_count ?? 0,
 		synthesis_scout_assignments_min: m.synthesis_scout_assignments_min ?? 0,
 		synthesis_scout_assignments_valid_scout_count: m.synthesis_scout_assignments_valid_scout_count ?? 0,
@@ -2525,6 +2549,89 @@ async function main() {
 						)
 					)
 				: 0,
+			// iter-106: axes[].leaning_toward nullable-string union-valid rollups on
+			// synthesis-updated events. Closes iter-105's explicitly-named follow-on
+			// candidate — the LAST unprobed EmergentAxis field per types.ts:63-70.
+			// Saturates the EmergentAxis 6-way field-validity matrix alongside iter-
+			// 72 (axes length), iter-83 (confidence typed-union), iter-103 (label/
+			// poleA/poleB/evidence_basis presence-validity). Extends the iter-97→105
+			// POSITIVE-IDENTITY matrix-saturation cluster from 10 to 11 consecutive
+			// iterations, applying the null-or-non-empty-string union-valid predicate
+			// family (iter-105 introduced at TasteSynthesis struct boundary) to
+			// within-item array-element coverage for the first time.
+			//
+			// Under iter-61 healthy-auth 5-intent 12s-window baseline: cold-start
+			// synthesis (oracle.ts:339-347) hard-codes leaning_toward=null for every
+			// axis. Probe fires once per axis that passes (=== null OR non-empty-
+			// string) — under cold-start, all 6 axes pass via the null branch, yield
+			// count = 6 per intent. Aggregate _sum=30/_min=6 identity-matched with
+			// iter-83 axes_valid_confidence, iter-103 4-string probes, and iter-72
+			// axes length.
+			//
+			// 6-way EmergentAxis POSITIVE-IDENTITY chain at aggregate under healthy-auth:
+			//   synthesis_axes_count_sum (iter-72, 30)
+			//     = synthesis_axes_valid_confidence_count_sum (iter-83, 30)
+			//     = synthesis_axes_label_present_count_sum (iter-103, 30)
+			//     = synthesis_axes_pole_a_present_count_sum (iter-103, 30)
+			//     = synthesis_axes_pole_b_present_count_sum (iter-103, 30)
+			//     = synthesis_axes_evidence_basis_present_count_sum (iter-103, 30)
+			//     = synthesis_axes_leaning_toward_valid_count_sum (iter-106, 30)  ← this rollup
+			//
+			// Under broken-auth baseline: rollup = 0 (no cold-start emission reaches
+			// the wire — iter-72 synthesis_axes_count_sum also 0). The identity chain
+			// holds at 0 on both sides, baseline-regime-invariant.
+			//
+			// Regression classes this rollup catches that iter-72/83/103 cannot:
+			//   - oracle.ts:345 refactor assigning leaning_toward = '' or undefined
+			//     instead of null: iter-83/103 hold at 30 (confidence typed-union and
+			//     4 string presence-validity intact); iter-72 axes length holds at
+			//     30; iter-106 leaning_toward_valid drops from 30 to 0 — the null-vs-
+			//     empty-string boundary on the within-item axis field is exactly what
+			//     this probe discriminates. No other EmergentAxis probe can catch
+			//     this at the wire-level independent of structural count.
+			//   - synthesisSchema/coldStartSchema narrowing: z.string().nullable()
+			//     changed to z.string().optional() (allows undefined) — iter-106
+			//     drops below 30 while iter-83 confidence holds (still a valid union
+			//     member 'unprobed'); catches schema-narrowing at the nullable-field-
+			//     type layer specifically.
+			//   - runSynthesis path emitting leaning_toward as wrong type (number,
+			//     object, array from LLM JSON parse bug or payload-shape drift):
+			//     iter-83 confidence may hold if typed-union intact; iter-106 drops
+			//     because typeof !== 'string' and !== null.
+			//   - cold-start refactor dropping leaning_toward from the EmergentAxis
+			//     object literal (oracle.ts:340-347 construction omits the field):
+			//     runtime carries undefined; TypeScript catches at compile-time only
+			//     if consumers reference the field; iter-106 catches at runtime via
+			//     the null-vs-undefined discrimination.
+			//
+			// Forward-deploy regimes: under runSynthesis (oracle.ts:176, 4+ swipes,
+			// unreachable in 12s window), leaning_toward may carry a non-empty string
+			// (resolved pole like 'muted' or 'sharp') per synthesisSchema's z.string
+			// ().nullable() at oracle.ts:33 — rollup still holds at identity because
+			// the union-valid predicate accepts both null and non-empty string per
+			// types.ts:68. Under reveal-reachable regime, axes may carry a mix of
+			// null and populated values across axes; rollup still holds at identity
+			// because every axis passes one branch of the union. PATH-INVARIANT
+			// probe — iter-106 is the within-item counterpart to iter-105's struct-
+			// boundary persona_anima_divergence probe.
+			//
+			// Orthogonal to iter-94's palette SHOULD-BE-ZERO rollup: that probe fires
+			// ZERO under cold-start and positive under runSynthesis (origin-
+			// discriminative); iter-106 fires identity under BOTH paths (origin-
+			// invariant). Together iter-94 (path-discriminative) + iter-105/106
+			// (path-invariant) provide two-sided coverage of synthesis emission: iter-
+			// 94 tells WHICH path ran, iter-105/106 tell HOW WELL that path populated
+			// the struct-boundary and within-item nullable fields.
+			synthesis_axes_leaning_toward_valid_count_sum: sumMetric(
+				'synthesis_axes_leaning_toward_valid_count'
+			),
+			synthesis_axes_leaning_toward_valid_count_min: perIntent.length
+				? Math.min(
+						...perIntent.map(
+							(p) => p.metrics.synthesis_axes_leaning_toward_valid_count ?? 0
+						)
+					)
+				: 0,
 			// iter-88: stream_2 counterparts for iter-72's primary-bus synthesis
 			// axes + scout_assignments count rollups — closing the last unprobed
 			// synthesis cells on the /api/stream snapshot matrix. Mirror pattern
@@ -3036,6 +3143,60 @@ async function main() {
 				? Math.min(
 						...perIntent.map(
 							(p) => p.metrics.stream_2_synthesis_persona_anima_divergence_valid_count ?? 0
+						)
+					)
+				: 0,
+			// iter-106: stream_2 counterpart for iter-106's primary-bus axes[].
+			// leaning_toward nullable-string union-valid rollup — cross-stream
+			// POSITIVE-IDENTITY under healthy-auth 5-intent 12s-window baseline:
+			// stream_2_synthesis_axes_leaning_toward_valid_count_sum = 30/_min=6,
+			// identity-matched with primary iter-106 at 30/_min=6. Saturates the
+			// EmergentAxis 6-way field-validity matrix on the /api/stream replay
+			// path alongside iter-88 (axes length), iter-91 (confidence typed-
+			// union), iter-103 (4 string presence-validity). Closes iter-105's
+			// explicitly-named follow-on — the LAST unprobed EmergentAxis field
+			// on the replay stream.
+			//
+			// Cross-stream POSITIVE-IDENTITY chain under healthy-auth baseline:
+			//   stream_2_synthesis_axes_count_sum (iter-88, 30)
+			//     = stream_2_synthesis_axes_valid_confidence_count_sum (iter-91, 30)
+			//     = stream_2_synthesis_axes_label_present_count_sum (iter-103, 30)
+			//     = stream_2_synthesis_axes_pole_a_present_count_sum (iter-103, 30)
+			//     = stream_2_synthesis_axes_pole_b_present_count_sum (iter-103, 30)
+			//     = stream_2_synthesis_axes_evidence_basis_present_count_sum (iter-103, 30)
+			//     = stream_2_synthesis_axes_leaning_toward_valid_count_sum (iter-106, 30) ← this rollup
+			//     = synthesis_axes_leaning_toward_valid_count_sum (primary iter-106, 30)
+			//
+			// Regression classes catchable only at stream_2 (orthogonal to primary
+			// iter-106): a +server.ts:24-26 replay-block transform that preserves
+			// axes array-shape, confidence union-membership, and all string fields
+			// but corrupts leaning_toward specifically — e.g. a .map(a => ({...a,
+			// leaning_toward: undefined})) transform, a JSON serialize/parse
+			// pipeline that normalizes null to undefined, a payload-shape refactor
+			// that changes the nullable field to optional-and-omitted. Primary
+			// iter-106 holds at 30 (live emission preserves null), stream_2 iter-
+			// 106 drops below 30, pinpointing replay-block-only nullable-field
+			// corruption distinct from typed-union (iter-91) / string-field (iter-
+			// 103) / array-shape (iter-88) regression classes. Cross-stream
+			// divergence (stream_2 != primary under healthy-auth) continues the
+			// pattern iter-88/90/91/99/102/103/104/105 established.
+			//
+			// Forward-deploy regimes: same as primary iter-106 — probe holds at
+			// identity under both cold-start (null) and runSynthesis (non-empty-
+			// string resolved pole). The replay path at +server.ts:24-26 JSON.
+			// stringify's context.synthesis, preserving both regime outputs
+			// unchanged, so the cross-stream identity holds on BOTH synthesis paths.
+			// Under reveal-reachable regime with runSynthesis-populated synthesis,
+			// stream_2 continues to track primary identity because the replay
+			// snapshot carries whatever context.synthesis state is current at
+			// open time.
+			stream_2_synthesis_axes_leaning_toward_valid_count_sum: sumMetric(
+				'stream_2_synthesis_axes_leaning_toward_valid_count'
+			),
+			stream_2_synthesis_axes_leaning_toward_valid_count_min: perIntent.length
+				? Math.min(
+						...perIntent.map(
+							(p) => p.metrics.stream_2_synthesis_axes_leaning_toward_valid_count ?? 0
 						)
 					)
 				: 0,

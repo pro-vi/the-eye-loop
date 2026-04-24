@@ -753,6 +753,66 @@ async function main() {
 		synthesis_axes_pole_a_present_count: 0,
 		synthesis_axes_pole_b_present_count: 0,
 		synthesis_axes_evidence_basis_present_count: 0,
+		// iter-106: stream_2 counterpart for iter-106's primary-bus EmergentAxis
+		// axes[].leaning_toward nullable-string union-valid probe. Closes iter-105's
+		// explicitly-named follow-on candidate: 'Future iterations adding probes for
+		// leaning_toward (axis-level nullable) could now use the [iter-105 null-or-
+		// non-empty-string union-valid] predicate — applying the iter-105 template
+		// directly to close that still-unprobed WITHIN-ITEM nullable field on
+		// EmergentAxis.' Types.ts:68 declares `leaning_toward: string | null` as the
+		// last unprobed EmergentAxis field after iter-83 (confidence typed-union) and
+		// iter-103 (label/poleA/poleB/evidence_basis presence-validity) — the ONLY
+		// remaining axis-within-item field with no stream_2 coverage.
+		//
+		// Under iter-61 healthy-auth 5-intent 12s-window baseline: +server.ts:24-26
+		// replays synthesis-updated via JSON.stringify on context.synthesis; cold-
+		// start synthesis (oracle.ts:339-347) hard-codes leaning_toward=null for
+		// every axis at construction time (always the null sentinel per the
+		// 'unprobed' confidence initial state — no pole resolved yet). Probe fires
+		// once per axis that passes (=== null || non-empty-string) — under cold-
+		// start, all 6 axes pass via the null branch, yielding stream_2_synthesis_
+		// axes_leaning_toward_valid_count = 6 per intent (_sum=30/_min=6 aggregate),
+		// identity-matched with iter-91 stream_2 confidence probe and iter-103
+		// stream_2 string probes.
+		//
+		// POSITIVE-IDENTITY invariants at aggregate under healthy-auth baseline:
+		//   stream_2_synthesis_axes_leaning_toward_valid_count_sum = 30
+		//     = stream_2_synthesis_axes_count_sum (iter-88, 30)
+		//     = stream_2_synthesis_axes_valid_confidence_count_sum (iter-91, 30)
+		//     = stream_2_synthesis_axes_label_present_count_sum (iter-103, 30)
+		//     = stream_2_synthesis_axes_pole_a_present_count_sum (iter-103, 30)
+		//     = stream_2_synthesis_axes_pole_b_present_count_sum (iter-103, 30)
+		//     = stream_2_synthesis_axes_evidence_basis_present_count_sum (iter-103, 30)
+		//     = synthesis_axes_leaning_toward_valid_count_sum (primary iter-106, 30)
+		//
+		// Regression classes catchable only by stream_2 counterpart: a +server.ts:
+		// 24-26 replay-block transform that preserves axes array-shape and all
+		// string fields but corrupts leaning_toward specifically (e.g. a .map(a =>
+		// ({...a, leaning_toward: undefined})) transform left in, a JSON serialize/
+		// parse pipeline that normalizes null to undefined, a payload-shape refactor
+		// that changes the nullable field to optional without preserving the null
+		// sentinel semantics) — primary iter-106 holds at 30 (live emission preserves
+		// null), stream_2 iter-106 drops below 30, pinpointing replay-block-only
+		// nullable-field corruption distinct from the typed-union / string-field /
+		// array-shape regression classes iter-91/103 stream_2 probes cover. Cross-
+		// stream divergence (stream_2 counts != primary counts under healthy-auth)
+		// continues the cross-stream discrimination pattern iter-88/90/91/99/102/
+		// 103/104/105 established.
+		//
+		// Forward-deploy regimes: under runSynthesis (oracle.ts:176, 4+ swipes,
+		// unreachable in 12s window), leaning_toward may carry a non-empty string
+		// (resolved pole like 'muted' or 'sharp') per synthesisSchema's z.string()
+		// .nullable() at oracle.ts:33 — probe still holds at identity because the
+		// union-valid predicate accepts both null and non-empty string per types.ts:
+		// 68. Under reveal-reachable regime, axes may carry a mix of null (still-
+		// exploring) and populated (resolved) leaning_toward values across axes;
+		// probe still holds at identity because every axis passes one branch of the
+		// union. Path-invariant probe identical to iter-105's persona_anima_
+		// divergence top-level counterpart — this iteration extends the null-or-
+		// non-empty-string union-valid predicate family (first introduced by iter-
+		// 105 as a 4th probe-predicate family alongside typed-union / presence-
+		// validity / SHOULD-BE-ZERO) to within-item array-element coverage.
+		synthesis_axes_leaning_toward_valid_count: 0,
 		// iter-95: stream_2 counterpart for iter-95's primary-bus draft_next_hint_
 		// present_count probe on draft-updated.draft.nextHint. PrototypeDraft.nextHint
 		// (types.ts:52) is `string | undefined`; only rebuild() (builder.ts:323,
@@ -1256,6 +1316,21 @@ async function main() {
 							axis.evidence_basis.length > 0
 						) {
 							stream2.synthesis_axes_evidence_basis_present_count++;
+						}
+						// iter-106: axes[].leaning_toward null-or-non-empty-string union
+						// validity on stream_2. See stream2 init block for full rationale.
+						// Identical predicate to iter-105's persona_anima_divergence probe,
+						// applied per-axis inside the axes loop. Under healthy-auth baseline
+						// (cold-start leaning_toward=null for every axis): stream_2_
+						// synthesis_axes_leaning_toward_valid_count = 6 per intent, matching
+						// iter-91 stream_2 confidence and iter-103 stream_2 string probes.
+						if (
+							axis &&
+							(axis.leaning_toward === null ||
+								(typeof axis.leaning_toward === 'string' &&
+									axis.leaning_toward.length > 0))
+						) {
+							stream2.synthesis_axes_leaning_toward_valid_count++;
 						}
 					}
 				}
@@ -3078,6 +3153,96 @@ async function main() {
 	let synthesisAxesPoleAPresentCount = 0;
 	let synthesisAxesPoleBPresentCount = 0;
 	let synthesisAxesEvidenceBasisPresentCount = 0;
+	// iter-106: EmergentAxis axes[].leaning_toward nullable-string union-valid
+	// probe on the primary-bus synthesis-updated event. Closes iter-105's
+	// explicitly-named follow-on candidate — the LAST unprobed EmergentAxis
+	// field per types.ts:63-70 after iter-83 (confidence typed-union) and iter-
+	// 103 (label/poleA/poleB/evidence_basis presence-validity). Extends the
+	// null-or-non-empty-string union-valid predicate family (introduced by iter-
+	// 105 for top-level persona_anima_divergence) to within-item array-element
+	// coverage — the same predicate applied per-axis inside the axes loop.
+	//
+	// EmergentAxis.leaning_toward (types.ts:68) is typed as `string | null` — an
+	// explicitly-nullable field. Under cold-start (oracle.ts:345): always null
+	// for every axis (6 axes per synthesis, no pole resolved yet). Under
+	// runSynthesis (oracle.ts:176, 4+ swipes, unreachable in 12s window): may
+	// be null (still-exploring) OR a non-empty string (resolved pole) per
+	// synthesisSchema's z.string().nullable() at oracle.ts:33. The correct probe
+	// accepts EITHER null OR a non-empty string — matching the type contract
+	// exactly.
+	//
+	// Under iter-61 healthy-auth 5-intent 12s-window baseline: cold-start synth
+	// fires at ~3-5s with all 6 axes having leaning_toward=null (unprobed state
+	// — no swipes yet). Probe count per intent = 6 axes (all pass via null
+	// branch), aggregate _sum=30/_min=6. Identity-matched with iter-83's
+	// confidence typed-union count (6 per intent under 'unprobed'=VALID_AXIS_
+	// CONFIDENCES-member) and iter-103's 4 string presence-validity probes
+	// (6 per intent per field).
+	//
+	// 6-way EmergentAxis POSITIVE-IDENTITY chain under healthy-auth:
+	//   synthesis_axes_count_sum (iter-72, 30)                 [6 per synth × 5]
+	//     = synthesis_axes_valid_confidence_count_sum (iter-83, 30)
+	//     = synthesis_axes_label_present_count_sum (iter-103, 30)
+	//     = synthesis_axes_pole_a_present_count_sum (iter-103, 30)
+	//     = synthesis_axes_pole_b_present_count_sum (iter-103, 30)
+	//     = synthesis_axes_evidence_basis_present_count_sum (iter-103, 30)
+	//     = synthesis_axes_leaning_toward_valid_count_sum (iter-106, 30)  ← this probe
+	//
+	// Probe design rationale — follows iter-105's persona_anima_divergence
+	// union-valid template exactly, applied per-axis inside the axes loop
+	// (parallel to iter-83's confidence, iter-103's label/poleA/poleB/
+	// evidence_basis). A length>0-only probe would fail under cold-start (all
+	// axes have leaning_toward=null, probe count drops to 0); a null-only probe
+	// would fail under runSynthesis with a resolved pole. The union-valid probe
+	// is PATH-INVARIANT — it holds at identity regardless of which synthesis
+	// path fired, making it orthogonal to iter-94's palette probe which IS
+	// path-discriminative on the synthesis-updated event.
+	//
+	// Regression classes this catches that iter-83/103/105 cannot:
+	//   (a) oracle.ts:345 refactor assigning leaning_toward = '' or undefined
+	//       instead of null: iter-83/103 probes hold at 30 (confidence and 4
+	//       string fields intact); iter-94 palette holds at 0 (SHOULD-BE-ZERO
+	//       unchanged); iter-105 top-level probes hold at 5 (edge_case_flags
+	//       and persona_anima_divergence intact); iter-106 leaning_toward_valid
+	//       drops from 30 to 0 — the null-vs-empty-string boundary on the
+	//       within-item axis field is exactly what this probe discriminates.
+	//   (b) synthesisSchema / coldStartSchema narrowing on leaning_toward:
+	//       z.string().nullable() changed to z.string().optional() (allows
+	//       undefined) — iter-106 drops below 30 while other probes hold at
+	//       identity, catching schema-narrowing regressions at the nullable-
+	//       field-type layer.
+	//   (c) runSynthesis path emitting leaning_toward as wrong type (number,
+	//       object, array from LLM JSON parse bug or payload-shape drift):
+	//       iter-83 confidence may hold if typed-union intact; iter-106 drops
+	//       because typeof !== 'string' and !== null.
+	//   (d) A cold-start refactor that drops leaning_toward from the EmergentAxis
+	//       object literal (oracle.ts:340-347 construction omits the field):
+	//       runtime carries undefined; TypeScript compiler catches this but
+	//       only if consumers reference the dropped field — iter-106 catches
+	//       it at wire-level via the null-vs-undefined discrimination.
+	//
+	// Forward-deploy regimes: under runSynthesis (unreachable in 12s window),
+	// leaning_toward may carry a non-empty string (resolved pole) — probe still
+	// holds at identity because the union-valid predicate accepts both null and
+	// non-empty string. Under reveal-reachable regime, axes may carry a mix of
+	// null (still-exploring) and populated (resolved) across axes; probe still
+	// holds at identity because every axis passes one branch of the union. This
+	// path-invariance property is the same that iter-105's persona_anima_
+	// divergence enjoys at the struct-boundary layer — iter-106 is the
+	// within-item counterpart.
+	//
+	// Intervention-diversity: iter-106 extends the POSITIVE-IDENTITY family
+	// from iter-97/98/99/100/101/102/103/104/105 (9-iteration cluster, now
+	// extended to 10) to an 11th consecutive iteration, saturating the last
+	// unprobed EmergentAxis field. The 4th probe-predicate family (union-valid
+	// for nullable) introduced by iter-105 now has its within-item application
+	// — extending the template repertoire from {typed-union (iter-67/80/82/83/
+	// 85/86), presence-validity (iter-97-104), SHOULD-BE-ZERO (iter-93/94/95/
+	// 96), union-valid-struct-boundary (iter-105)} to include union-valid-
+	// within-item (iter-106). Same-family-admissibility holds because
+	// leaning_toward has NEVER been probed and provides independent
+	// discriminative power on a field that NO prior probe covers.
+	let synthesisAxesLeaningTowardValidCount = 0;
 	// iter-94: synthesis-updated.palette presence-validity on the primary bus.
 	// TasteSynthesis.palette? is optional (types.ts:85 iter-73); oracle
 	// paletteSchema defines 6 string fields (bg, card, accent, text, muted,
@@ -3220,6 +3385,20 @@ async function main() {
 					synthesisAxesPoleBPresentCount++;
 				if (axis && typeof axis.evidence_basis === 'string' && axis.evidence_basis.length > 0)
 					synthesisAxesEvidenceBasisPresentCount++;
+				// iter-106: axes[].leaning_toward null-or-non-empty-string union
+				// validity on primary bus. See variable decl block above for full
+				// rationale. Identical predicate to iter-105's persona_anima_
+				// divergence probe, applied per-axis inside the axes loop. Under
+				// healthy-auth baseline (cold-start leaning_toward=null for every
+				// axis): synthesis_axes_leaning_toward_valid_count = 6 per intent,
+				// matching iter-83 confidence and iter-103 string probes.
+				if (
+					axis &&
+					(axis.leaning_toward === null ||
+						(typeof axis.leaning_toward === 'string' && axis.leaning_toward.length > 0))
+				) {
+					synthesisAxesLeaningTowardValidCount++;
+				}
 			}
 		}
 		if (Array.isArray(assignments)) {
@@ -3751,6 +3930,19 @@ async function main() {
 			stream_2_synthesis_axes_pole_b_present_count: stream2.synthesis_axes_pole_b_present_count,
 			stream_2_synthesis_axes_evidence_basis_present_count:
 				stream2.synthesis_axes_evidence_basis_present_count,
+			// iter-106: stream_2 counterpart for iter-106's primary-bus axes[].leaning_
+			// toward null-or-non-empty-string union-valid probe. Closes iter-105's
+			// explicitly-named follow-on — the LAST unprobed EmergentAxis field on the
+			// replay stream. Cross-stream POSITIVE-IDENTITY with iter-91 stream_2
+			// confidence probe, iter-103 stream_2 4-string probes, and primary iter-106
+			// leaning_toward probe under healthy-auth 5-intent 12s-window baseline:
+			// stream_2 count = 30/_min=6 via null branch (cold-start leaning_toward=
+			// null for every axis persisted on context.synthesis, replayed at ~12s by
+			// +server.ts:24-26 JSON.stringify). Saturates the EmergentAxis 6-way field-
+			// validity matrix on the /api/stream replay path. Full rationale in stream2
+			// init block.
+			stream_2_synthesis_axes_leaning_toward_valid_count:
+				stream2.synthesis_axes_leaning_toward_valid_count,
 			stream_2_first_event_ms_after_open: stream2.first_event_ms_after_open,
 			stream_2_replay_span_ms: stream2.replay_span_ms,
 			stage_changed_event_count: stageChangedEventCount,
@@ -3814,6 +4006,16 @@ async function main() {
 			synthesis_axes_pole_a_present_count: synthesisAxesPoleAPresentCount,
 			synthesis_axes_pole_b_present_count: synthesisAxesPoleBPresentCount,
 			synthesis_axes_evidence_basis_present_count: synthesisAxesEvidenceBasisPresentCount,
+			// iter-106: axes[].leaning_toward null-or-non-empty-string union validity.
+			// Closes iter-105's explicit follow-on — the LAST unprobed EmergentAxis
+			// field. POSITIVE-IDENTITY under healthy-auth 5-intent baseline: count =
+			// synthesis_axes_count = 30/_min=6 via null branch (cold-start leaning_
+			// toward=null for every axis). Path-invariant — probe holds at identity
+			// under both cold-start (null) and runSynthesis (non-empty string resolved
+			// pole). Saturates the EmergentAxis 6-way field-validity matrix on
+			// primary bus alongside iter-83 confidence + iter-103 4-string + iter-72
+			// axes length.
+			synthesis_axes_leaning_toward_valid_count: synthesisAxesLeaningTowardValidCount,
 			evidence_array_valid_count: evidenceArrayValidCount,
 			anti_patterns_array_valid_count: antiPatternsArrayValidCount,
 			evidence_length_min: evidenceLengthMin,
@@ -3876,7 +4078,7 @@ async function main() {
 		`agent_status_valid=${agentStatusValidCount} agent_status_role_valid=${agentStatusRoleValidCount} agent_id=${agentStatusIdPresentCount} agent_name=${agentStatusNamePresentCount} agent_focus=${agentStatusFocusPresentCount} stage_swipe_valid=${stageChangedSwipeCountValidCount} ` +
 		`facade_fmt_valid=${facadeFormatValidCount} facade_id=${facadeIdPresentCount} facade_aid=${facadeAgentIdPresentCount} facade_hyp=${facadeHypothesisPresentCount} facade_label=${facadeLabelPresentCount} facade_content=${facadeContentPresentCount} ` +
 		`swipe_dec_valid=${swipeDecisionValidCount} swipe_bkt_valid=${swipeLatencyBucketValidCount} swipe_fid=${swipeFacadeIdPresentCount} swipe_aid=${swipeAgentIdPresentCount} swipe_lat_ms_valid=${swipeLatencyMsValidCount} ` +
-		`synth_axes=${synthesisAxesCount}/min=${synthesisAxesMin} synth_axes_conf_valid=${synthesisAxesValidConfidenceCount} synth_axes_label=${synthesisAxesLabelPresentCount} synth_axes_pole_a=${synthesisAxesPoleAPresentCount} synth_axes_pole_b=${synthesisAxesPoleBPresentCount} synth_axes_evidence_basis=${synthesisAxesEvidenceBasisPresentCount} synth_assigns=${synthesisScoutAssignmentsCount}/min=${synthesisScoutAssignmentsMin} synth_assigns_scout_valid=${synthesisScoutAssignmentsValidScoutCount} synth_assigns_probe_axis=${synthesisScoutAssignmentsProbeAxisPresentCount} synth_assigns_reason=${synthesisScoutAssignmentsReasonPresentCount} synth_palette=${synthesisPalettePresentCount} synth_edge_flags_arr_valid=${synthesisEdgeCaseFlagsArrayValidCount} synth_divergence_valid=${synthesisPersonaAnimaDivergenceValidCount} ` +
+		`synth_axes=${synthesisAxesCount}/min=${synthesisAxesMin} synth_axes_conf_valid=${synthesisAxesValidConfidenceCount} synth_axes_label=${synthesisAxesLabelPresentCount} synth_axes_pole_a=${synthesisAxesPoleAPresentCount} synth_axes_pole_b=${synthesisAxesPoleBPresentCount} synth_axes_evidence_basis=${synthesisAxesEvidenceBasisPresentCount} synth_axes_leaning_valid=${synthesisAxesLeaningTowardValidCount} synth_assigns=${synthesisScoutAssignmentsCount}/min=${synthesisScoutAssignmentsMin} synth_assigns_scout_valid=${synthesisScoutAssignmentsValidScoutCount} synth_assigns_probe_axis=${synthesisScoutAssignmentsProbeAxisPresentCount} synth_assigns_reason=${synthesisScoutAssignmentsReasonPresentCount} synth_palette=${synthesisPalettePresentCount} synth_edge_flags_arr_valid=${synthesisEdgeCaseFlagsArrayValidCount} synth_divergence_valid=${synthesisPersonaAnimaDivergenceValidCount} ` +
 		`evid_arr_valid=${evidenceArrayValidCount} anti_arr_valid=${antiPatternsArrayValidCount} evid_len_min/max=${evidenceLengthMin}/${evidenceLengthMax} ` +
 		`evid_items_dec_valid=${evidenceItemsValidDecisionCount} evid_items_fmt_valid=${evidenceItemsValidFormatCount} evid_items_lat_valid=${evidenceItemsValidLatencySignalCount} ` +
 		`evid_items_fid=${evidenceItemsFacadeIdPresentCount} evid_items_content=${evidenceItemsContentPresentCount} evid_items_hyp=${evidenceItemsHypothesisPresentCount} evid_items_impl=${evidenceItemsImplicationPresentCount} ` +
@@ -3887,7 +4089,7 @@ async function main() {
 		`s2_drafts=${stream2.draft_updated_count} s2_drafts_p/r=${stream2.draft_placeholder_count}/${stream2.draft_refined_count} s2_draft_next_hint=${stream2.draft_next_hint_present_count} s2_draft_accepted_pat=${stream2.draft_accepted_patterns_present_count} s2_draft_rejected_pat=${stream2.draft_rejected_patterns_present_count} s2_draft_title=${stream2.draft_title_present_count} s2_draft_summary=${stream2.draft_summary_present_count} s2_draft_html=${stream2.draft_html_present_count} ` +
 		`s2_facades=${stream2.facade_ready_count} s2_synth=${stream2.synthesis_updated_count} s2_evidence=${stream2.evidence_updated_count} ` +
 		`s2_facade_fmt_valid=${stream2.facade_format_valid_count} s2_facade_id=${stream2.facade_id_present_count} s2_facade_aid=${stream2.facade_agent_id_present_count} s2_facade_hyp=${stream2.facade_hypothesis_present_count} s2_facade_label=${stream2.facade_label_present_count} s2_facade_content=${stream2.facade_content_present_count} ` +
-		`s2_synth_axes=${stream2.synthesis_axes_count}/min=${stream2.synthesis_axes_min} s2_synth_axes_conf_valid=${stream2.synthesis_axes_valid_confidence_count} s2_synth_axes_label=${stream2.synthesis_axes_label_present_count} s2_synth_axes_pole_a=${stream2.synthesis_axes_pole_a_present_count} s2_synth_axes_pole_b=${stream2.synthesis_axes_pole_b_present_count} s2_synth_axes_evidence_basis=${stream2.synthesis_axes_evidence_basis_present_count} s2_synth_assigns=${stream2.synthesis_scout_assignments_count}/min=${stream2.synthesis_scout_assignments_min} s2_synth_assigns_scout_valid=${stream2.synthesis_scout_assignments_valid_scout_count} s2_synth_assigns_probe_axis=${stream2.synthesis_scout_assignments_probe_axis_present_count} s2_synth_assigns_reason=${stream2.synthesis_scout_assignments_reason_present_count} s2_synth_palette=${stream2.synthesis_palette_present_count} s2_synth_edge_flags_arr_valid=${stream2.synthesis_edge_case_flags_array_valid_count} s2_synth_divergence_valid=${stream2.synthesis_persona_anima_divergence_valid_count} ` +
+		`s2_synth_axes=${stream2.synthesis_axes_count}/min=${stream2.synthesis_axes_min} s2_synth_axes_conf_valid=${stream2.synthesis_axes_valid_confidence_count} s2_synth_axes_label=${stream2.synthesis_axes_label_present_count} s2_synth_axes_pole_a=${stream2.synthesis_axes_pole_a_present_count} s2_synth_axes_pole_b=${stream2.synthesis_axes_pole_b_present_count} s2_synth_axes_evidence_basis=${stream2.synthesis_axes_evidence_basis_present_count} s2_synth_axes_leaning_valid=${stream2.synthesis_axes_leaning_toward_valid_count} s2_synth_assigns=${stream2.synthesis_scout_assignments_count}/min=${stream2.synthesis_scout_assignments_min} s2_synth_assigns_scout_valid=${stream2.synthesis_scout_assignments_valid_scout_count} s2_synth_assigns_probe_axis=${stream2.synthesis_scout_assignments_probe_axis_present_count} s2_synth_assigns_reason=${stream2.synthesis_scout_assignments_reason_present_count} s2_synth_palette=${stream2.synthesis_palette_present_count} s2_synth_edge_flags_arr_valid=${stream2.synthesis_edge_case_flags_array_valid_count} s2_synth_divergence_valid=${stream2.synthesis_persona_anima_divergence_valid_count} ` +
 		`s2_evid_arr_valid=${stream2.evidence_array_valid_count} s2_anti_arr_valid=${stream2.anti_patterns_array_valid_count} s2_evid_len_min/max=${stream2.evidence_length_min}/${stream2.evidence_length_max} ` +
 		`s2_evid_items_dec_valid=${stream2.evidence_items_valid_decision_count} s2_evid_items_fmt_valid=${stream2.evidence_items_valid_format_count} s2_evid_items_lat_valid=${stream2.evidence_items_valid_latency_signal_count} ` +
 		`s2_evid_items_fid=${stream2.evidence_items_facade_id_present_count} s2_evid_items_content=${stream2.evidence_items_content_present_count} s2_evid_items_hyp=${stream2.evidence_items_hypothesis_present_count} s2_evid_items_impl=${stream2.evidence_items_implication_present_count} ` +
