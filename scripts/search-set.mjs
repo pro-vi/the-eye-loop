@@ -169,7 +169,11 @@ function extractMetrics(artifact) {
 		scout_probe_latency_ms_max: m.scout_probe_latency_ms_max ?? null,
 		scout_probe_count: m.scout_probe_count ?? 0,
 		builder_scaffold_latency_ms: m.builder_scaffold_latency_ms ?? null,
-		builder_scaffold_count: m.builder_scaffold_count ?? 0
+		builder_scaffold_count: m.builder_scaffold_count ?? 0,
+		builder_rebuild_latency_ms: m.builder_rebuild_latency_ms ?? null,
+		builder_rebuild_latency_ms_p50: m.builder_rebuild_latency_ms_p50 ?? null,
+		builder_rebuild_latency_ms_max: m.builder_rebuild_latency_ms_max ?? null,
+		builder_rebuild_count: m.builder_rebuild_count ?? 0
 	};
 }
 
@@ -1053,6 +1057,52 @@ async function main() {
 			builder_scaffold_count_sum: sumMetric('builder_scaffold_count'),
 			builder_scaffold_count_min: perIntent.length
 				? Math.min(...perIntent.map((p) => p.metrics.builder_scaffold_count ?? 0))
+				: 0,
+			// iter-70 builder rebuild latency rollups — sibling to iter-51's
+			// scaffold rollups, completing the per-builder-call latency family.
+			// iter-69 unblocked the rebuild path by removing the scaffold's
+			// `swipeCount === 0` gate, which had implicitly suppressed rebuild
+			// completions from emitting draft-updated under healthy-auth demo
+			// timing. Post-iter-69 the rebuild fires once per swipe, observable
+			// at 3-12s Haiku latency between thinking 'analyzing X' and the
+			// next idle transition. Under iter-69 healthy-auth baseline with the
+			// validate.mjs swipeWatcher posting exactly one accept per intent,
+			// the expected invariants are:
+			//   builder_rebuild_count_sum=5 _min=1 (1 swipe per intent × 5 intents)
+			//   builder_rebuild_latency_ms_p50 ≈ 3000-12000ms (Haiku rebuild RTT)
+			//   builder_rebuild_latency_ms_p90 ≈ p50 + small jitter
+			// Distinct from time_to_first_draft_after_swipe_ms (iter-68): that
+			// measures swipe-POST → first draft-updated wall-clock, this measures
+			// the agent-status thinking→idle interval which excludes SSE / event-
+			// loop overhead and isolates the Haiku rebuild call latency. The two
+			// together discriminate end-to-end product latency from raw LLM RTT —
+			// a regression in SSE flush would diverge them while a regression in
+			// rebuild prompt complexity would move them together. Forward-deploy:
+			// when multi-swipe support lands, the count scales with swipe count
+			// per intent and the p50/p90 latency profile becomes a forward-deploy
+			// product-optimization target distinct from scaffold's one-shot
+			// latency. Orthogonal regression class to iter-51's scaffold latency:
+			// scaffold uses SCAFFOLD_PROMPT (intent-only, no evidence), rebuild
+			// uses SWIPE_PROMPT (evidence + draft + anti-patterns), so prompt-
+			// complexity regressions on the rebuild path would inflate this
+			// without touching scaffold; vice-versa for scaffold-only regressions.
+			builder_rebuild_latency_ms_p50: percentile(
+				perIntent.map((p) => p.metrics.builder_rebuild_latency_ms),
+				50
+			),
+			builder_rebuild_latency_ms_p90: percentile(
+				perIntent.map((p) => p.metrics.builder_rebuild_latency_ms),
+				90
+			),
+			builder_rebuild_latency_ms_max: (() => {
+				const vals = perIntent
+					.map((p) => p.metrics.builder_rebuild_latency_ms_max)
+					.filter((v) => typeof v === 'number' && Number.isFinite(v));
+				return vals.length ? Math.max(...vals) : null;
+			})(),
+			builder_rebuild_count_sum: sumMetric('builder_rebuild_count'),
+			builder_rebuild_count_min: perIntent.length
+				? Math.min(...perIntent.map((p) => p.metrics.builder_rebuild_count ?? 0))
 				: 0,
 			// iter-68 harness-completeness close-out: promote the three per-intent
 			// metrics that were forward-carried through extractMetrics (since

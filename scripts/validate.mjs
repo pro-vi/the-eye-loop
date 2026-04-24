@@ -1113,6 +1113,48 @@ async function main() {
 		}
 		return pairs;
 	}
+	// iter-70: builder rebuild latency, sibling to computeBuilderScaffoldLatencies.
+	// Closes the per-class latency gap that iter-69 unblocked: before iter-69 the
+	// scaffold's `swipeCount === 0` gate suppressed scaffold output AND no rebuild
+	// emission could fire because rebuild completed but its draft-updated emit
+	// was masked by the still-busy scaffold; post-iter-69 rebuild produces a
+	// distinct measurable Haiku call (~3-12s typical, observed 3154ms in the
+	// latest multi-session artifact). Rebuild's focus prefix is set in
+	// builder.ts:196 — `analyzing ${decision} on "${facade.label}"` — with
+	// decision and label as variable substitutions, so a startsWith filter on
+	// 'analyzing ' is the reliable matcher (no other emit site uses this prefix
+	// per a roster grep). The next idle/'watching for swipes' on builder-01
+	// closes the pair, mirroring iter-51's scaffold pairing topology. Under
+	// iter-69 healthy-auth baseline (1 swipe per intent, validate.mjs's
+	// swipeWatcher posts exactly one accept), the expected invariant is
+	// builder_rebuild_count = 1 per intent; aggregate _sum=5 _min=1 across the
+	// 5-intent search-set. Forward-deploy: when multi-swipe support lands the
+	// counter scales with swipe count per intent. Orthogonal to iter-51's
+	// scaffold latency (different LLM call, different prompt, different gate
+	// state) and orthogonal to iter-68's time_to_first_draft_after_swipe_ms
+	// (which measures swipe-POST → first draft-updated wall-clock; this measures
+	// the agent-status thinking→idle interval which excludes the SSE / event-
+	// loop overhead and isolates the Haiku call latency).
+	function computeBuilderRebuildLatencies() {
+		const pairs = [];
+		let lastEntry = null;
+		for (const e of events) {
+			if (e.type !== 'agent-status') continue;
+			const agent = e.data?.agent;
+			if (agent?.id !== 'builder-01') continue;
+			if (
+				agent.status === 'thinking' &&
+				typeof agent.focus === 'string' &&
+				agent.focus.startsWith('analyzing ')
+			) {
+				lastEntry = e.ts_ms;
+			} else if (lastEntry !== null && agent.status === 'idle') {
+				pairs.push(e.ts_ms - lastEntry);
+				lastEntry = null;
+			}
+		}
+		return pairs;
+	}
 	function pctInline(values, p) {
 		const cleaned = values.filter((v) => typeof v === 'number' && Number.isFinite(v));
 		if (cleaned.length === 0) return null;
@@ -1127,6 +1169,13 @@ async function main() {
 	const builderScaffoldLatencies = computeBuilderScaffoldLatencies();
 	const builderScaffoldLatencyMs = builderScaffoldLatencies[0] ?? null;
 	const builderScaffoldCount = builderScaffoldLatencies.length;
+	const builderRebuildLatencies = computeBuilderRebuildLatencies();
+	const builderRebuildLatencyMs = builderRebuildLatencies[0] ?? null;
+	const builderRebuildLatencyMsP50 = pctInline(builderRebuildLatencies, 50);
+	const builderRebuildLatencyMsMax = builderRebuildLatencies.length
+		? Math.max(...builderRebuildLatencies)
+		: null;
+	const builderRebuildCount = builderRebuildLatencies.length;
 
 	// Primary-stream stage-changed probe — closes iter-27's explicitly-
 	// deferred ordering invariant ("assert stream 1 sees stage-changed
@@ -1438,7 +1487,11 @@ async function main() {
 			scout_probe_latency_ms_max: scoutProbeLatencyMsMax,
 			scout_probe_count: scoutProbeCount,
 			builder_scaffold_latency_ms: builderScaffoldLatencyMs,
-			builder_scaffold_count: builderScaffoldCount
+			builder_scaffold_count: builderScaffoldCount,
+			builder_rebuild_latency_ms: builderRebuildLatencyMs,
+			builder_rebuild_latency_ms_p50: builderRebuildLatencyMsP50,
+			builder_rebuild_latency_ms_max: builderRebuildLatencyMsMax,
+			builder_rebuild_count: builderRebuildCount
 		},
 		error_event_samples: errorEvents.slice(0, 8).map((e) => ({
 			ts_ms: e.ts_ms,
@@ -1481,7 +1534,8 @@ async function main() {
 		`oracle_syn=${oracleSynthesisLatencyMs === null ? '-' : oracleSynthesisLatencyMs + 'ms'} ` +
 		`oracle_rev=${oracleRevealBuildLatencyMs === null ? '-' : oracleRevealBuildLatencyMs + 'ms'} ` +
 		`scout_probe_p50=${scoutProbeLatencyMsP50 === null ? '-' : scoutProbeLatencyMsP50 + 'ms'}/n=${scoutProbeCount} ` +
-		`builder_scaffold=${builderScaffoldLatencyMs === null ? '-' : builderScaffoldLatencyMs + 'ms'}/n=${builderScaffoldCount}`
+		`builder_scaffold=${builderScaffoldLatencyMs === null ? '-' : builderScaffoldLatencyMs + 'ms'}/n=${builderScaffoldCount} ` +
+		`builder_rebuild=${builderRebuildLatencyMs === null ? '-' : builderRebuildLatencyMs + 'ms'}/n=${builderRebuildCount}`
 	);
 	process.exit(pass ? 0 : 1);
 }
